@@ -1,0 +1,294 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Notas | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
+
+
+
+</head>
+<body>
+    <style>
+        .subject-accordion {
+            display: grid;
+            gap: 10px;
+        }
+
+        .subject-group {
+            border: 1px solid #dbe3f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .subject-toggle {
+            align-items: center;
+            background: #24428f;
+            border: 0;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            font-size: 16px;
+            font-weight: 800;
+            gap: 12px;
+            justify-content: space-between;
+            padding: 11px 14px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .subject-toggle:hover {
+            background: #2f5fe8;
+        }
+
+        .subject-title {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .subject-title small {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .subject-meta {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .subject-count {
+            background: rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            font-size: 13px;
+            padding: 4px 9px;
+        }
+
+        .subject-icon {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .subject-group.is-open .subject-icon {
+            transform: rotate(180deg);
+        }
+
+        .subject-panel {
+            display: none;
+        }
+
+        .subject-group.is-open .subject-panel {
+            display: block;
+        }
+
+        .subject-empty {
+            color: #64748b;
+            font-style: italic;
+            margin: 0;
+            padding: 18px;
+        }
+
+        .subject-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .subject-table th,
+        .subject-table td {
+            border-top: 1px solid #e5e7eb;
+            padding: 14px 18px;
+            text-align: left;
+        }
+
+        .subject-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .table-container > table {
+            display: none;
+        }
+
+        @media (max-width: 720px) {
+            .subject-toggle {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        {% include 'colegio/alumno_menu.html' %}
+
+    </aside>
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>
+                    Mis Notas 
+                </h1>
+
+                <p>
+                    Revisa tus evaluaciones y tu rendimiento académico.
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- CARDS RESUMEN -->
+        <div class="cards">
+            <div class="card">
+                <h3>Promedio General</h3>
+                <p>{{ promedio }}</p>
+            </div>
+            <div class="card">
+                <h3>Evaluaciones Totales</h3>
+                <p>{{ total_evaluaciones }}</p>
+            </div>
+            <div class="card">
+                <h3>Asignaturas Aprobadas</h3>
+                <p>{{ asignaturas_aprobadas }}</p>
+            </div>
+        </div>
+
+        <!-- TABLA NOTAS -->
+        <div class="table-container">
+            <h2>Historial de Evaluaciones</h2>
+            {% if notas_por_asignatura %}
+                <div class="subject-accordion">
+                    {% for grupo in notas_por_asignatura %}
+                    <section class="subject-group {% if forloop.first %}is-open{% endif %}">
+                        <button type="button" class="subject-toggle" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                            <span class="subject-title">
+                                <span>{{ grupo.asignatura.nombre_asignatura }}</span>
+                                <small>
+                                    {% if grupo.promedio %}
+                                        Promedio {{ grupo.promedio }}
+                                    {% else %}
+                                        Sin promedio
+                                    {% endif %}
+                                </small>
+                            </span>
+                            <span class="subject-meta">
+                                <span class="subject-count">{{ grupo.notas|length }} evaluacion(es)</span>
+                                <span class="subject-icon">⌄</span>
+                            </span>
+                        </button>
+
+                        <div class="subject-panel">
+                            {% if grupo.notas %}
+                                <table class="subject-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Evaluación</th>
+                                            <th>Fecha</th>
+                                            <th>Nota</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for nota in grupo.notas %}
+                                        <tr>
+                                            <td>{{ nota.evaluacion.nombre_evaluacion }}</td>
+                                            <td>{{ nota.evaluacion.fecha|date:"d/m/Y" }}</td>
+                                            <td>{{ nota.valor_nota }}</td>
+                                            <td>
+                                                {% if nota.valor_nota >= 4.0 %}
+                                                    <span class="badge badge-aprobado">Aprobado</span>
+                                                {% else %}
+                                                    <span class="badge badge-reprobado">Reprobado</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p class="subject-empty">Sin evaluaciones registradas para este ramo.</p>
+                            {% endif %}
+                        </div>
+                    </section>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="subject-empty">No hay asignaturas registradas para tu curso actual.</p>
+            {% endif %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asignatura</th>
+                        <th>Evaluación</th>
+                        <th>Fecha</th>
+                        <th>Nota</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nota in notas %}
+                    <tr>
+                        <td>{{ nota.evaluacion.carga.asignatura.nombre_asignatura }}</td>
+                        <td>{{ nota.evaluacion.nombre_evaluacion }}</td>
+                        <td>{{ nota.evaluacion.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ nota.valor_nota }}</td>
+                        <td>
+                            {% if nota.valor_nota >= 4.0 %}
+                                <span class="badge badge-aprobado">Aprobado</span>
+                            {% else %}
+                                <span class="badge badge-reprobado">Reprobado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No hay evaluaciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.subject-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const group = this.closest('.subject-group');
+                    const isOpen = group.classList.toggle('is-open');
+                    this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

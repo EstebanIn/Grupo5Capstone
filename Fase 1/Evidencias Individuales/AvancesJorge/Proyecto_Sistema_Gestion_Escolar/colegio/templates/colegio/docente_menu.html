@@ -1,0 +1,9 @@
+<ul class="menu">
+    <li><a href="{% url 'panel_docente' %}"> Inicio</a></li>
+    <li><a href="{% url 'panel_docente_cursos' %}"> Cursos</a></li>
+    <li><a href="{% url 'asistente_docente' %}"> Asistente IA</a></li>
+    {% if docente_tiene_jefatura %}
+    <li><a href="{% url 'panel_docente_jefatura' %}"> Profesor Jefe</a></li>
+    {% endif %}
+    <li><a href="{% url 'logout' %}"> Cerrar sesión</a></li>
+</ul>

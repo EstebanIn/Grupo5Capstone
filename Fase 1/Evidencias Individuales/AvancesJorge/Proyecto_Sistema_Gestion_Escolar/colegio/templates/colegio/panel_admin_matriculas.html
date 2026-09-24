@@ -1,0 +1,142 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Gestión de Matrículas | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Gestión de Matrículas</h2>
+    <a href="{% url 'crear_matricula_admin' %}" class="btn-primary">+ Nueva Matrícula</a>
+</div>
+
+{% if messages %}
+    {% for msg in messages %}
+        <div class="alert alert-success" style="margin-bottom:16px; padding:12px 16px; background:#dcfce7; color:#166534; border-radius:8px; font-weight:bold">
+            ✅ {{ msg }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Curso Asignado</th>
+                <th>Período</th>
+                <th>Fecha Matrícula</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for matricula in matriculas %}
+            <tr>
+                <td>
+                    <strong>
+                        {{ matricula.alumno.nombre_alumno }}
+                        {{ matricula.alumno.apellido_alumno }}
+                    </strong>
+                </td>
+                <td>{{ matricula.curso }}</td>
+                <td>{{ matricula.periodo }}</td>
+                <td>{{ matricula.fecha_matricula|date:"d/m/Y" }}</td>
+                <td>
+                    <span class="estado {% if matricula.estado == 'Activa' %}activo{% else %}pendiente{% endif %}">
+                        {{ matricula.estado }}
+                    </span>
+                </td>
+                <td style="display:flex; gap:8px">
+                    <a href="{% url 'editar_matricula_admin' matricula.pk %}" class="btn-primary" style="font-size:13px; padding:6px 12px">
+                        Editar
+                    </a>
+                    <a href="{% url 'eliminar_matricula_admin' matricula.pk %}" class="btn-danger" style="font-size:13px; padding:6px 12px; background:#dc2626; color:white; border-radius:6px; text-decoration:none">
+                        Eliminar
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center; color:#6b7280; padding:20px">
+                    No hay matrículas registradas.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card" style="margin-top: 24px;">
+    <h3 style="color:#4c1d95; margin-bottom: 12px;">Alumnos sin matrícula</h3>
+    <p style="color:#6b7280; margin-bottom: 16px;">
+        Estos alumnos existen en la base de datos, pero aún no tienen curso ni período asignado.
+    </p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Usuario</th>
+                <th>RUT</th>
+                <th>Ciclo</th>
+                <th>Nivel</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for alumno in alumnos_sin_matricula %}
+            <tr>
+                <td>
+                    <strong>{{ alumno.nombre_alumno }} {{ alumno.apellido_alumno }}</strong>
+                </td>
+                <td>{{ alumno.usuario.username }}</td>
+                <td>{{ alumno.usuario.rut }}</td>
+                <td>
+                    {% if alumno.postulacion_referencia %}
+                        {{ alumno.postulacion_referencia.get_ciclo_postulacion_display }}
+                    {% else %}
+                        Sin postulación
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if alumno.postulacion_referencia %}
+                        {{ alumno.postulacion_referencia.nivel_postulacion }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="estado pendiente">Pendiente de matrícula</span>
+                </td>
+                <td>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <a href="{% url 'crear_matricula_admin' %}?alumno_id={{ alumno.pk }}"
+                        class="btn-primary"
+                        style="font-size:13px; padding:6px 12px">
+                            Crear matrícula
+                        </a>
+
+                        <form method="post"
+                            action="{% url 'cancelar_matriculacion_admin' alumno.pk %}"
+                            onsubmit="return confirm('¿Seguro que deseas cancelar la matriculación? No se eliminará el usuario, alumno ni apoderado.');">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    style="font-size:13px; padding:6px 12px; background:#dc2626; color:white; border:0; border-radius:6px; cursor:pointer;">
+                                Cancelar
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7" style="text-align:center; color:#6b7280; padding:20px">
+                    Todos los alumnos tienen matrícula registrada.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

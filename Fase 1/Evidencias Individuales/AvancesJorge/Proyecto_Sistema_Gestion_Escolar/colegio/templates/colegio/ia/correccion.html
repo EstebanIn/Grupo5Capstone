@@ -1,0 +1,79 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load ia_extras %}
+
+{% block titulo %}Resultado: {{ instrumento.titulo }}{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver ia-no-imprimir" href="{% url 'ia_corregir_prueba' instrumento.pk %}">← Corregir otra prueba</a>
+<div class="ia-encabezado">
+    <h1>{% if correccion.alumno %}{{ correccion.alumno.nombre_alumno }} {{ correccion.alumno.apellido_alumno }}{% else %}Resultado{% endif %}</h1>
+    <p>{{ instrumento.titulo }} · {{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }}</p>
+</div>
+
+<div class="ia-metricas">
+    <div class="ia-metrica"><span>Nota</span><strong style="{% if correccion.nota < 4 %}color:#b91c1c{% endif %}">{{ correccion.nota }}</strong></div>
+    <div class="ia-metrica"><span>Correctas</span><strong>{{ correccion.correctas }}/{{ correccion.total }}</strong></div>
+    <div class="ia-metrica"><span>Logro</span><strong>{{ porcentaje }}%</strong></div>
+    <div class="ia-metrica"><span>Incorrectas</span><strong>{{ incorrectas }}</strong></div>
+    <div class="ia-metrica"><span>En blanco</span><strong>{{ omitidas }}</strong></div>
+</div>
+<p class="ayuda ia-no-imprimir" style="margin:-12px 0 20px">
+    Escala 1.0 a 7.0 con 60% de exigencia (nota 4.0 con el 60% de respuestas correctas). Las preguntas en blanco cuentan como incorrectas.
+    {% if correccion.leida_con_ia %}Respuestas leídas con IA{% if correccion.ajustes_docente %}; ajustaste {{ correccion.ajustes_docente }}{% endif %}.{% endif %}
+</p>
+
+{% if correccion.alumno %}
+<div class="ia-panel ia-no-imprimir">
+    <h2>Registrar en el libro de notas</h2>
+    {% if correccion.nota_registrada %}
+    <p>✔ Nota registrada en <strong>{{ correccion.nota_registrada.evaluacion.nombre_evaluacion }}</strong>.</p>
+    {% elif evaluaciones %}
+    <form method="post" class="ia-form ia-acciones">
+        {% csrf_token %}
+        <select name="evaluacion" style="max-width:340px" required>
+            <option value="">Elige la evaluación…</option>
+            {% for evaluacion in evaluaciones %}
+            <option value="{{ evaluacion.pk }}">{{ evaluacion.numero_evaluacion }}. {{ evaluacion.nombre_evaluacion }} ({{ evaluacion.fecha|date:"d-m-Y" }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="ia-boton">Registrar nota {{ correccion.nota }}</button>
+    </form>
+    <p class="ayuda">Si el alumno ya tiene nota en esa evaluación, se reemplaza.</p>
+    {% else %}
+    <p>Este curso no tiene evaluaciones creadas. Créala en <a href="{% url 'panel_docente_notas' %}?carga_id={{ instrumento.carga_id }}">Notas</a> y vuelve aquí para registrar la nota.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="ia-panel ia-lectura">
+    <h2>Detalle por pregunta</h2>
+    <ol class="preguntas">
+        {% for item in detalle %}
+        <li class="resultado-{{ item.estado }}">
+            <span class="marca">{% if item.estado == 'correcta' %}✔{% elif item.estado == 'incorrecta' %}✘{% else %}○{% endif %}</span>
+            {{ item.pregunta.enunciado|linebreaksbr }}
+            <div class="ayuda" style="margin-top:4px">
+                {% if item.estado == 'omitida' %}<strong>En blanco.</strong>{% else %}Marcó <strong>{{ item.marcada|letra }})</strong> {{ item.pregunta.alternativas|index:item.marcada }}.{% endif %}
+                {% if item.estado != 'correcta' %}
+                Correcta: <strong>{{ item.correcta|letra }})</strong> {{ item.pregunta.alternativas|index:item.correcta }}.
+                {% if item.pregunta.explicacion %}<br><em>{{ item.pregunta.explicacion }}</em>{% endif %}
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ol>
+</div>
+
+<div class="ia-acciones ia-no-imprimir">
+    <button type="button" class="ia-boton secundario" onclick="window.print()">Imprimir retroalimentación</button>
+    <a class="ia-boton" href="{% url 'ia_corregir_prueba' instrumento.pk %}">Corregir la siguiente</a>
+</div>
+
+<style>
+    .ia-lectura li { padding: 8px 0 8px 4px; }
+    .ia-lectura .marca { font-weight: bold; margin-right: 6px; }
+    .resultado-correcta .marca { color: #15803d; }
+    .resultado-incorrecta .marca { color: #b91c1c; }
+    .resultado-omitida .marca { color: #9ca3af; }
+</style>
+{% endblock %}

@@ -1,0 +1,30 @@
+<h1>Lista de Matrículas</h1>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID Matrícula</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Curso</th>
+            <th>Periodo</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for matricula in matriculas %}
+        <tr>
+            <td>{{ matricula.id }}</td>
+            <td>{{ matricula.alumno.nombre_alumno }}</td>
+            <td>{{ matricula.alumno.apellido_alumno }}</td>
+            <td>{{ matricula.curso }}</td>
+            <td>{{ matricula.periodo }}</td>
+            <td>{{ matricula.estado }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No hay matrículas registradas.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

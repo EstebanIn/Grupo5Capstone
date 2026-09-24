@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Asistente IA{% endblock %} | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ia.css' %}">
+</head>
+<body class="ia-docente">
+    <aside class="sidebar">
+        <div class="logo">EduGestor</div>
+        {% include 'colegio/docente_menu.html' %}
+    </aside>
+
+    <main class="main">
+        {% if modo_simulado %}
+        <div class="ia-aviso ia-no-imprimir">
+            Modo simulado: la IA real no está conectada (falta <code>GEMINI_API_KEY</code> en <code>.env</code>). Las respuestas son ejemplos fijos.
+        </div>
+        {% endif %}
+
+        {% if messages %}
+        <ul class="ia-mensajes ia-no-imprimir">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+    <script>
+        // Generar con IA puede tardar: evita envíos dobles y avisa que está trabajando.
+        document.querySelectorAll("form[data-generando]").forEach(function (form) {
+            form.addEventListener("submit", function (evento) {
+                var boton = evento.submitter;
+                // Un botón deshabilitado no envía su name/value: se copia a un campo oculto.
+                if (boton && boton.name) {
+                    var oculto = document.createElement("input");
+                    oculto.type = "hidden";
+                    oculto.name = boton.name;
+                    oculto.value = boton.value;
+                    form.appendChild(oculto);
+                }
+                form.querySelectorAll("button[type=submit]").forEach(function (b) { b.disabled = true; });
+                if (boton) boton.textContent = form.dataset.generando;
+            });
+        });
+    </script>
+</body>
+</html>

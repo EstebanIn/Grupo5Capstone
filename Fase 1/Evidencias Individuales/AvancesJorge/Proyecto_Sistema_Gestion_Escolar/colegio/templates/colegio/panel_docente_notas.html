@@ -1,0 +1,266 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar Notas | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+</head>
+<body>
+<style>
+    .grades-accordion {
+        display: grid;
+        gap: 8px;
+    }
+
+    .grade-group {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .grade-group-toggle {
+        align-items: center;
+        background: #166534;
+        border: 0;
+        color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        font-size: 16px;
+        font-weight: 800;
+        gap: 12px;
+        justify-content: space-between;
+        padding: 10px 14px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .grade-group-toggle:hover {
+        background: #15803d;
+    }
+
+    .grade-group-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .grade-group-title small {
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .grade-group-meta {
+        align-items: center;
+        display: flex;
+        gap: 12px;
+        white-space: nowrap;
+    }
+
+    .grade-group-count {
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        font-size: 13px;
+        padding: 4px 9px;
+    }
+
+    .grade-group-icon {
+        display: inline-block;
+        transition: transform 0.2s ease;
+    }
+
+    .grade-group.is-open .grade-group-icon {
+        transform: rotate(180deg);
+    }
+
+    .grade-group-panel {
+        display: none;
+        padding: 0;
+    }
+
+    .grade-group.is-open .grade-group-panel {
+        display: block;
+    }
+
+    .grade-group-empty {
+        color: #64748b;
+        font-style: italic;
+        margin: 0;
+        padding: 18px;
+    }
+
+    .grade-detail-table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .grade-detail-table th,
+    .grade-detail-table td {
+        border-top: 1px solid #e5e7eb;
+        padding: 14px 18px;
+        text-align: left;
+    }
+
+    .grade-detail-table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 14px;
+    }
+
+    @media (max-width: 720px) {
+        .grade-group-toggle {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<aside class="sidebar">
+    <div class="logo">EduGestor</div>
+    {% include 'colegio/docente_menu.html' %}
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div class="welcome">
+            <h1>Ingresar Notas</h1>
+            {% if carga_seleccionada %}
+                <p>{{ carga_seleccionada.curso }} - {{ carga_seleccionada.asignatura.nombre_asignatura }} ({{ carga_seleccionada.periodo }})</p>
+            {% else %}
+                <p>Registra evaluaciones y notas de los alumnos.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <p class="msg-{{ msg.tags }}">{{ msg }}</p>
+        {% endfor %}
+    {% endif %}
+
+    {% if not carga_seleccionada %}
+    <div class="table-container" style="margin-bottom:20px">
+        <p style="color:#9ca3af; font-style:italic">
+            Selecciona un curso desde el panel de inicio para gestionar sus evaluaciones.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- EVALUACIONES -->
+    <div class="form-container evaluaciones-container">
+        <h2>Evaluaciones</h2>
+
+        {% if carga_seleccionada %}
+            <a href="{% url 'crear_evaluacion' %}?carga_id={{ carga_seleccionada.id }}" class="btn">+ Nueva Evaluación</a>
+        {% else %}
+            <a href="{% url 'crear_evaluacion' %}" class="btn">+ Nueva Evaluación</a>
+        {% endif %}
+
+        <table class="evaluaciones-table" style="margin-top:1rem">
+            <thead>
+                <tr>
+                    <th>Evaluación</th>
+                    <th>Curso</th>
+                    <th>Asignatura</th>
+                    <th>Fecha</th>
+                    <th>Número de evaluación</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for ev in evaluaciones %}
+                <tr>
+                    <td>{{ ev.nombre_evaluacion }}</td>
+                    <td>{{ ev.carga.curso }}</td>
+                    <td>{{ ev.carga.asignatura.nombre_asignatura }}</td>
+                    <td>{{ ev.fecha }}</td>
+                    <td>{{ ev.numero_evaluacion }}</td>
+                    <td>
+                        <div class="action-row">
+                        <a href="{% url 'ingresar_notas' ev.id %}" class="btn">Notas</a>
+                        <a href="{% url 'editar_evaluacion' ev.id %}" class="btn" style="background:#f59e0b">Editar</a>
+                        <form method="post" action="{% url 'eliminar_evaluacion' ev.id %}" style="display:inline"
+                              onsubmit="return confirm('¿Seguro que quieres eliminar la evaluación {{ ev.nombre_evaluacion|escapejs }}? Esto borrará también las notas asociadas.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn" style="background:#dc2626; border:none">Eliminar</button>
+                        </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">No hay evaluaciones creadas para este curso.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- REGISTRO DE NOTAS -->
+    <div class="table-container">
+        <h2>Registro de Notas</h2>
+        {% if notas_por_evaluacion %}
+            <div class="grades-accordion">
+                {% for grupo in notas_por_evaluacion %}
+                    <section class="grade-group {% if forloop.first %}is-open{% endif %}">
+                        <button type="button" class="grade-group-toggle" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                            <span class="grade-group-title">
+                                <span>Nota {{ grupo.evaluacion.numero_evaluacion }}</span>
+                                <small>{{ grupo.evaluacion.nombre_evaluacion }} - {{ grupo.evaluacion.fecha|date:"d/m/Y" }}</small>
+                            </span>
+                            <span class="grade-group-meta">
+                                <span class="grade-group-count">{{ grupo.notas|length }} registro(s)</span>
+                                <span class="grade-group-icon">⌄</span>
+                            </span>
+                        </button>
+
+                        <div class="grade-group-panel">
+                            {% if grupo.notas %}
+                                <table class="grade-detail-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Alumno</th>
+                                            <th>Curso</th>
+                                            <th>Nota</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for nota in grupo.notas %}
+                                        <tr>
+                                            <td>{{ nota.alumno.nombre_alumno }} {{ nota.alumno.apellido_alumno }}</td>
+                                            <td>{{ nota.evaluacion.carga.curso }}</td>
+                                            <td class="{% if nota.valor_nota >= 4 %}nota-aprobada{% else %}nota-roja{% endif %}">
+                                                {{ nota.valor_nota }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p class="grade-group-empty">Aun no hay notas registradas para esta evaluación.</p>
+                            {% endif %}
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color:#9ca3af; font-style:italic">No hay notas registradas para este curso.</p>
+        {% endif %}
+    </div>
+
+</main>
+    {% include 'colegio/sidebar_active_script.html' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.grade-group-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const group = this.closest('.grade-group');
+                    const isOpen = group.classList.toggle('is-open');
+                    this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

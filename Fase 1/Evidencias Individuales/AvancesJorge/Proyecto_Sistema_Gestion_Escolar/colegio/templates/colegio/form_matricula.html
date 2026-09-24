@@ -1,0 +1,396 @@
+{% extends 'colegio/base_admin.html' %}
+{% block title %}{{ titulo }} | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>{{ titulo }}</h2>
+    <a href="{% url 'panel_admin_matriculas' %}" class="btn-secondary" style="background:#6b7280; color:white; padding:10px 18px; border-radius:8px; text-decoration:none">
+        ← Volver
+    </a>
+</div>
+
+<div class="card" style="max-width:600px">
+    <form method="POST" id="matricula-form">
+        {% csrf_token %}
+        {% if alumno_id %}
+    <input type="hidden" name="alumno_id" value="{{ alumno_id }}">
+        {% endif %}
+        {% if postulacion_referencia %}
+            <div style="
+                margin-bottom: 18px;
+                padding: 12px 14px;
+                background: #eef2ff;
+                border: 1px solid #c7d2fe;
+                border-radius: 8px;
+                color: #1e3a8a;
+                font-weight: 600;
+            ">
+                Referencia de postulación:
+                {{ postulacion_referencia.get_ciclo_postulacion_display }}
+                -
+                Nivel {{ postulacion_referencia.nivel_postulacion }}
+            </div>
+        {% endif %}
+        {% for field in form %}
+            {% if field.name == 'apoderados' %}
+                {# Campo especial para apoderados con búsqueda visual #}
+                <div style="margin-bottom:20px">
+                    <label style="display:block; font-weight:bold; margin-bottom:8px; color:#1f2937; font-size:15px">
+                        Apoderados
+                    </label>
+                    
+                    {# Input de búsqueda #}
+                    <input 
+                        type="text" 
+                        id="apoderado-search" 
+                        placeholder="Buscar apoderado por nombre o RUT..." 
+                        style="
+                            width: 100%;
+                            padding: 10px 12px;
+                            border: 1px solid #d1d5db;
+                            border-radius: 6px;
+                            margin-bottom: 10px;
+                            font-size: 14px;
+                            box-sizing: border-box;
+                            background-color: #ffffff;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+                        "
+                    />
+                    
+                    {# Contenedor de resultados de búsqueda #}
+                    <div id="apoderado-results" style="
+                        display: none;
+                        border: 1px solid #d1d5db;
+                        border-radius: 6px;
+                        max-height: 200px;
+                        overflow-y: auto;
+                        margin-bottom: 10px;
+                        background: white;
+                        z-index: 100;
+                        position: relative;
+                    "></div>
+                    
+                    {# Apoderados seleccionados como chips #}
+                    <div id="apoderado-selected-container" style="
+                        margin-top: 10px;
+                        padding: 12px;
+                        background-color: #f9fafb;
+                        border-radius: 6px;
+                        border: 1px solid #e5e7eb;
+                        min-height: 44px;
+                        display: flex;
+                        align-items: center;
+                    ">
+                        <div id="apoderado-chips" style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%;"></div>
+                    </div>
+                    
+                    {# Checkboxes ocultos que se sincronizarán automáticamente #}
+                    <div style="display: none;">
+                        {{ field }}
+                    </div>
+                    
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p style="color:#dc2626; font-size:13px; margin-top:6px">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% elif field.name != 'apoderados' %}
+                <div style="margin-bottom:20px">
+                    <label style="display:block; font-weight:bold; margin-bottom:8px; color:#1f2937; font-size:15px">
+                        {{ field.label }}
+                    </label>
+                    {% if field.field.widget.input_type == 'select' %}
+                        {{ field }}
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p style="color:#dc2626; font-size:13px; margin-top:6px">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p style="color:#dc2626; margin-bottom:12px; font-size:14px">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <button type="submit" class="btn-primary" style="margin-top:16px">
+            {{ accion }}
+        </button>
+    </form>
+</div>
+
+<style>
+    /* Estilos uniformes para todos los inputs y selects */
+    #matricula-form input[type="text"],
+    #matricula-form input[type="email"],
+    #matricula-form input[type="number"],
+    #matricula-form input[type="date"],
+    #matricula-form select,
+    #matricula-form textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+        background-color: #ffffff;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    #matricula-form input[type="text"]:focus,
+    #matricula-form input[type="email"]:focus,
+    #matricula-form input[type="number"]:focus,
+    #matricula-form input[type="date"]:focus,
+    #matricula-form select:focus,
+    #matricula-form textarea:focus {
+        outline: none;
+        border-color: #9333ea;
+        box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+    }
+    
+    #matricula-form select:disabled {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+    
+    #matricula-form input:disabled {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    .apoderado-chip {
+        display: inline-flex;
+        align-items: center;
+        background-color: #dbeafe;
+        color: #1e40af;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    
+    .apoderado-chip-remove {
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.5);
+        transition: background-color 0.2s;
+    }
+    
+    .apoderado-chip-remove:hover {
+        background-color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .apoderado-result-item {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .apoderado-result-item:hover {
+        background-color: #f3f4f6;
+    }
+    
+    .apoderado-result-item:last-child {
+        border-bottom: none;
+    }
+    
+    .apoderado-result-name {
+        font-weight: 500;
+        color: #111827;
+        font-size: 14px;
+    }
+    
+    .apoderado-result-rut {
+        font-size: 12px;
+        color: #6b7280;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('apoderado-search');
+    const resultsDiv = document.getElementById('apoderado-results');
+    const chipsDiv = document.getElementById('apoderado-chips');
+    const checkboxes = document.querySelectorAll('.apoderado-checkbox');
+    
+    let selectedApoderados = new Set();
+    
+    // Función para renderizar chips
+    function renderChips() {
+        chipsDiv.innerHTML = '';
+        
+        if (selectedApoderados.size === 0) {
+            chipsDiv.innerHTML = '<span style="color: #9ca3af; font-size: 14px;">Ningún apoderado seleccionado</span>';
+            return;
+        }
+        
+        selectedApoderados.forEach(apod => {
+            const chip = document.createElement('div');
+            chip.className = 'apoderado-chip';
+            chip.innerHTML = `
+                <span>${apod.nombre}</span>
+                <span class="apoderado-chip-remove" data-id="${apod.id}">×</span>
+            `;
+            
+            chip.querySelector('.apoderado-chip-remove').addEventListener('click', function() {
+                // Eliminar de la lista seleccionada
+                selectedApoderados.forEach(item => {
+                    if (item.id === apod.id) selectedApoderados.delete(item);
+                });
+                
+                // Desmarcar checkbox
+                const checkbox = document.querySelector(`.apoderado-checkbox[value="${apod.id}"]`);
+                if (checkbox) checkbox.checked = false;
+                
+                renderChips();
+                searchInput.value = '';
+                resultsDiv.style.display = 'none';
+            });
+            
+            chipsDiv.appendChild(chip);
+        });
+    }
+    
+    // Cargar apoderados asociados desde la tabla AlumnoApoderado
+    const apoderadosInicialesDesdeBD = [
+        {% for relacion in relaciones_apoderados %}
+            {
+                id: "{{ relacion.apoderado.id }}",
+                nombre: "{{ relacion.apoderado.nombre_apoderado|escapejs }} {{ relacion.apoderado.apellido_apoderado|escapejs }}"
+            },
+        {% endfor %}
+    ];
+
+    apoderadosInicialesDesdeBD.forEach(apod => {
+        selectedApoderados.add(apod);
+
+        // Marcar también el checkbox oculto para que se envíe en el POST
+        const checkbox = document.querySelector(`.apoderado-checkbox[value="${apod.id}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+
+    // También respetar valores que vengan marcados desde el form, por ejemplo si hubo error de validación
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const yaExiste = Array.from(selectedApoderados).some(a => a.id === checkbox.value);
+
+            if (!yaExiste) {
+                const labelText = document.querySelector(`label[for="${checkbox.id}"]`)?.textContent || '';
+                selectedApoderados.add({
+                    id: checkbox.value,
+                    nombre: labelText.trim() || `Apoderado ${checkbox.value}`
+                });
+            }
+        }
+    });
+    
+    // Función para buscar apoderados
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+        
+        fetch(`/api/buscar-apoderados/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsDiv.innerHTML = '';
+                
+                if (data.apoderados.length === 0) {
+                    resultsDiv.innerHTML = '<div style="padding: 10px 12px; color: #6b7280; font-size: 14px;">No se encontraron apoderados</div>';
+                    resultsDiv.style.display = 'block';
+                    return;
+                }
+                
+                data.apoderados.forEach(apoderado => {
+                    const item = document.createElement('div');
+                    item.className = 'apoderado-result-item';
+                    
+                    // Verificar si ya está seleccionado
+                    const yaSeleccionado = Array.from(selectedApoderados).some(a => a.id === apoderado.id.toString());
+                    
+                    item.innerHTML = `
+                        <div>
+                            <div class="apoderado-result-name">${apoderado.nombre}</div>
+                            <div class="apoderado-result-rut">${apoderado.rut}</div>
+                        </div>
+                        <div style="color: ${yaSeleccionado ? '#10b981' : '#d1d5db'}; font-weight: bold; font-size: 14px;">
+                            ${yaSeleccionado ? '✓ Agregado' : '+ Agregar'}
+                        </div>
+                    `;
+                    
+                    item.addEventListener('click', function() {
+                        const idStr = apoderado.id.toString();
+                        const yaEsta = Array.from(selectedApoderados).some(a => a.id === idStr);
+                        
+                        if (yaEsta) {
+                            // Remover
+                            selectedApoderados.forEach(apod => {
+                                if (apod.id === idStr) selectedApoderados.delete(apod);
+                            });
+                            const checkbox = document.querySelector(`.apoderado-checkbox[value="${idStr}"]`);
+                            if (checkbox) checkbox.checked = false;
+                        } else {
+                            // Agregar
+                            selectedApoderados.add({
+                                id: idStr,
+                                nombre: apoderado.nombre
+                            });
+                            const checkbox = document.querySelector(`.apoderado-checkbox[value="${idStr}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        }
+                        
+                        renderChips();
+                        searchInput.value = '';
+                        resultsDiv.style.display = 'none';
+                    });
+                    
+                    resultsDiv.appendChild(item);
+                });
+                
+                resultsDiv.style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+    });
+    
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (e.target !== searchInput && e.target.closest('#apoderado-results') === null) {
+            if (searchInput.value.trim().length < 2) {
+                resultsDiv.style.display = 'none';
+            }
+        }
+    });
+    
+    // Renderizar chips iniciales
+    renderChips();
+});
+</script>
+
+{% endblock %}

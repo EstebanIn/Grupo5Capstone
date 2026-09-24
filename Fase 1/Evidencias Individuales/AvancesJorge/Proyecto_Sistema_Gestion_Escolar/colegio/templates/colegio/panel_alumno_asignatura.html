@@ -1,0 +1,117 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Asignaturas | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
+
+    
+</head>
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        {% include 'colegio/alumno_menu.html' %}
+
+    </aside>
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>
+                    Mis Asignaturas 
+                </h1>
+
+                <p>
+                    Aqui puedes ver las asignaturas asignadas a tu matricula actual.
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- CARDS RESUMEN -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total de Asignaturas</h3>
+                <p>{{ total_asignaturas }}</p>
+            </div>
+            <div class="card">
+                <h3>Asignaturas Activas</h3>
+                <p>{{ total_asignaturas }}</p>
+            </div>
+            <div class="card">
+                <h3>Período</h3>
+                <p>{% if periodo %}{{ periodo.anio }}-{{ periodo.semestre }}{% else %}Sin matricula{% endif %}</p>
+            </div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="table-container">
+            <h2>Listado de Asignaturas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asignatura</th>
+                        <th>Descripción</th>
+                        <th>Docente</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- La lista viene de la malla del curso; puede haber asignaturas sin docente todavia. -->
+                    {% for asignatura in asignaturas %}
+                    <tr>
+                        <td>{{ asignatura.nombre_asignatura }}</td>
+                        <td>{{ asignatura.descripcion|default:"Sin descripción" }}</td>
+                        <td>
+                            {% for docente in asignatura.docentes.all %}
+                                {{ docente.nombre_docente }} {{ docente.apellido_docente }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                Sin docente asignado
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if asignatura.estado_asignatura %}
+                                <span class="badge badge-activa">Activa</span>
+                            {% else %}
+                                <span class="badge badge-pendiente">En Revision</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No hay asignaturas asignadas para tu matricula actual.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

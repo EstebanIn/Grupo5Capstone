@@ -1,0 +1,197 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load ia_extras %}
+
+{% block titulo %}{{ instrumento.titulo }}{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver ia-no-imprimir" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+
+<div class="ia-encabezado">
+    <h1>{{ instrumento.titulo }}</h1>
+    <p>
+        {{ instrumento.get_tipo_display }} · {{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }}
+        <span class="ia-no-imprimir">
+            · <span class="ia-estado {{ instrumento.estado }}">{{ instrumento.get_estado_display }}</span>
+            {% if instrumento.porcentaje_corregido is not None %} · corregiste el {{ instrumento.porcentaje_corregido }}% del borrador{% endif %}
+        </span>
+    </p>
+    {% if instrumento.objetivo %}<p><strong>OA:</strong> {{ instrumento.objetivo }}</p>{% endif %}
+</div>
+
+{% if editable %}
+{# ======================= EDICIÓN DEL BORRADOR ======================= #}
+<form method="post" class="ia-form" data-generando="Guardando…">
+    {% csrf_token %}
+    <div class="ia-panel">
+        <div class="campo">
+            <label for="titulo">Título</label>
+            <input type="text" id="titulo" name="titulo" value="{{ contenido.titulo }}" required maxlength="200">
+        </div>
+
+        {% if instrumento.tipo == 'PRUEBA' %}
+        <div class="campo">
+            <label for="instrucciones">Instrucciones</label>
+            <textarea id="instrucciones" name="instrucciones" rows="2">{{ contenido.instrucciones }}</textarea>
+        </div>
+    </div>
+
+    {% for pregunta in contenido.preguntas %}
+    {% with i=forloop.counter0 %}
+    <div class="ia-pregunta ia-panel">
+        <div class="cabecera">
+            <strong>Pregunta {{ forloop.counter }}</strong>
+            <label class="ia-eliminar"><input type="checkbox" name="p{{ i }}_eliminar"> Quitar pregunta</label>
+        </div>
+        <div class="campo">
+            <textarea name="p{{ i }}_enunciado" rows="2" required>{{ pregunta.enunciado }}</textarea>
+        </div>
+        {% for alternativa in pregunta.alternativas %}
+        <div class="ia-alternativa">
+            <input type="radio" name="p{{ i }}_correcta" value="{{ forloop.counter0 }}" title="Marcar como correcta"
+                   {% if forloop.counter0 == pregunta.correcta %}checked{% endif %}>
+            <span class="letra">{{ forloop.counter0|letra }})</span>
+            <input type="text" name="p{{ i }}_alt{{ forloop.counter0 }}" value="{{ alternativa }}" required>
+        </div>
+        {% endfor %}
+        <div class="campo" style="margin-top:10px">
+            <label for="p{{ i }}_explicacion" style="font-weight:normal">Explicación (solo para la pauta)</label>
+            <textarea id="p{{ i }}_explicacion" name="p{{ i }}_explicacion" rows="2">{{ pregunta.explicacion }}</textarea>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+    <div class="ia-panel">
+
+        {% elif instrumento.tipo == 'RUBRICA' %}
+        <div class="campo">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="2">{{ contenido.descripcion }}</textarea>
+        </div>
+        <div class="ia-rubrica-scroll">
+            <table class="ia-rubrica">
+                <thead>
+                    <tr>
+                        <th style="min-width:160px">Criterio</th>
+                        <th style="width:70px">Puntaje máx.</th>
+                        {% for nivel in contenido.niveles %}
+                        <th style="min-width:170px"><input type="text" name="nivel_{{ forloop.counter0 }}" value="{{ nivel }}" required></th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for criterio in contenido.criterios %}
+                    {% with i=forloop.counter0 %}
+                    <tr>
+                        <td>
+                            <textarea name="c{{ i }}_criterio" rows="3" required>{{ criterio.criterio }}</textarea>
+                            <label class="ia-eliminar"><input type="checkbox" name="c{{ i }}_eliminar"> Quitar</label>
+                        </td>
+                        <td><input type="number" name="c{{ i }}_puntaje" value="{{ criterio.puntaje_maximo }}" min="1" max="100"></td>
+                        {% for descriptor in criterio.descriptores %}
+                        <td><textarea name="c{{ i }}_d{{ forloop.counter0 }}" rows="4" required>{{ descriptor }}</textarea></td>
+                        {% endfor %}
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="campo">
+            <label for="texto">Contenido (Markdown: # títulos, **negrita**, - listas)</label>
+            <textarea id="texto" name="texto" rows="24" required>{{ contenido.texto }}</textarea>
+        </div>
+        {% endif %}
+
+        <div class="ia-acciones">
+            {% if instrumento.tipo == 'PRUEBA' %}
+            <a class="ia-boton secundario" href="{% url 'ia_revisar_prueba' %}?instrumento={{ instrumento.pk }}"
+               title="Guarda tus cambios antes: se revisa la versión guardada">🔍 Revisar calidad con IA</a>
+            {% endif %}
+            <button type="submit" name="accion" value="guardar" class="ia-boton secundario">Guardar cambios</button>
+            <button type="submit" name="accion" value="aprobar" class="ia-boton"
+                    onclick="return confirm('¿Aprobar este documento? Después no podrás editarlo.')">Aprobar</button>
+        </div>
+        <p class="ayuda" style="margin-top:10px">Al aprobar se registra qué porcentaje del borrador corregiste. Es la medida que usamos para evaluar la calidad del asistente.</p>
+    </div>
+</form>
+
+{% else %}
+{# ======================= DOCUMENTO APROBADO ======================= #}
+<div class="ia-acciones ia-no-imprimir" style="margin-bottom:16px">
+    {% if instrumento.tipo == 'PRUEBA' %}
+    <a class="ia-boton" href="{% url 'ia_corregir_prueba' instrumento.pk %}">✅ Corregir pruebas de alumnos</a>
+    {% endif %}
+    <button type="button" class="ia-boton secundario" onclick="window.print()">Imprimir</button>
+    {% if instrumento.tipo == 'PRUEBA' %}
+    <label style="display:flex; gap:6px; align-items:center; font-size:14px">
+        <input type="checkbox" id="con-pauta" checked> Mostrar respuestas y explicaciones (pauta)
+    </label>
+    {% endif %}
+</div>
+
+<div class="ia-panel ia-lectura" id="documento">
+    {% if instrumento.tipo == 'PRUEBA' %}
+    {% if contenido.instrucciones %}<p><em>{{ contenido.instrucciones }}</em></p>{% endif %}
+    <ol class="preguntas">
+        {% for pregunta in contenido.preguntas %}
+        <li>
+            {{ pregunta.enunciado|linebreaksbr }}
+            <ol class="alternativas">
+                {% for alternativa in pregunta.alternativas %}
+                <li class="{% if forloop.counter0 == pregunta.correcta %}pauta-correcta{% endif %}">{{ alternativa }}</li>
+                {% endfor %}
+            </ol>
+            {% if pregunta.explicacion %}<div class="explicacion pauta">Respuesta {{ pregunta.correcta|letra }}: {{ pregunta.explicacion }}</div>{% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+
+    {% elif instrumento.tipo == 'RUBRICA' %}
+    {% if contenido.descripcion %}<p>{{ contenido.descripcion }}</p>{% endif %}
+    <div class="ia-rubrica-scroll">
+        <table class="ia-rubrica">
+            <thead>
+                <tr><th>Criterio</th><th>Puntaje</th>{% for nivel in contenido.niveles %}<th>{{ nivel }}</th>{% endfor %}</tr>
+            </thead>
+            <tbody>
+                {% for criterio in contenido.criterios %}
+                <tr>
+                    <td><strong>{{ criterio.criterio }}</strong></td>
+                    <td>{{ criterio.puntaje_maximo }}</td>
+                    {% for descriptor in criterio.descriptores %}<td>{{ descriptor }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="ia-markdown">{{ contenido.texto|markdown_seguro }}</div>
+    {% endif %}
+</div>
+{% endif %}
+
+<form method="post" action="{% url 'ia_eliminar_instrumento' instrumento.pk %}" class="ia-no-imprimir"
+      onsubmit="return confirm('¿Eliminar este documento? No se puede deshacer.')">
+    {% csrf_token %}
+    <button type="submit" class="ia-boton peligro">Eliminar</button>
+</form>
+
+<script>
+    (function () {
+        var casilla = document.getElementById("con-pauta");
+        var documento = document.getElementById("documento");
+        if (!casilla || !documento) return;
+        function aplicar() { documento.classList.toggle("sin-pauta", !casilla.checked); }
+        casilla.addEventListener("change", aplicar);
+        aplicar();
+    })();
+</script>
+<style>
+    .ia-lectura .pauta-correcta { color: var(--ia-acento); font-weight: bold; }
+    .ia-lectura.sin-pauta .pauta-correcta { color: inherit; font-weight: normal; }
+    .ia-lectura.sin-pauta .pauta { display: none; }
+</style>
+{% endblock %}

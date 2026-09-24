@@ -1,0 +1,67 @@
+{% extends 'colegio/ia/base_docente.html' %}
+
+{% block titulo %}Asistente IA{% endblock %}
+
+{% block contenido %}
+<div class="ia-encabezado">
+    <h1>Asistente IA</h1>
+    <p>Genera borradores de pruebas, rúbricas y material de estudio, o pide una revisión de tus pruebas. Todo lo que genera la IA es un borrador: tú lo revisas y apruebas.</p>
+</div>
+
+<div class="ia-herramientas">
+    <a class="ia-herramienta" href="{% url 'ia_crear_prueba' %}">
+        <div class="icono">📝</div>
+        <h3>Crear prueba</h3>
+        <p>Preguntas de selección múltiple alineadas al OA, con explicación de cada respuesta.</p>
+    </a>
+    <a class="ia-herramienta" href="{% url 'ia_corregir' %}">
+        <div class="icono">✅</div>
+        <h3>Corregir prueba</h3>
+        <p>Sube la foto de la prueba respondida por un alumno: la IA lee sus respuestas, detecta las que dejó en blanco y calcula la nota con la pauta.</p>
+    </a>
+    <a class="ia-herramienta" href="{% url 'ia_crear_rubrica' %}">
+        <div class="icono">📊</div>
+        <h3>Crear rúbrica</h3>
+        <p>Rúbrica analítica con criterios y descriptores por nivel de desempeño.</p>
+    </a>
+    <a class="ia-herramienta" href="{% url 'ia_crear_material' %}">
+        <div class="icono">📚</div>
+        <h3>Material de estudio</h3>
+        <p>Guías, resúmenes y ejercicios con solucionario para tus estudiantes.</p>
+    </a>
+</div>
+
+<div class="ia-metricas">
+    <div class="ia-metrica"><span>Generados</span><strong>{{ total_generados }}</strong></div>
+    <div class="ia-metrica"><span>Aprobados</span><strong>{{ total_aprobados }}</strong></div>
+    <div class="ia-metrica">
+        <span>Corrección promedio</span>
+        <strong>{% if promedio_corregido is not None %}{{ promedio_corregido|floatformat:1 }}%{% else %}—{% endif %}</strong>
+    </div>
+</div>
+
+<div class="ia-panel">
+    <h2>Mis borradores y documentos</h2>
+    {% if instrumentos %}
+    <table class="ia-tabla">
+        <thead>
+            <tr><th>Título</th><th>Tipo</th><th>Curso</th><th>Estado</th><th>Corregido</th><th>Fecha</th></tr>
+        </thead>
+        <tbody>
+            {% for instrumento in instrumentos %}
+            <tr>
+                <td><a href="{% url 'ia_instrumento' instrumento.pk %}">{{ instrumento.titulo }}</a></td>
+                <td>{{ instrumento.get_tipo_display }}</td>
+                <td>{{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }}</td>
+                <td><span class="ia-estado {{ instrumento.estado }}">{{ instrumento.get_estado_display }}</span></td>
+                <td>{% if instrumento.porcentaje_corregido is not None %}{{ instrumento.porcentaje_corregido }}%{% else %}—{% endif %}</td>
+                <td>{{ instrumento.fecha_creacion|date:"d-m-Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#6b7280">Todavía no generas nada. Elige una herramienta para comenzar.</p>
+    {% endif %}
+</div>
+{% endblock %}

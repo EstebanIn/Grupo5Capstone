@@ -1,0 +1,19 @@
+{% extends 'colegio/ia/base_docente.html' %}
+
+{% block titulo %}Crear prueba{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+<div class="ia-encabezado">
+    <h1>📝 Crear prueba</h1>
+    <p>La IA redacta un borrador de preguntas de selección múltiple. Después podrás editar cada pregunta antes de aprobarla.</p>
+</div>
+
+<div class="ia-panel">
+    <form method="post" class="ia-form" data-generando="Generando prueba… (puede tardar un minuto)">
+        {% csrf_token %}
+        {% include 'colegio/ia/_campos.html' %}
+        <button type="submit" class="ia-boton">Generar borrador</button>
+    </form>
+</div>
+{% endblock %}

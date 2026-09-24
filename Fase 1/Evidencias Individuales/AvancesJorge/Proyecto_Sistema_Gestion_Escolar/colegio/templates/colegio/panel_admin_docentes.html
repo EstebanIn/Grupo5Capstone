@@ -1,0 +1,124 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Gestión de Docentes | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Gestión de Docentes</h2>
+    <a href="{% url 'crear_docente' %}" class="btn-primary">+ Nuevo Docente</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>RUT</th>
+                <th>Nombre Completo</th>
+                <th>Email Institucional</th>
+                <th>Teléfono</th>
+                <th>Asignaturas Asignadas</th>
+                <th>Profesor jefe de</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in docentes_info %}
+            <tr>
+                <td>{{ item.docente.usuario.rut }}</td>
+                
+                <td>
+                    <a href="?docente_id={{ item.docente.id }}" class="docente-nombre-link">
+                        {{ item.docente.nombre_docente }} {{ item.docente.apellido_docente }}
+                    </a>
+                </td>
+                
+                <td>{{ item.docente.email_institucional }}</td>
+                
+                <td>{{ item.docente.telefono|default:"-" }}</td>
+                
+                <td>
+                    {% if item.asignaturas_count %}
+                        <span class="badge-count">{{ item.asignaturas_count }}</span>
+                    {% else %}
+                        <span class="text-muted-italic">Sin asignaturas</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if item.cursos_jefatura %}
+                        <div class="asignaturas-inline">
+                            {% for curso in item.cursos_jefatura %}
+                                <span class="badge-asignatura">{{ curso }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <span class="text-muted-italic">Sin jefatura</span>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    <a href="{% url 'editar_docente' item.docente.id %}" class="btn-action btn-edit">Editar</a>
+                    <a href="{% url 'eliminar_docente' item.docente.id %}" class="btn-action btn-delete" onclick="return confirm('Estas seguro de eliminar a este docente? Se borrara permanentemente su perfil y su usuario del sistema.');">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="table-empty">
+                    No hay docentes registrados en el sistema.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if docente_seleccionado %}
+<div class="card" style="margin-top: 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
+        <h3>Cursos asignados a {{ docente_seleccionado.nombre_docente }} {{ docente_seleccionado.apellido_docente }}</h3>
+        <a href="{% url 'panel_admin_docentes' %}" class="btn-action" style="background:#6b7280; color:white;">Cerrar</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Ciclo</th>
+                <th>Nivel</th>
+                <th>Letra / Seccion</th>
+                <th>Asignaturas</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cursos_docente %}
+            <tr>
+                <td><strong>{{ item.curso }}</strong></td>
+                <td>{{ item.curso.get_ciclo_display }}</td>
+                <td>{{ item.curso.nivel_label }}</td>
+                <td>{{ item.curso.seccion }}</td>
+                <td>
+                    <div class="asignaturas-inline">
+                        {% for asignatura in item.asignaturas %}
+                            <span class="badge-asignatura">{{ asignatura }}</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    <span class="estado {% if item.curso.estado_curso %}activo{% else %}inactivo{% endif %}">
+                        {% if item.curso.estado_curso %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center; color:#6b7280; padding:20px;">
+                    No hay cursos asignados a este docente.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

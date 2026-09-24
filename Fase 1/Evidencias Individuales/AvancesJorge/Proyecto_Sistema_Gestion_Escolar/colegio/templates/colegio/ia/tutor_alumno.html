@@ -1,0 +1,108 @@
+{% load static ia_extras %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor IA | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ia.css' %}">
+</head>
+<body class="ia-alumno">
+    <aside class="sidebar">
+        <div class="logo">EduGestor</div>
+        {% include 'colegio/alumno_menu.html' %}
+    </aside>
+
+    <main class="main">
+        <div class="ia-encabezado">
+            <h1>Tutor IA</h1>
+            <p>Tu tutor te ayuda a entender la materia paso a paso. No te da las respuestas de tus pruebas: te guía para que llegues tú.</p>
+        </div>
+
+        {% if modo_simulado %}
+        <div class="ia-aviso">Modo simulado: la IA real no está conectada. Las respuestas son ejemplos fijos.</div>
+        {% endif %}
+
+        {% if messages %}
+        <ul class="ia-mensajes">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if not asignatura %}
+        <div class="ia-panel">
+            <p>Todavía no tienes asignaturas asignadas. Cuando estés matriculado en un curso podrás usar el tutor.</p>
+        </div>
+        {% else %}
+        <div class="ia-tutor">
+            <nav class="ia-asignaturas" aria-label="Asignaturas">
+                {% for item in asignaturas %}
+                <a href="?asignatura={{ item.pk }}" class="{% if item.pk == asignatura.pk %}activa{% endif %}">{{ item.nombre_asignatura }}</a>
+                {% endfor %}
+            </nav>
+
+            <section class="ia-chat">
+                <div class="ia-chat-cabecera">
+                    <strong>{{ asignatura.nombre_asignatura }}</strong>
+                    {% if historial %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="asignatura" value="{{ asignatura.pk }}">
+                        <button type="submit" name="accion" value="nueva" class="ia-boton secundario">Nueva conversación</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div class="ia-chat-mensajes" id="mensajes">
+                    {% for mensaje in historial %}
+                    <div class="ia-burbuja {{ mensaje.rol }}" {% if forloop.last %}id="ultimo"{% endif %}>
+                        {% if mensaje.rol == 'modelo' %}<div class="ia-markdown">{{ mensaje.texto|markdown_seguro }}</div>{% else %}{{ mensaje.texto }}{% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="ia-chat-vacio">
+                        <p style="font-size:32px">👋</p>
+                        <p>¡Hola! Pregúntame lo que no entiendas de <strong>{{ asignatura.nombre_asignatura }}</strong>.
+                        Por ejemplo: "¿cómo sumo fracciones con distinto denominador?"</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <form method="post" class="ia-chat-form" id="form-tutor">
+                    {% csrf_token %}
+                    <input type="hidden" name="asignatura" value="{{ asignatura.pk }}">
+                    {{ form.mensaje }}
+                    <button type="submit" class="ia-boton">Enviar</button>
+                </form>
+            </section>
+        </div>
+        {% endif %}
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+    <script>
+        (function () {
+            var mensajes = document.getElementById("mensajes");
+            if (mensajes) mensajes.scrollTop = mensajes.scrollHeight;
+
+            var form = document.getElementById("form-tutor");
+            if (!form) return;
+            var area = form.querySelector("textarea");
+            area.focus();
+            // Enter envía; Shift+Enter hace salto de línea.
+            area.addEventListener("keydown", function (evento) {
+                if (evento.key === "Enter" && !evento.shiftKey) {
+                    evento.preventDefault();
+                    if (area.value.trim()) form.requestSubmit();
+                }
+            });
+            form.addEventListener("submit", function () {
+                var boton = form.querySelector("button[type=submit]");
+                boton.disabled = true;
+                boton.textContent = "Pensando…";
+                area.readOnly = true;
+            });
+        })();
+    </script>
+</body>
+</html>

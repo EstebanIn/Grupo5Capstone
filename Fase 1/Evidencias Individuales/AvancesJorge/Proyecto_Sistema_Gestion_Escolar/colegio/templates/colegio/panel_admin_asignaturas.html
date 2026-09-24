@@ -1,0 +1,91 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Gestión de Asignaturas | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Gestión de Asignaturas</h2>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'carga_masiva_asignaturas' %}" class="btn-action" style="background: #10b981; color: white;">📊 Carga Masiva (Excel)</a>
+        <a href="{% url 'crear_asignatura' %}" class="btn-primary">+ Nueva Asignatura</a>
+    </div>
+</div>
+
+<div class="filter-bar asignaturas-filter-bar">
+    <form method="get" class="asignaturas-filter-form">
+        <label for="asignatura-filter" class="filter-label">Filtrar por Asignatura:</label>
+        <select id="asignatura-filter" name="asignatura" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for nombre in nombres_asignaturas %}
+                <option value="{{ nombre }}" {% if asignatura_filtro == nombre %}selected{% endif %}>{{ nombre }}</option>
+            {% endfor %}
+        </select>
+
+        {% if ciclo_filtro %}
+            <input type="hidden" name="ciclo" value="{{ ciclo_filtro }}">
+        {% endif %}
+    </form>
+
+    <div class="filter-group" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <span class="filter-label">Filtrar por Enseñanza:</span>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}{% endif %}" class="btn-action" style="background: #6b7280; color: white; font-weight: {% if not ciclo_filtro %}bold{% else %}normal{% endif %};">Todos</a>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=KINDER" class="btn-action" style="background: #fee2e2; color: #991b1b; font-weight: {% if ciclo_filtro == 'KINDER' %}bold{% else %}normal{% endif %};">Kinder</a>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=BASICA" class="btn-action" style="background: #d1fae5; color: #065f46; font-weight: {% if ciclo_filtro == 'BASICA' %}bold{% else %}normal{% endif %};">Basica</a>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=MEDIA" class="btn-action" style="background: #dbeafe; color: #1e40af; font-weight: {% if ciclo_filtro == 'MEDIA' %}bold{% else %}normal{% endif %};">Media</a>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Docente a Cargo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for asignatura in asignaturas %}
+            <tr>
+                <td>
+                    <strong>{{ asignatura.nombre_asignatura }}</strong>
+                    <br>
+                    <small style="color: #6b7280;">Curso: {{ asignatura.curso }}</small>
+                </td>
+                
+                <td>{{ asignatura.descripcion|default:"Sin descripción" }}</td>
+                
+                <td>
+                    {% if asignatura.docentes.all %}
+                        {% for doc in asignatura.docentes.all %}
+                            {{ doc.nombre_docente }} {{ doc.apellido_docente }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span style="color: #9ca3af; font-style: italic;">Sin docente asignado</span>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    <span class="estado {% if asignatura.estado_asignatura %}activo{% else %}inactivo{% endif %}">
+                        {% if asignatura.estado_asignatura %}Activa{% else %}En Revisión{% endif %}
+                    </span>
+                </td>
+                
+                <td>
+                    <a href="{% url 'editar_asignatura' asignatura.id %}" class="btn-action btn-edit">Editar</a>
+                    <a href="{% url 'eliminar_asignatura' asignatura.id %}" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta asignatura permanentemente?');">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #6b7280; padding: 20px;">
+                    No hay asignaturas registradas en el sistema.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
