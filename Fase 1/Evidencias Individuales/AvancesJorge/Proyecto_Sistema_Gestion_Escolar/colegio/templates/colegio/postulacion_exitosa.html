@@ -1,0 +1,83 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Postulación enviada | EduGestor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+            color: #1f2937;
+        }
+
+        .success-wrapper {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .success-card {
+            max-width: 620px;
+            background: white;
+            border-radius: 22px;
+            padding: 42px;
+            text-align: center;
+            box-shadow: 0 18px 45px rgba(15, 43, 91, 0.12);
+            border: 1px solid #e2e8f0;
+        }
+
+        .icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(107, 33, 168, 0.12);
+            color: #6b21a8;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 34px;
+            margin: 0 auto 20px;
+        }
+
+        h1 {
+            color: #0f2b5b;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 22px;
+            background: #6b21a8;
+            color: white;
+            padding: 13px 26px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-wrapper">
+        <div class="success-card">
+            <div class="icon">✓</div>
+            <h1>Postulación enviada correctamente</h1>
+            <p>
+                La solicitud fue recibida por el establecimiento. La administración revisará los datos y se contactará con el apoderado informado.
+            </p>
+            <a href="{% url 'landing_cliente' slug_colegio=slug_colegio %}" class="btn-cancel">Volver al Inicio</a>
+        </div>
+    </div>
+</body>
+</html>

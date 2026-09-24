@@ -1,0 +1,147 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas de Estudiantes | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/apoderado.css' %}">
+
+    
+</head>
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{% url 'panel_apoderado' %}">
+                     Inicio
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_estudiantes' %}">
+                     Estudiantes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_notas' %}">
+                     Notas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_asistencia' %}">
+                     Asistencia
+                </a>
+            </li>
+
+            <!--<li>
+                <a href="{% url 'panel_apoderado_pagos' %}">
+                     Pagos
+                </a>
+            </li>-->
+
+            <li>
+                <a href="{% url 'panel_apoderado_perfil' %}">
+                     Perfil
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'logout' %}">
+                     Cerrar sesión
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>
+                    Notas Académicas 
+                </h1>
+
+                <p>
+                    Revisa las calificaciones recientes de tus estudiantes.
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- TABLA -->
+
+        <div class="table-container">
+
+            <h2>
+                Últimas Evaluaciones
+            </h2>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Asignatura</th>
+                        <th>Evaluación</th>
+                        <th>Nota</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for nota in notas %}
+                    <tr>
+                        <td>{{ nota.alumno.nombre_alumno }} {{ nota.alumno.apellido_alumno }}</td>
+                        <td>{{ nota.evaluacion.carga.asignatura.nombre_asignatura }}</td>
+                        <td>{{ nota.evaluacion.nombre_evaluacion }}</td>
+                        <td class="{% if nota.valor_nota >= 6 %}nota-alta{% elif nota.valor_nota >= 4 %}nota-media{% else %}nota-baja{% endif %}">
+                            {{ nota.valor_nota }}
+                        </td>
+                        <td>
+                            {% if nota.valor_nota >= 4.0 %}Aprobado{% else %}Reprobado{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No hay evaluaciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

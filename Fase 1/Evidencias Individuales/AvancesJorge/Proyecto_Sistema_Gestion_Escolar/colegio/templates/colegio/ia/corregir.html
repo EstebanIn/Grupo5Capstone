@@ -1,0 +1,46 @@
+{% extends 'colegio/ia/base_docente.html' %}
+
+{% block titulo %}Corregir prueba{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+<div class="ia-encabezado">
+    <h1>✅ Corregir prueba</h1>
+    <p>Elige la prueba y sube la foto de la hoja respondida por el alumno. La IA lee sus respuestas y detecta las preguntas en blanco; tú confirmas y el sistema calcula el puntaje y la nota con la pauta.</p>
+</div>
+
+<div class="ia-panel">
+    <h2>Pruebas listas para corregir</h2>
+    {% if aprobadas %}
+    <table class="ia-tabla">
+        <thead><tr><th>Prueba</th><th>Curso</th><th>Preguntas</th><th>Corregidas</th><th></th></tr></thead>
+        <tbody>
+            {% for prueba in aprobadas %}
+            <tr>
+                <td><a href="{% url 'ia_instrumento' prueba.pk %}">{{ prueba.titulo }}</a></td>
+                <td>{{ prueba.carga.curso }} · {{ prueba.carga.asignatura.nombre_asignatura }}</td>
+                <td>{{ prueba.contenido.preguntas|length }}</td>
+                <td>{{ prueba.total_correcciones }}</td>
+                <td><a class="ia-boton" href="{% url 'ia_corregir_prueba' prueba.pk %}">Corregir</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#6b7280">
+        No tienes pruebas aprobadas. Crea una con <a href="{% url 'ia_crear_prueba' %}">Crear prueba</a> y apruébala: la pauta aprobada es la que se usa para corregir.
+    </p>
+    {% endif %}
+</div>
+
+{% if borradores %}
+<div class="ia-panel">
+    <h2>Borradores (aprueba para poder corregir)</h2>
+    <ul style="padding-left:20px; line-height:1.9">
+        {% for prueba in borradores %}
+        <li><a href="{% url 'ia_instrumento' prueba.pk %}">{{ prueba.titulo }}</a> — {{ prueba.carga.curso }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+# PostgreSQL local para desarrollo. Uso:
+#   cp .env.example .env
+#   docker compose up -d db
+#   python manage.py migrate
+#   python manage.py generar_datos_sinteticos
+services:
+  db:
+    image: postgres:17
+    container_name: edugestor-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-edugestor}
+      POSTGRES_USER: ${POSTGRES_USER:-edugestor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edugestor}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - edugestor_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  edugestor_pgdata:

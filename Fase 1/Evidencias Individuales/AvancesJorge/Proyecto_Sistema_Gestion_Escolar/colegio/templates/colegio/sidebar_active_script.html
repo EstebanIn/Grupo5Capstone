@@ -1,0 +1,30 @@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var currentPath = window.location.pathname.replace(/\/$/, "");
+        var bestMatch = null;
+        var bestMatchLength = -1;
+
+        document.querySelectorAll(".sidebar .menu a[href]").forEach(function (link) {
+            var rawHref = link.getAttribute("href");
+            if (!rawHref || rawHref === "#") {
+                return;
+            }
+
+            var linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/$/, "");
+            link.classList.remove("active");
+
+            if (
+                linkPath &&
+                (linkPath === currentPath || currentPath.indexOf(linkPath + "/") === 0) &&
+                linkPath.length > bestMatchLength
+            ) {
+                bestMatch = link;
+                bestMatchLength = linkPath.length;
+            }
+        });
+
+        if (bestMatch) {
+            bestMatch.classList.add("active");
+        }
+    });
+</script>

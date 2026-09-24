@@ -1,0 +1,492 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Gestión de Cursos | EduGestor{% endblock %}
+
+{% block content %}
+<style>
+    .student-link {
+        background: none;
+        border: 0;
+        color: #111827;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        padding: 0;
+        text-align: left;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .student-link:hover {
+        color: #6d28d9;
+    }
+
+    .student-modal {
+        align-items: center;
+        background: rgba(15, 23, 42, 0.48);
+        display: none;
+        inset: 0;
+        justify-content: center;
+        padding: 24px;
+        position: fixed;
+        z-index: 50;
+    }
+
+    .student-modal.is-open {
+        display: flex;
+    }
+
+    .student-modal-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+        max-height: 90vh;
+        max-width: 920px;
+        overflow: hidden;
+        width: min(100%, 920px);
+    }
+
+    .student-modal-header {
+        align-items: flex-start;
+        background: #5b21b6;
+        color: #ffffff;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        padding: 22px 24px;
+    }
+
+    .student-modal-header h3 {
+        font-size: 26px;
+        margin: 0 0 6px;
+    }
+
+    .student-modal-header p {
+        color: rgba(255, 255, 255, 0.86);
+        margin: 0;
+    }
+
+    .student-modal-close {
+        background: rgba(255, 255, 255, 0.16);
+        border: 0;
+        border-radius: 8px;
+        color: #ffffff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+        padding: 9px 14px;
+    }
+
+    .student-modal-close:hover {
+        background: rgba(255, 255, 255, 0.24);
+    }
+
+    .student-modal-body {
+        max-height: calc(90vh - 150px);
+        overflow-y: auto;
+        padding: 24px;
+    }
+
+    .student-summary-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .student-data {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 14px 16px;
+    }
+
+    .student-data span {
+        color: #64748b;
+        display: block;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .student-data strong {
+        color: #0f172a;
+        display: block;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+    }
+
+    .subject-grades {
+        display: grid;
+        gap: 16px;
+        margin-top: 22px;
+    }
+
+    .subject-grades-title {
+        color: #4c1d95;
+        font-size: 22px;
+        margin: 8px 0 0;
+    }
+
+    .subject-grade-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .subject-grade-header {
+        align-items: center;
+        background: #f8fafc;
+        border: 0;
+        cursor: pointer;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        padding: 14px 16px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .subject-grade-header:hover {
+        background: #f1f5f9;
+    }
+
+    .subject-grade-header h4 {
+        color: #0f172a;
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .subject-grade-meta {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+    }
+
+    .subject-grade-icon {
+        color: #5b21b6;
+        font-size: 18px;
+        font-weight: 800;
+        transition: transform 0.2s ease;
+    }
+
+    .subject-grade-card.is-open .subject-grade-icon {
+        transform: rotate(180deg);
+    }
+
+    .subject-grade-panel {
+        display: none;
+    }
+
+    .subject-grade-card.is-open .subject-grade-panel {
+        display: block;
+    }
+
+    .subject-average {
+        background: #ede9fe;
+        border-radius: 999px;
+        color: #5b21b6;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 6px 10px;
+        white-space: nowrap;
+    }
+
+    .subject-empty {
+        color: #64748b;
+        font-style: italic;
+        margin: 0;
+        padding: 16px;
+    }
+
+    .grade-table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .grade-table th,
+    .grade-table td {
+        border-top: 1px solid #e5e7eb;
+        padding: 12px 14px;
+        text-align: left;
+    }
+
+    .grade-table th {
+        background: #ffffff;
+        color: #475569;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+
+    .grade-value {
+        color: #16a34a;
+        font-weight: 800;
+    }
+
+    .grade-pending {
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    .student-modal-footer {
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: flex-end;
+        padding: 16px 24px;
+    }
+
+    @media (max-width: 720px) {
+        .student-modal {
+            padding: 12px;
+        }
+
+        .student-summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .student-modal-header {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="content-header">
+    <h2>Gestión de Cursos</h2>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'carga_masiva_cursos' %}" class="btn-action" style="background: #10b981; color: white;">📊 Carga Masiva (Excel)</a>
+        <a href="{% url 'crear_curso' %}" class="btn-primary">+ Nuevo Curso</a>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre Completo</th>
+                <th>Ciclo</th>
+                <th>Nivel</th>
+                <th>Letra / Sección</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for curso in cursos %}
+            <tr {% if curso.id == curso_seleccionado_id %}style="background:#eef2ff"{% endif %}>
+                <td>
+                    <a href="{% url 'panel_admin_cursos' %}?curso_id={{ curso.id }}" style="color:#111827; font-weight:bold; text-decoration:none;">
+                        {{ curso }}
+                    </a>
+                </td> 
+                <td>{{ curso.get_ciclo_display }}</td> 
+                <td>{{ curso.nivel_label }}</td>
+                <td>{{ curso.seccion }}</td>
+                <td>
+                    <span class="estado {% if curso.estado_curso %}activo{% else %}inactivo{% endif %}">
+                        {% if curso.estado_curso %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'editar_curso' curso.id %}" class="btn-action btn-edit">Editar</a>
+                    <a href="{% url 'eliminar_curso' curso.id %}" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de eliminar este curso permanentemente?');">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #6b7280; padding: 20px;">
+                    No hay cursos registrados en el sistema.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if curso_seleccionado %}
+<div class="card" style="margin-top: 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
+        <h3>Alumnos de {{ curso_seleccionado }}</h3>
+        <a href="{% url 'panel_admin_cursos' %}" class="btn-action" style="background:#6b7280; color:white;">Cerrar</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Periodo</th>
+                <th>Estado Matricula</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in alumnos_curso_detalle %}
+            <tr>
+                <td>
+                    <button type="button" class="student-link" data-modal-target="student-modal-{{ item.alumno.id }}">
+                        {{ item.alumno.nombre_alumno }} {{ item.alumno.apellido_alumno }}
+                    </button>
+                </td>
+                <td>{{ item.alumno.usuario.username }}</td>
+                <td>{{ item.matricula.periodo }}</td>
+                <td>
+                    <span class="estado {% if item.matricula.estado == 'Activa' %}activo{% else %}pendiente{% endif %}">
+                        {{ item.matricula.estado }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align:center; color:#6b7280; padding:20px;">
+                    No hay alumnos matriculados en este curso.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% for item in alumnos_curso_detalle %}
+    <div class="student-modal" id="student-modal-{{ item.alumno.id }}" aria-hidden="true">
+        <div class="student-modal-card" role="dialog" aria-modal="true" aria-labelledby="student-modal-title-{{ item.alumno.id }}">
+            <div class="student-modal-header">
+                <div>
+                    <h3 id="student-modal-title-{{ item.alumno.id }}">{{ item.alumno.nombre_alumno }} {{ item.alumno.apellido_alumno }}</h3>
+                    <p>{{ item.matricula.curso }} - {{ item.matricula.periodo }}</p>
+                </div>
+                <button type="button" class="student-modal-close" data-modal-close>Cerrar</button>
+            </div>
+
+            <div class="student-modal-body">
+                <div class="student-summary-grid">
+                    <div class="student-data">
+                        <span>RUT</span>
+                        <strong>{{ item.alumno.usuario.rut|default:"-" }}</strong>
+                    </div>
+                    <div class="student-data">
+                        <span>Usuario</span>
+                        <strong>{{ item.alumno.usuario.username }}</strong>
+                    </div>
+                    <div class="student-data">
+                        <span>Estado de matricula</span>
+                        <strong>{{ item.matricula.estado|default:"-" }}</strong>
+                    </div>
+                    <div class="student-data">
+                        <span>Promedio general</span>
+                        <strong>{{ item.promedio }}</strong>
+                    </div>
+                </div>
+
+                <div class="subject-grades">
+                    <h4 class="subject-grades-title">Notas por asignatura</h4>
+
+                    {% for detalle in item.asignaturas_detalle %}
+                    <section class="subject-grade-card {% if forloop.first %}is-open{% endif %}">
+                        <button type="button" class="subject-grade-header" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                            <h4>{{ detalle.asignatura.nombre_asignatura }}</h4>
+                            <span class="subject-grade-meta">
+                                {% if detalle.promedio %}
+                                    <span class="subject-average">Promedio {{ detalle.promedio }}</span>
+                                {% else %}
+                                    <span class="subject-average">Sin promedio</span>
+                                {% endif %}
+                                <span class="subject-grade-icon">⌄</span>
+                            </span>
+                        </button>
+
+                        <div class="subject-grade-panel">
+                        {% if detalle.evaluaciones %}
+                            <table class="grade-table">
+                                <thead>
+                                    <tr>
+                                        <th>Evaluacion</th>
+                                        <th>Fecha</th>
+                                        <th>Numero</th>
+                                        <th>Nota</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for evaluacion_detalle in detalle.evaluaciones %}
+                                    <tr>
+                                        <td>{{ evaluacion_detalle.evaluacion.nombre_evaluacion }}</td>
+                                        <td>{{ evaluacion_detalle.evaluacion.fecha|date:"d/m/Y" }}</td>
+                                        <td>{{ evaluacion_detalle.evaluacion.numero_evaluacion }}</td>
+                                        <td>
+                                            {% if evaluacion_detalle.nota %}
+                                                <span class="grade-value">{{ evaluacion_detalle.nota.valor_nota }}</span>
+                                            {% else %}
+                                                <span class="grade-pending">Pendiente</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="subject-empty">Sin notas registradas.</p>
+                        {% endif %}
+                        </div>
+                    </section>
+                    {% empty %}
+                        <p class="subject-empty">Este curso aun no tiene asignaturas registradas.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="student-modal-footer">
+                <button type="button" class="student-modal-close" data-modal-close>Cerrar</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const openButtons = document.querySelectorAll('[data-modal-target]');
+        const closeButtons = document.querySelectorAll('[data-modal-close]');
+
+        function openModal(modal) {
+            if (!modal) return;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModal(modal) {
+            if (!modal) return;
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        openButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                openModal(document.getElementById(this.dataset.modalTarget));
+            });
+        });
+
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                closeModal(this.closest('.student-modal'));
+            });
+        });
+
+        document.querySelectorAll('.student-modal').forEach(modal => {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeModal(modal);
+                }
+            });
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.student-modal.is-open').forEach(closeModal);
+            }
+        });
+
+        document.querySelectorAll('.subject-grade-header').forEach(button => {
+            button.addEventListener('click', function() {
+                const card = this.closest('.subject-grade-card');
+                const isOpen = card.classList.toggle('is-open');
+                this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        });
+    });
+</script>
+{% endblock %}

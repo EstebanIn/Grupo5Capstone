@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">EduGestor</div>
+    {% include 'colegio/docente_menu.html' %}
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div class="welcome">
+            <h1>Control de Asistencia </h1>
+            <p>Selecciona el curso y la fecha para registrar asistencia.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div style="margin-bottom:20px">
+            {% for msg in messages %}
+                <p class="msg-{{ msg.tags }}" style="background:#dcfce7; color:#166534; padding:12px 16px; border-radius:8px; font-weight:bold">
+                     {{ msg }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- SELECTOR DE CARGA Y FECHA -->
+    <div class="form-container" style="margin-bottom:24px">
+        <h2>Seleccionar Curso y Fecha</h2>
+        <form method="GET" style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; margin-top:16px">
+            <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0">
+                <label>Curso / Asignatura</label>
+                <select name="carga_id" required>
+                    <option value="">-- Selecciona --</option>
+                    {% for carga in cargas %}
+                        <option value="{{ carga.id }}" {% if carga_id == carga.id|stringformat:"s" %}selected{% endif %}>
+                            {{ carga.curso }} — {{ carga.asignatura.nombre_asignatura }} ({{ carga.periodo }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="flex:1; min-width:160px; margin-bottom:0">
+                <label>Fecha</label>
+                <input type="date" name="fecha" value="{{ fecha|default:'' }}" required>
+            </div>
+            <button type="submit" class="btn">Cargar Alumnos</button>
+        </form>
+    </div>
+
+    <!-- TABLA DE ASISTENCIA -->
+    {% if carga_seleccionada %}
+    <div class="attendance-container">
+        <h2>
+            {{ carga_seleccionada.curso }} — {{ carga_seleccionada.asignatura.nombre_asignatura }}
+            <span style="font-size:14px; color:#6b7280; font-weight:normal; margin-left:10px">{{ fecha }}</span>
+        </h2>
+
+        <form method="POST" style="margin-top:16px">
+            {% csrf_token %}
+            <input type="hidden" name="carga_id" value="{{ carga_id }}">
+            <input type="hidden" name="fecha" value="{{ fecha }}">
+            <input type="hidden" name="guardar" value="1">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Estado</th>
+                        <th>Observación (opcional)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in alumnos_data %}
+                    <tr>
+                        <td>{{ item.alumno.nombre_alumno }} {{ item.alumno.apellido_alumno }}</td>
+                        <td>
+                            <select name="estado_{{ item.alumno.id }}" class="attendance-status" data-observation-id="obs_{{ item.alumno.id }}" style="padding:8px; border-radius:8px; border:1px solid #d1d5db">
+                                <option value="Presente"  {% if item.estado_actual == "Presente"  %}selected{% endif %}>✅ Presente</option>
+                                <option value="Ausente"   {% if item.estado_actual == "Ausente"   %}selected{% endif %}>❌ Ausente</option>
+                                <option value="Atrasado"  {% if item.estado_actual == "Atrasado"  %}selected{% endif %}>⏰ Atrasado</option>
+                                <option value="Justificado" {% if item.estado_actual == "Justificado" %}selected{% endif %}>📄 Justificado</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="obs_{{ item.alumno.id }}"
+                                id="obs_{{ item.alumno.id }}"
+                                class="attendance-observation"
+                                value="{{ item.observacion|default:'' }}"
+                                placeholder="Opcional"
+                                style="width:100%; padding:8px; border-radius:8px; border:1px solid #d1d5db">
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3" style="color:#9ca3af; font-style:italic">No hay alumnos matriculados en este curso.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            {% if alumnos_data %}
+            <button type="submit" class="save-btn"> Guardar Asistencia</button>
+            {% endif %}
+        </form>
+    </div>
+    {% endif %}
+
+</main>
+    {% include 'colegio/sidebar_active_script.html' %}
+    <script>
+        document.querySelectorAll(".attendance-status").forEach((select) => {
+            const input = document.getElementById(select.dataset.observationId);
+
+            function syncObservation() {
+                if (!input) return;
+                const isPresent = select.value === "Presente";
+                input.disabled = isPresent;
+                input.closest("td").style.visibility = isPresent ? "hidden" : "visible";
+                if (isPresent) input.value = "";
+            }
+
+            select.addEventListener("change", syncObservation);
+            syncObservation();
+        });
+    </script>
+</body>
+</html>

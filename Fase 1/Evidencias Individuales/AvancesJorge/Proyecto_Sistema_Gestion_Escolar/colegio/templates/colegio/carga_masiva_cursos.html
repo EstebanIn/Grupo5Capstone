@@ -1,0 +1,47 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Carga Masiva de Cursos | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header" style="margin-bottom: 20px;">
+    <h2>Carga Masiva de Cursos</h2>
+    <a href="{% url 'panel_admin_cursos' %}" class="btn-secondary" style="background: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">⬅️ Volver al Panel</a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger" style="padding: 12px; margin-bottom: 20px; border-radius: 6px; color: #842029; background-color: #f8d7da; border: 1px solid #f5c2c7;">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<div class="card" style="padding: 30px; max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    
+    <div style="background-color: #e0f2fe; padding: 15px; border-radius: 6px; margin-bottom: 25px; border-left: 5px solid #0284c7;">
+        <h4 style="margin-top: 0; color: #0369a1;">📋 Instrucciones de formato</h4>
+        <p style="margin-bottom: 5px;">Cargar Template de creación masiva debe contener tres columnas en la primera fila (los encabezados):</p>
+        <ul style="margin-top: 5px; color: #334155;">
+            <li><strong>Ciclo</strong> (Ej: Kinder, Básica, Media)</li>
+            <li><strong>Nivel</strong> (Kinder: 1, Básica: 1 a 8, Media: 1 a 4)</li>
+            <li><strong>Seccion</strong> (Ej: A, B, C...)</li>
+        </ul>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        
+        <div>
+            <label for="archivo_excel" style="font-weight: bold; margin-bottom: 8px; display: block;">Selecciona tu archivo Excel (.xlsx)</label>
+            <input type="file" name="archivo_excel" id="archivo_excel" accept=".xlsx, .xls" required 
+                   style="display: block; width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px;">
+        </div>
+
+        <button type="submit" class="btn-primary" style="padding: 12px; font-size: 16px; background-color: #10b981; border: none; cursor: pointer;">
+        PROCESAR
+        </button>
+    </form>
+</div>
+{% endblock %}

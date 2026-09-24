@@ -1,0 +1,120 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Estudiantes | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/apoderado.css' %}">
+    
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{% url 'panel_apoderado' %}">
+                     Inicio
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_estudiantes' %}">
+                     Estudiantes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_notas' %}">
+                     Notas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_asistencia' %}">
+                     Asistencia
+                </a>
+            </li>
+
+            <!--<li>
+                <a href="{% url 'panel_apoderado_pagos' %}">
+                     Pagos
+                </a>
+            </li>-->
+
+            <li>
+                <a href="{% url 'panel_apoderado_perfil' %}">
+                     Perfil
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'logout' %}">
+                     Cerrar sesión
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <div class="topbar">
+
+            <h1>
+                Mis Estudiantes 
+            </h1>
+
+            <p>
+                Información general de los alumnos asociados.
+            </p>
+
+        </div>
+
+        <!-- GRID -->
+
+        <div class="students-grid">
+            {% for info in alumnos_info %}
+            <div class="student-card">
+                <div class="student-header">
+                    <h2>{{ info.alumno.nombre_alumno }} {{ info.alumno.apellido_alumno }}</h2>
+                    <p>{{ info.curso|default:"Sin curso asignado" }}</p>
+                </div>
+                <div class="student-body">
+                    <div class="info">
+                        <span>Promedio General</span>
+                        <strong>{{ info.promedio }}</strong>
+                    </div>
+                    <div class="info">
+                        <span>Asistencia</span>
+                        <strong>{{ info.asistencia_pct }}%</strong>
+                    </div>
+                    <div class="info">
+                        <span>Estado Académico</span>
+                        <div class="estado">{{ info.alumno.estado_alumno }}</div>
+                    </div>
+                    <a href="#" class="btn">Ver Detalles</a>
+                </div>
+            </div>
+            {% empty %}
+            <p>No tienes estudiantes asociados.</p>
+            {% endfor %}
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

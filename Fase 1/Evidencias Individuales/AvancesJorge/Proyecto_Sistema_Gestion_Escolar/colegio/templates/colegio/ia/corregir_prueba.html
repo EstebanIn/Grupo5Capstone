@@ -1,0 +1,143 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load ia_extras %}
+
+{% block titulo %}Corregir: {{ instrumento.titulo }}{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver" href="{% url 'ia_corregir' %}">← Corregir prueba</a>
+<div class="ia-encabezado">
+    <h1>{{ instrumento.titulo }}</h1>
+    <p>{{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }} · {{ instrumento.contenido.preguntas|length }} preguntas</p>
+</div>
+
+{% if paso == 'subir' %}
+{# ======================= PASO 1: SUBIR LA HOJA ======================= #}
+<div class="ia-panel">
+    <h2>1. Sube la prueba respondida</h2>
+    <form method="post" enctype="multipart/form-data" class="ia-form" data-generando="Leyendo respuestas… (puede tardar un minuto)">
+        {% csrf_token %}
+        <div class="ia-fila">
+            <div class="campo">
+                <label for="alumno">Alumno</label>
+                <select id="alumno" name="alumno">
+                    <option value="">Sin asignar (solo calcular la nota)</option>
+                    {% for alumno in alumnos %}
+                    <option value="{{ alumno.pk }}">{{ alumno.apellido_alumno }}, {{ alumno.nombre_alumno }}</option>
+                    {% endfor %}
+                </select>
+                <div class="ayuda">El nombre del alumno no se envía a la IA: solo se usa para registrar su nota.</div>
+            </div>
+            <div class="campo">
+                <label for="archivos">Fotos o PDF de la prueba</label>
+                <input type="file" id="archivos" name="archivos" multiple
+                       accept="image/jpeg,image/png,image/webp,image/heic,application/pdf">
+                <div class="ayuda">Hasta 5 archivos de 10 MB. Una foto por página, derecha y con buena luz.</div>
+            </div>
+        </div>
+        <div class="ia-aviso">
+            Antes de subir, <strong>tapa o recorta el nombre y el RUT</strong> de la hoja: la imagen se envía a Google Gemini para leerla. EduGestor no guarda las imágenes.
+        </div>
+        <div class="ia-acciones">
+            <button type="submit" name="accion" value="leer" class="ia-boton">Leer respuestas con IA</button>
+            <a class="ia-boton secundario" href="#" id="manual">Ingresar respuestas a mano</a>
+        </div>
+    </form>
+</div>
+<script>
+    document.getElementById("manual").addEventListener("click", function (evento) {
+        evento.preventDefault();
+        var alumno = document.getElementById("alumno").value;
+        window.location = "?manual=1&alumno=" + encodeURIComponent(alumno);
+    });
+</script>
+
+{% else %}
+{# ======================= PASO 2: CONFIRMAR RESPUESTAS ======================= #}
+<div class="ia-panel">
+    <h2>2. Confirma las respuestas</h2>
+    {% if leida_con_ia %}
+        {% if por_revisar %}
+        <div class="ia-aviso"><strong>{{ por_revisar }} pregunta{{ por_revisar|pluralize }} para revisar</strong> (en blanco, con doble marca, ilegible o no encontrada). Están destacadas abajo: compáralas con la hoja.</div>
+        {% else %}
+        <p class="ayuda" style="margin-bottom:12px">La IA leyó todas las preguntas. Compara rápido con la hoja antes de calcular: la lectura puede equivocarse.</p>
+        {% endif %}
+    {% else %}
+    <p class="ayuda" style="margin-bottom:12px">Marca lo que respondió el alumno en cada pregunta. Deja "En blanco" si no respondió.</p>
+    {% endif %}
+
+    <form method="post" class="ia-form" data-generando="Calculando…">
+        {% csrf_token %}
+        <input type="hidden" name="alumno" value="{{ alumno_id }}">
+        <input type="hidden" name="leida_con_ia" value="{% if leida_con_ia %}1{% else %}0{% endif %}">
+
+        <table class="ia-tabla ia-confirmar">
+            <thead><tr><th>#</th><th>Pregunta</th><th>Respuesta del alumno</th><th>Lectura de la IA</th></tr></thead>
+            <tbody>
+                {% for pregunta, lectura in filas %}
+                <tr class="{% if leida_con_ia and lectura.estado != 'respondida' %}revisar{% endif %}">
+                    <td><strong>{{ lectura.pregunta }}</strong></td>
+                    <td style="max-width:380px">{{ pregunta.enunciado|truncatechars:110 }}</td>
+                    <td style="white-space:nowrap">
+                        {% if leida_con_ia %}<input type="hidden" name="ia{{ lectura.pregunta }}" value="{% if lectura.marcada is not None %}{{ lectura.marcada }}{% endif %}">{% endif %}
+                        {% for alternativa in pregunta.alternativas %}
+                        <label class="ia-opcion" title="{{ alternativa }}">
+                            <input type="radio" name="r{{ lectura.pregunta }}" value="{{ forloop.counter0 }}"
+                                   {% if lectura.marcada == forloop.counter0 %}checked{% endif %}> {{ forloop.counter0|letra }}
+                        </label>
+                        {% endfor %}
+                        <label class="ia-opcion blanco">
+                            <input type="radio" name="r{{ lectura.pregunta }}" value=""
+                                   {% if lectura.marcada is None %}checked{% endif %}> En blanco
+                        </label>
+                    </td>
+                    <td class="ayuda">
+                        {% if lectura.estado == 'respondida' %}Marcó {{ lectura.marcada|letra }}
+                        {% elif lectura.estado == 'en_blanco' %}<strong>En blanco</strong>
+                        {% elif lectura.estado == 'multiple' %}<strong>Doble marca</strong>
+                        {% elif lectura.estado == 'ilegible' %}<strong>Ilegible</strong>
+                        {% elif lectura.estado == 'no_encontrada' %}<strong>No aparece en la hoja</strong>
+                        {% else %}—{% endif %}
+                        {% if lectura.observacion and leida_con_ia %}<br>{{ lectura.observacion }}{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="ia-acciones" style="margin-top:16px">
+            <button type="submit" name="accion" value="calcular" class="ia-boton">Calcular nota</button>
+            <a class="ia-boton secundario" href="{% url 'ia_corregir_prueba' instrumento.pk %}">Volver a subir</a>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+{% if correcciones %}
+<div class="ia-panel">
+    <h2>Correcciones de esta prueba</h2>
+    <table class="ia-tabla">
+        <thead><tr><th>Alumno</th><th>Correctas</th><th>Nota</th><th>En el libro</th><th>Fecha</th></tr></thead>
+        <tbody>
+            {% for correccion in correcciones %}
+            <tr>
+                <td><a href="{% url 'ia_correccion' correccion.pk %}">{% if correccion.alumno %}{{ correccion.alumno.apellido_alumno }}, {{ correccion.alumno.nombre_alumno }}{% else %}Sin asignar{% endif %}</a></td>
+                <td>{{ correccion.correctas }}/{{ correccion.total }}</td>
+                <td><strong class="{% if correccion.nota < 4 %}nota-roja{% endif %}">{{ correccion.nota }}</strong></td>
+                <td>{% if correccion.nota_registrada_id %}✔{% else %}—{% endif %}</td>
+                <td>{{ correccion.fecha|date:"d-m-Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<style>
+    .ia-opcion { display: inline-flex; align-items: center; gap: 3px; margin-right: 10px; font-weight: normal; cursor: pointer; }
+    .ia-opcion input { accent-color: var(--ia-acento); }
+    .ia-opcion.blanco { color: #6b7280; }
+    .ia-confirmar tr.revisar { background: #fffbeb; }
+    .ia-confirmar tr.revisar td:first-child { border-left: 3px solid #f59e0b; }
+    .nota-roja { color: #b91c1c; }
+</style>
+{% endblock %}

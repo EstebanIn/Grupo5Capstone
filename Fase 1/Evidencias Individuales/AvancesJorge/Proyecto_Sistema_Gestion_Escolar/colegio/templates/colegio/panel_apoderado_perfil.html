@@ -1,0 +1,375 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/apoderado.css' %}">
+
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial, Helvetica, sans-serif;
+            background:#f8fafc;
+            color:#1f2937;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar{
+            position:fixed;
+            width:260px;
+            height:100vh;
+            background:#a16207;
+            color:white;
+            padding:30px 20px;
+        }
+
+        .logo{
+            font-size:28px;
+            font-weight:bold;
+            margin-bottom:40px;
+            text-align:center;
+        }
+
+        .menu{
+            list-style:none;
+        }
+
+        .menu li{
+            margin-bottom:18px;
+        }
+
+        .menu a{
+            text-decoration:none;
+            color:white;
+            display:block;
+            padding:12px 15px;
+            border-radius:8px;
+            transition:0.3s;
+        }
+
+        .menu a:hover{
+            background:#c28b00;
+        }
+
+        .menu a.active{
+            background:#c28b00;
+            font-weight:bold;
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .main{
+            margin-left:260px;
+            padding:30px;
+        }
+
+        .topbar{
+            background:white;
+            padding:20px;
+            border-radius:12px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom:30px;
+        }
+
+        .welcome h1{
+            color:#a16207;
+            margin-bottom:5px;
+        }
+
+        .welcome p{
+            color:#6b7280;
+        }
+
+        .logout{
+            background:#dc2626;
+            color:white;
+            text-decoration:none;
+            padding:10px 18px;
+            border-radius:8px;
+        }
+
+        /* =========================
+           PERFIL
+        ========================== */
+
+        .profile-container{
+            background:white;
+            padding:30px;
+            border-radius:15px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .profile-header{
+            display:flex;
+            align-items:center;
+            gap:25px;
+            margin-bottom:30px;
+        }
+
+        .profile-avatar{
+            width:110px;
+            height:110px;
+            border-radius:50%;
+            background:#a16207;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-size:40px;
+            font-weight:bold;
+        }
+
+        .profile-info h2{
+            color:#111827;
+            margin-bottom:8px;
+        }
+
+        .profile-info p{
+            color:#6b7280;
+        }
+
+        /* =========================
+           INFO GRID
+        ========================== */
+
+        .info-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:20px;
+        }
+
+        .info-card{
+            background:#f9fafb;
+            border:1px solid #e5e7eb;
+            padding:20px;
+            border-radius:12px;
+        }
+
+        .info-card span{
+            display:block;
+            font-size:14px;
+            color:#6b7280;
+            margin-bottom:8px;
+        }
+
+        .info-card strong{
+            color:#111827;
+            font-size:16px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media(max-width:768px){
+
+            .sidebar{
+                width:100%;
+                height:auto;
+                position:relative;
+            }
+
+            .main{
+                margin-left:0;
+            }
+
+            .topbar{
+                flex-direction:column;
+                gap:15px;
+                align-items:flex-start;
+            }
+
+            .profile-header{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{% url 'panel_apoderado' %}">
+                     Inicio
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_estudiantes' %}">
+                     Estudiantes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_notas' %}">
+                     Notas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_asistencia' %}">
+                     Asistencia
+                </a>
+            </li>
+
+            <!--<li>
+                <a href="{% url 'panel_apoderado_pagos' %}">
+                     Pagos
+                </a>
+            </li>-->
+
+            <li>
+                <a href="{% url 'panel_apoderado_perfil' %}">
+                     Perfil
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'logout' %}">
+                     Cerrar sesión
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <div class="topbar">
+            <div class="welcome">
+                <h1>Mi Perfil</h1>
+                <p>Información personal del apoderado registrada en EduGestor.</p>
+            </div>
+        </div>
+
+        {% if apoderado %}
+
+        <div class="profile-container" style="margin-bottom:24px">
+
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ apoderado.nombre_apoderado|first|upper }}
+                </div>
+                <div class="profile-info">
+                    <h2>{{ apoderado.nombre_apoderado }} {{ apoderado.apellido_apoderado }}</h2>
+                    <p>Apoderado · EduGestor</p>
+                    <p>{{ apoderado.email }}</p>
+                </div>
+            </div>
+
+            <div class="info-grid" style="margin-top:24px">
+                <div class="info-box">
+                    <span>Nombre completo</span>
+                    <strong>{{ apoderado.nombre_apoderado }} {{ apoderado.apellido_apoderado }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>RUT</span>
+                    <strong>{{ apoderado.usuario.rut|default:"No registrado" }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>Correo electrónico</span>
+                    <strong>{{ apoderado.email|default:"Sin correo" }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>Teléfono</span>
+                    <strong>{{ apoderado.telefono|default:"No registrado" }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>Dirección</span>
+                    <strong>{{ apoderado.direccion|default:"No registrada" }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>Usuario de acceso</span>
+                    <strong>{{ apoderado.usuario.username }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>Rol en el sistema</span>
+                    <strong>{{ apoderado.usuario.tipo_usuario }}</strong>
+                </div>
+                <div class="info-box">
+                    <span>Estado</span>
+                    <strong style="color:#166534">
+                        {% if apoderado.usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </strong>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="table-container">
+            <h2>Mis Estudiantes Asociados</h2>
+            <table style="margin-top:12px">
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Parentesco</th>
+                        <th>Apoderado Principal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rel in relaciones %}
+                    <tr>
+                        <td><strong>{{ rel.alumno.nombre_alumno }} {{ rel.alumno.apellido_alumno }}</strong></td>
+                        <td>{{ rel.parentesco }}</td>
+                        <td>{% if rel.is_principal %}Sí{% else %}No{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="color:#9ca3af; font-style:italic">
+                            No tienes estudiantes asociados aún.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+            <div class="table-container">
+                <p style="color:#9ca3af">No se encontró un perfil de apoderado asociado a tu cuenta.</p>
+            </div>
+        {% endif %}
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

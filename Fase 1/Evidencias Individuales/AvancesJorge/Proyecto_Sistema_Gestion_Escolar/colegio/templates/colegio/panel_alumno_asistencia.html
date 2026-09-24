@@ -1,0 +1,194 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
+</head>
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        {% include 'colegio/alumno_menu.html' %}
+
+    </aside>
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>
+                    Asistencia 
+                </h1>
+
+                <p>
+                    Consulta tu registro de asistencia por fecha y asignatura.
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- =========================
+             CARDS RESUMEN
+             Datos calculados en la view:
+             - porcentaje : presentes / total * 100
+             - presentes  : registros con estado 'Presente'
+             - ausentes   : registros con estado 'Ausente'
+             - justificados: registros con estado 'Justificado'
+        ========================== -->
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Asistencia Total</h3>
+                <p>{{ porcentaje }}%</p>
+            </div>
+
+            <div class="card">
+                <h3>Días Presentes</h3>
+                <p>{{ presentes }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Ausencias</h3>
+                <p>{{ ausentes }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Justificados</h3>
+                <p>{{ justificados }}</p>
+            </div>
+
+        </div>
+
+        <!-- =========================
+             TABLA ASISTENCIA
+             Itera sobre 'registros' (QuerySet de Asistencia)
+             ordenado por fecha descendente desde la view.
+             Cada registro accede a:
+               - r.fecha                            → DateField
+               - r.carga.asignatura.nombre_asignatura → via CargaAcademica → Asignatura
+               - r.carga.docente.nombre_docente      → via CargaAcademica → Docente
+               - r.carga.docente.apellido_docente
+               - r.estado_asistencia                → 'Presente' / 'Ausente' / 'Justificado'
+               - r.observacion                      → opcional, muestra '—' si está vacío
+        ========================== -->
+
+        <div class="table-container">
+
+            <h2>Registro de Asistencia</h2>
+
+            <form method="get" class="filter-bar">
+                <label for="asignatura">Asignatura</label>
+                <select name="asignatura" id="asignatura" onchange="this.form.submit()">
+                    <option value="">Todas las asignaturas</option>
+                    {% for asignatura in asignaturas_asistencia %}
+                        <option
+                            value="{{ asignatura.carga__asignatura_id }}"
+                            {% if asignatura_id == asignatura.carga__asignatura_id|stringformat:"s" %}selected{% endif %}
+                        >
+                            {{ asignatura.carga__asignatura__nombre_asignatura }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if asignatura_id %}
+                    <a href="{% url 'panel_alumno_asistencia' %}" class="btn">Limpiar filtro</a>
+                {% endif %}
+            </form>
+
+            <!-- Si no hay registros, muestra mensaje en lugar de tabla vacía -->
+
+            {% if registros %}
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Asignatura</th>
+                        <th>Docente</th>
+                        <th>Estado</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for r in registros %}
+
+                    <tr>
+
+                        <!-- Fecha formateada como dd/mm/aaaa -->
+                        <td>{{ r.fecha|date:"d/m/Y" }}</td>
+
+                        <!-- Nombre de la asignatura via CargaAcademica -->
+                        <td>{{ r.carga.asignatura.nombre_asignatura }}</td>
+
+                        <!-- Nombre completo del docente via CargaAcademica -->
+                        <td>{{ r.carga.docente.nombre_docente }} {{ r.carga.docente.apellido_docente }}</td>
+
+                        <!-- Badge de estado: clase CSS según valor del campo -->
+                        <td>
+                            {% if r.estado_asistencia|lower == 'presente' %}
+                                <span class="badge badge-presente">Presente</span>
+
+                            {% elif r.estado_asistencia|lower == 'ausente' %}
+                                <span class="badge badge-ausente">Ausente</span>
+
+                            {% elif r.estado_asistencia|lower == 'justificado' %}
+                                <span class="badge badge-justificado">Justificado</span>
+
+                            {% else %}
+                                <!-- Fallback por si hay otros estados en la BD -->
+                                <span class="badge">{{ r.estado_asistencia }}</span>
+
+                            {% endif %}
+                        </td>
+
+                        <!-- Observación opcional; muestra '—' si el campo está vacío o null -->
+                        <td>{{ r.observacion|default:"—" }}</td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+                <!-- Mensaje cuando el alumno no tiene registros de asistencia -->
+                <p>No hay registros de asistencia disponibles.</p>
+
+            {% endif %}
+
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>
