@@ -1,0 +1,10 @@
+# Entornos y configuración local
+**/.venv/
+**/.env
+
+# Bases de datos locales
+**/db.sqlite3
+
+# Archivos generados por Python
+**/__pycache__/
+*.py[cod]
