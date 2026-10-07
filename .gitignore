@@ -1,0 +1,13 @@
+# Entornos virtuales
+.venv/
+# Base de datos local
+db.sqlite3
+Proyecto_Sistema_Gestion_Escolar/db.sqlite3
+
+# Archivos compilados de Python
+**/__pycache__/
+*.pyc
+EO
+# Entorno local
+.env
+venv/
