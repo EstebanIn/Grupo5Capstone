@@ -1,0 +1,84 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Cursos | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+
+    
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        {% include 'colegio/docente_menu.html' %}
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>Mis Cursos </h1>
+
+                <p>
+                    Cursos y asignaturas asignadas al docente.
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- CURSOS -->
+
+        <div class="courses">
+        {% for item in cursos %}
+            <div class="course-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
+                    <h2 style="font-size:18px">{{ item.curso }}</h2>
+                    <span class="badge activo">Activo</span>
+                </div>
+                <p style="margin-bottom:8px">
+                    <span style="font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#9ca3af">Asignatura</span><br>
+                    <strong>{{ item.asignatura.nombre_asignatura }}</strong>
+                </p>
+                <p style="margin-bottom:8px">
+                    <span style="font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#9ca3af">Período</span><br>
+                    {{ item.periodo }}
+                </p>
+                <p style="margin-bottom:16px">
+                    <span style="font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#9ca3af">Alumnos matriculados</span><br>
+                    <strong style="font-size:22px; color:#166534">{{ item.total_alumnos }}</strong>
+                </p>
+                <a href="{% url 'panel_docente_notas' %}?carga_id={{ item.carga.id }}" class="btn" style="width:100%; text-align:center; display:block">
+                     Ingresar notas
+                </a>
+            </div>
+        {% empty %}
+            <div class="course-card">
+                <h2 style="color:#9ca3af">No tienes cursos asignados</h2>
+            </div>
+        {% endfor %}
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

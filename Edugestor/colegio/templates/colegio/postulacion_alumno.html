@@ -1,0 +1,472 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Postulación Alumno Nuevo | EduGestor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        /* ... (estilos sin cambios) ... */
+        :root {
+            --navy: #0f2b5b;
+            --blue: #2563eb;
+            --purple: #6b21a8;
+            --purple-hover: #581c87;
+            --paper: #f8fafc;
+            --white: #ffffff;
+            --muted: #64748b;
+            --line: #e2e8f0;
+            --danger: #dc2626;
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+            color: #1f2937;
+        }
+
+        .public-header {
+            background: var(--white);
+            border-bottom: 1px solid var(--line);
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-weight: 800;
+            color: var(--navy);
+            font-size: 20px;
+            text-decoration: none;
+        }
+
+        .header-link {
+            background: var(--blue);
+            color: white;
+            text-decoration: none;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        .page {
+            padding: 40px 6%;
+        }
+
+        .title-box {
+            max-width: 960px;
+            margin: 0 auto 28px;
+        }
+
+        .title-box span {
+            display: inline-block;
+            background: rgba(107, 33, 168, 0.1);
+            color: var(--purple);
+            padding: 7px 15px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+
+        .title-box h1 {
+            margin: 0 0 10px;
+            color: var(--navy);
+            font-size: clamp(32px, 5vw, 48px);
+        }
+
+        .title-box p {
+            color: var(--muted);
+            font-size: 17px;
+            margin: 0;
+        }
+
+        .form-layout {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: 0 12px 30px rgba(15, 43, 91, 0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--purple), #7e22ce);
+            color: white;
+            padding: 18px 22px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .card-body {
+            padding: 22px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px 13px;
+            font-size: 15px;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 4px rgba(107, 33, 168, 0.14);
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .alert-danger {
+            max-width: 1100px;
+            margin: 0 auto 20px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 14px 16px;
+            border-radius: 12px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .btn-submit {
+            border: none;
+            background: var(--purple);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 999px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 12px 28px rgba(107, 33, 168, 0.25);
+        }
+
+        .btn-submit:hover {
+            background: var(--purple-hover);
+        }
+
+        .btn-cancel {
+            background: white;
+            color: var(--navy);
+            border: 1px solid var(--line);
+            text-decoration: none;
+            padding: 14px 24px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 900px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column-reverse;
+            }
+
+            .actions a,
+            .actions button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="public-header">
+    <a href="{% url 'landing_cliente' slug_colegio=slug_colegio %}" class="brand">EduGestor</a>
+    <a href="{% url 'login' %}" class="header-link">Ingresar</a>
+</header>
+
+<main class="page">
+
+    <div class="title-box">
+        <span>Postulación pública</span>
+        <h1>Postulación de Alumno Nuevo</h1>
+        <p>
+            Completa los datos del alumno y del apoderado. La solicitud será revisada por la administración del establecimiento.
+        </p>
+    </div>
+
+    <form method="post" class="form-layout" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert-danger">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="cards-grid">
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>Datos del Alumno</h2>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="field">
+                        <label for="{{ form.rut_alumno.id_for_label }}">{{ form.rut_alumno.label }}</label>
+                        {{ form.rut_alumno }}
+                        {% for error in form.rut_alumno.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.nombre_alumno.id_for_label }}">{{ form.nombre_alumno.label }}</label>
+                        {{ form.nombre_alumno }}
+                        {% for error in form.nombre_alumno.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.apellido_alumno.id_for_label }}">{{ form.apellido_alumno.label }}</label>
+                        {{ form.apellido_alumno }}
+                        {% for error in form.apellido_alumno.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.fecha_nacimiento.id_for_label }}">{{ form.fecha_nacimiento.label }}</label>
+                        {{ form.fecha_nacimiento }}
+                        {% for error in form.fecha_nacimiento.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.genero.id_for_label }}">{{ form.genero.label }}</label>
+                        {{ form.genero }}
+                        {% for error in form.genero.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="field">
+                        <label for="{{ form.ciclo_postulacion.id_for_label }}">
+                            {{ form.ciclo_postulacion.label }}
+                        </label>
+                        {{ form.ciclo_postulacion }}
+                        {% for error in form.ciclo_postulacion.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.nivel_postulacion.id_for_label }}">
+                            {{ form.nivel_postulacion.label }}
+                        </label>
+                        {{ form.nivel_postulacion }}
+                        {% for error in form.nivel_postulacion.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>Datos del Apoderado</h2>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="field">
+                        <label for="{{ form.rut_apoderado.id_for_label }}">{{ form.rut_apoderado.label }}</label>
+                        {{ form.rut_apoderado }}
+                        {% for error in form.rut_apoderado.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.nombre_apoderado.id_for_label }}">{{ form.nombre_apoderado.label }}</label>
+                        {{ form.nombre_apoderado }}
+                        {% for error in form.nombre_apoderado.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.apellido_apoderado.id_for_label }}">{{ form.apellido_apoderado.label }}</label>
+                        {{ form.apellido_apoderado }}
+                        {% for error in form.apellido_apoderado.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}</label>
+                        {{ form.direccion }}
+                        {% for error in form.direccion.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                        {{ form.telefono }}
+                        {% for error in form.telefono.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.email_apoderado.id_for_label }}">{{ form.email_apoderado.label }}</label>
+                        {{ form.email_apoderado }}
+                        {% for error in form.email_apoderado.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        <label for="{{ form.parentesco.id_for_label }}">{{ form.parentesco.label }}</label>
+                        {{ form.parentesco }}
+                        {% for error in form.parentesco.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field">
+                        {{ form.is_principal }}
+                        <label for="{{ form.is_principal.id_for_label }}" style="display:inline;">
+                            {{ form.is_principal.label }}
+                        </label>
+                        {% for error in form.is_principal.errors %}
+                            <div class="error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <div class="actions">
+            <a href="{% url 'landing_cliente' slug_colegio=slug_colegio %}" class="btn-cancel">Volver</a>
+            <button type="submit" class="btn-submit">Enviar postulación</button>
+        </div>
+
+    </form>
+
+</main>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const cicloSelect = document.getElementById("id_ciclo_postulacion");
+    const nivelSelect = document.getElementById("id_nivel_postulacion");
+
+    if (!cicloSelect || !nivelSelect) return;
+
+    const nivelSeleccionado = "{{ form.nivel_postulacion.value|default:'' }}";
+
+    const nivelesPorCiclo = {
+        "KINDER": [
+            { value: "1", text: "Kinder 1" }
+        ],
+        "BASICA": [
+            { value: "1", text: "1° Básico" },
+            { value: "2", text: "2° Básico" },
+            { value: "3", text: "3° Básico" },
+            { value: "4", text: "4° Básico" },
+            { value: "5", text: "5° Básico" },
+            { value: "6", text: "6° Básico" },
+            { value: "7", text: "7° Básico" },
+            { value: "8", text: "8° Básico" }
+        ],
+        "MEDIA": [
+            { value: "1", text: "1° Medio" },
+            { value: "2", text: "2° Medio" },
+            { value: "3", text: "3° Medio" },
+            { value: "4", text: "4° Medio" }
+        ]
+    };
+
+    function actualizarNiveles() {
+        const ciclo = cicloSelect.value;
+        const niveles = nivelesPorCiclo[ciclo] || [];
+
+        nivelSelect.innerHTML = "";
+
+        const optionDefault = document.createElement("option");
+        optionDefault.value = "";
+        optionDefault.textContent = "Seleccione nivel";
+        nivelSelect.appendChild(optionDefault);
+
+        niveles.forEach(function (nivel) {
+            const option = document.createElement("option");
+            option.value = nivel.value;
+            option.textContent = nivel.text;
+
+            if (nivel.value === nivelSeleccionado) {
+                option.selected = true;
+            }
+
+            nivelSelect.appendChild(option);
+        });
+    }
+
+    cicloSelect.addEventListener("change", function () {
+        nivelSelect.dataset.changed = "true";
+        actualizarNiveles();
+    });
+
+    actualizarNiveles();
+});
+</script>
+</body>
+</html>

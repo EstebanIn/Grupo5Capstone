@@ -1,0 +1,133 @@
+/* Asistentes de IA. Se carga después de docente.css o alumno.css. */
+:root {
+    --ia-acento: #166534;
+    --ia-acento-suave: #dcfce7;
+    --ia-borde: #e5e7eb;
+    --ia-texto-suave: #6b7280;
+    --ia-fondo: #ffffff;
+}
+body.ia-alumno {
+    --ia-acento: #1e3a8a;
+    --ia-acento-suave: #dbeafe;
+}
+
+.ia-encabezado { margin-bottom: 24px; }
+.ia-encabezado h1 { font-size: 24px; color: #111827; margin-bottom: 4px; }
+.ia-encabezado p { color: var(--ia-texto-suave); font-size: 14px; }
+.ia-volver { display: inline-block; margin-bottom: 12px; color: var(--ia-acento); text-decoration: none; font-size: 14px; }
+
+.ia-aviso {
+    background: #fffbeb; border: 1px solid #fcd34d; color: #92400e;
+    padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px;
+}
+.ia-mensajes { list-style: none; margin-bottom: 20px; }
+.ia-mensajes li { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; font-size: 14px; }
+.ia-mensajes .success { background: var(--ia-acento-suave); color: var(--ia-acento); }
+.ia-mensajes .error { background: #fee2e2; color: #991b1b; }
+
+/* Tarjetas del menú del asistente */
+.ia-herramientas { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.ia-herramienta {
+    background: var(--ia-fondo); border: 1px solid var(--ia-borde); border-radius: 12px;
+    padding: 20px; text-decoration: none; color: inherit;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.ia-herramienta:hover { border-color: var(--ia-acento); box-shadow: 0 4px 14px rgba(0,0,0,.06); transform: translateY(-2px); }
+.ia-herramienta .icono { font-size: 26px; margin-bottom: 10px; }
+.ia-herramienta h3 { font-size: 16px; margin-bottom: 6px; color: #111827; }
+.ia-herramienta p { font-size: 13px; color: var(--ia-texto-suave); line-height: 1.45; }
+
+.ia-panel { background: var(--ia-fondo); border: 1px solid var(--ia-borde); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.ia-panel h2 { font-size: 18px; margin-bottom: 16px; color: #111827; }
+
+.ia-metricas { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.ia-metrica { background: var(--ia-fondo); border: 1px solid var(--ia-borde); border-left: 4px solid var(--ia-acento); border-radius: 10px; padding: 14px 18px; min-width: 190px; }
+.ia-metrica span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--ia-texto-suave); }
+.ia-metrica strong { font-size: 26px; color: var(--ia-acento); }
+
+/* Formularios */
+.ia-form .campo { margin-bottom: 16px; }
+.ia-form label { display: block; font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #374151; }
+.ia-form input[type=text], .ia-form input[type=number], .ia-form select, .ia-form textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: #fff;
+}
+.ia-form textarea { resize: vertical; line-height: 1.45; }
+.ia-form input:focus, .ia-form select:focus, .ia-form textarea:focus { outline: 2px solid var(--ia-acento-suave); border-color: var(--ia-acento); }
+.ia-form .ayuda { font-size: 12px; color: var(--ia-texto-suave); margin-top: 4px; }
+.ia-form .errorlist { list-style: none; color: #b91c1c; font-size: 13px; margin-top: 4px; }
+.ia-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+.ia-boton {
+    display: inline-block; background: var(--ia-acento); color: #fff; border: none;
+    padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: bold;
+    cursor: pointer; text-decoration: none;
+}
+.ia-boton:hover { filter: brightness(1.1); }
+.ia-boton:disabled { opacity: .6; cursor: wait; }
+.ia-boton.secundario { background: #fff; color: var(--ia-acento); border: 1px solid var(--ia-acento); }
+.ia-boton.peligro { background: #fff; color: #b91c1c; border: 1px solid #fca5a5; }
+.ia-acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+
+/* Tabla de instrumentos */
+.ia-tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ia-tabla th { text-align: left; font-size: 12px; text-transform: uppercase; color: var(--ia-texto-suave); padding: 8px; border-bottom: 1px solid var(--ia-borde); }
+.ia-tabla td { padding: 10px 8px; border-bottom: 1px solid var(--ia-borde); }
+.ia-tabla a { color: var(--ia-acento); font-weight: bold; text-decoration: none; }
+.ia-estado { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; }
+.ia-estado.BORRADOR { background: #fef3c7; color: #92400e; }
+.ia-estado.APROBADO { background: var(--ia-acento-suave); color: var(--ia-acento); }
+
+/* Edición de preguntas y rúbricas */
+.ia-pregunta { border: 1px solid var(--ia-borde); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.ia-pregunta .cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.ia-pregunta .cabecera strong { color: var(--ia-acento); }
+.ia-alternativa { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ia-alternativa input[type=radio] { accent-color: var(--ia-acento); width: 18px; height: 18px; flex: none; }
+.ia-alternativa .letra { font-weight: bold; width: 18px; flex: none; }
+.ia-eliminar { font-size: 13px; color: #b91c1c; font-weight: normal; display: flex; gap: 4px; align-items: center; }
+.ia-rubrica { width: 100%; border-collapse: collapse; }
+.ia-rubrica th, .ia-rubrica td { border: 1px solid var(--ia-borde); padding: 8px; vertical-align: top; font-size: 13px; }
+.ia-rubrica th { background: var(--ia-acento-suave); color: var(--ia-acento); }
+.ia-rubrica textarea, .ia-rubrica input { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px; font-family: inherit; font-size: 13px; }
+.ia-rubrica-scroll { overflow-x: auto; }
+
+/* Vista de lectura (instrumento aprobado, revisión, material) */
+.ia-markdown { line-height: 1.6; font-size: 15px; }
+.ia-markdown h1, .ia-markdown h2, .ia-markdown h3 { margin: 18px 0 8px; color: #111827; }
+.ia-markdown p, .ia-markdown ul, .ia-markdown ol { margin-bottom: 10px; }
+.ia-markdown ul, .ia-markdown ol { padding-left: 24px; }
+.ia-markdown table { border-collapse: collapse; margin: 10px 0; }
+.ia-markdown th, .ia-markdown td { border: 1px solid var(--ia-borde); padding: 6px 10px; }
+.ia-lectura ol.preguntas { padding-left: 22px; }
+.ia-lectura ol.preguntas > li { margin-bottom: 16px; }
+.ia-lectura ol.alternativas { list-style: upper-alpha; padding-left: 22px; margin-top: 6px; }
+.ia-lectura .correcta { color: var(--ia-acento); font-weight: bold; }
+.ia-lectura .explicacion { font-size: 13px; color: var(--ia-texto-suave); margin-top: 4px; }
+
+/* Tutor */
+.ia-tutor { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: start; }
+.ia-asignaturas { background: var(--ia-fondo); border: 1px solid var(--ia-borde); border-radius: 12px; padding: 12px; }
+.ia-asignaturas a { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; color: #374151; font-size: 14px; margin-bottom: 4px; }
+.ia-asignaturas a.activa, .ia-asignaturas a:hover { background: var(--ia-acento-suave); color: var(--ia-acento); font-weight: bold; }
+.ia-chat { background: var(--ia-fondo); border: 1px solid var(--ia-borde); border-radius: 12px; display: flex; flex-direction: column; min-height: 520px; }
+.ia-chat-cabecera { padding: 14px 18px; border-bottom: 1px solid var(--ia-borde); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ia-chat-mensajes { flex: 1; padding: 18px; overflow-y: auto; max-height: 60vh; display: flex; flex-direction: column; gap: 12px; }
+.ia-burbuja { max-width: 78%; padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.5; }
+.ia-burbuja.usuario { align-self: flex-end; background: var(--ia-acento); color: #fff; border-bottom-right-radius: 4px; white-space: pre-wrap; }
+.ia-burbuja.modelo { align-self: flex-start; background: #f3f4f6; border-bottom-left-radius: 4px; }
+.ia-burbuja.modelo p:last-child { margin-bottom: 0; }
+.ia-chat-vacio { color: var(--ia-texto-suave); text-align: center; margin: auto; max-width: 380px; font-size: 14px; line-height: 1.5; }
+.ia-chat-form { border-top: 1px solid var(--ia-borde); padding: 12px; display: flex; gap: 10px; align-items: flex-end; }
+.ia-chat-form textarea { flex: 1; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-family: inherit; font-size: 15px; resize: none; }
+
+@media (max-width: 900px) {
+    .ia-tutor { grid-template-columns: 1fr; }
+    .ia-burbuja { max-width: 92%; }
+}
+
+@media print {
+    .sidebar, .ia-no-imprimir { display: none !important; }
+    .main { margin: 0 !important; padding: 0 !important; }
+    .ia-panel { border: none; padding: 0; }
+}

@@ -1,0 +1,198 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Postulaciones | EduGestor{% endblock %}
+
+{% block content %}
+
+<div class="postulaciones-page">
+
+    <div class="postulaciones-header">
+        <div>
+            <h2>Postulaciones de Alumnos</h2>
+            <p>
+                Revisa las solicitudes públicas recibidas desde el formulario de postulación.
+            </p>
+        </div>
+
+        <a href="{% url 'registrar_alumno' %}" class="btn-postulacion-register">
+            ➕ Registrar alumno manualmente
+        </a>
+    </div>
+
+    <div class="postulaciones-summary">
+        <div class="summary-card">
+            <span>Total encontradas</span>
+            <strong>{{ total_postulaciones }}</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Filtro actual</span>
+            <strong>{{ estado|title }}</strong>
+        </div>
+    </div>
+
+    <div class="postulaciones-filters">
+        <a href="{% url 'panel_admin_postulaciones' %}?estado=PENDIENTE"
+           class="postulacion-filter {% if estado == 'PENDIENTE' %}active{% endif %}">
+            Pendientes
+        </a>
+
+        <a href="{% url 'panel_admin_postulaciones' %}?estado=APROBADA"
+           class="postulacion-filter {% if estado == 'APROBADA' %}active{% endif %}">
+            Aprobadas
+        </a>
+
+        <a href="{% url 'panel_admin_postulaciones' %}?estado=RECHAZADA"
+           class="postulacion-filter {% if estado == 'RECHAZADA' %}active{% endif %}">
+            Rechazadas
+        </a>
+
+        <a href="{% url 'panel_admin_postulaciones' %}?estado=TODAS"
+           class="postulacion-filter {% if estado == 'TODAS' %}active{% endif %}">
+            Todas
+        </a>
+    </div>
+
+    <div class="postulaciones-table-card">
+
+        {% if postulaciones %}
+            <table class="table postulaciones-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Alumno</th>
+                        <th>Postula A</th>
+                        <th>Apoderado</th>
+                        <th>Contacto</th>
+                        <th>Parentesco</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for solicitud in postulaciones %}
+                        <tr>
+                            <td>
+                                {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ solicitud.nombre_alumno }} {{ solicitud.apellido_alumno }}
+                                </strong>
+                                <br>
+                                <span>RUT: {{ solicitud.rut_alumno }}</span>
+                                <br>
+                                <span>Nacimiento: {{ solicitud.fecha_nacimiento|date:"d/m/Y" }}</span>
+                                <br>
+                                <span>Género: {{ solicitud.genero }}</span>
+                            </td>
+                            <td>
+                                <strong>
+                                    {% if solicitud.ciclo_postulacion %}
+                                        {{ solicitud.get_ciclo_postulacion_display }}
+                                    {% else %}
+                                        Sin ciclo
+                                    {% endif %}
+                                </strong>
+                                <br>
+
+                                Nivel:
+                                {% if solicitud.nivel_postulacion %}
+                                    {{ solicitud.nivel_postulacion }}
+                                {% else %}
+                                    Sin nivel
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>
+                                    {{ solicitud.nombre_apoderado }} {{ solicitud.apellido_apoderado }}
+                                </strong>
+                                <br>
+                                <span>RUT: {{ solicitud.rut_apoderado }}</span>
+                                <br>
+                                <span>Dirección: {{ solicitud.direccion|default:"Sin dirección" }}</span>
+                            </td>
+
+                            <td>
+                                <strong>{{ solicitud.email_apoderado }}</strong>
+                                <br>
+                                <span>{{ solicitud.telefono|default:"Sin teléfono" }}</span>
+                            </td>
+
+                            <td>
+                                {{ solicitud.parentesco }}
+                            </td>
+
+                            <td>
+                                {% if solicitud.estado == "PENDIENTE" %}
+                                    <span class="badge-postulacion badge-pendiente">
+                                        Pendiente
+                                    </span>
+                                {% elif solicitud.estado == "APROBADA" %}
+                                    <span class="badge-postulacion badge-aprobada">
+                                        Aprobada
+                                    </span>
+                                {% elif solicitud.estado == "RECHAZADA" %}
+                                    <span class="badge-postulacion badge-rechazada">
+                                        Rechazada
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if solicitud.estado == "PENDIENTE" %}
+                                    <div class="postulacion-actions">
+
+                                        <form method="post" action="{% url 'aprobar_postulacion' solicitud.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-aprobar">
+                                                Aprobar
+                                            </button>
+                                        </form>
+
+                                        <form method="post" action="{% url 'rechazar_postulacion' solicitud.id %}" class="rechazar-form">
+                                            {% csrf_token %}
+
+                                            <input
+                                                type="text"
+                                                name="observacion_admin"
+                                                class="input-rechazo"
+                                                placeholder="Motivo opcional"
+                                            >
+
+                                            <button type="submit" class="btn-rechazar">
+                                                Rechazar
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                {% else %}
+                                    {% if solicitud.procesada_por %}
+                                        <span class="text-muted-italic">
+                                            Procesada por {{ solicitud.procesada_por.username }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted-italic">
+                                            Sin acción disponible
+                                        </span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {% else %}
+            <div class="postulaciones-empty">
+                No hay postulaciones para mostrar con el filtro seleccionado.
+            </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

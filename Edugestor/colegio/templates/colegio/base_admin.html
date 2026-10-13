@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel Admin | EduGestor{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">EduGestor</div>
+
+        <ul class="menu">
+            <li>
+                <a href="{% url 'panel_admin' %}">
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_usuarios' %}">
+                    Usuarios
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_docentes' %}">
+                    Docentes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_cursos' %}">
+                    Cursos
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_asignaturas' %}">
+                    Asignaturas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_matriculas' %}">
+                    Matrículas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_postulaciones' %}">
+                    Postulaciones
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'registrar_alumno' %}">
+                    Registrar Alumno
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_reportes' %}">
+                    Reportes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_perfil' %}">
+                    Mi Perfil
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'logout' %}"> Cerrar sesión</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if 'error' in message.tags %}alert-error{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+        
+    </div>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

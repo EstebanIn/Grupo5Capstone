@@ -1,0 +1,162 @@
+    {% load static %}
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Instituto Chimbarongo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;700;900&display=swap" rel="stylesheet">
+        
+        <link rel="icon" type="image/png" href="{% static 'img/instituto-chimbarongo-logo-desde-jpg.png' %}">
+        <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=15">
+    </head>
+    <body>
+
+    <header class="site-header">
+        <a href="{% url 'inicio' %}" class="brand" aria-label="Inicio Instituto Chimbarongo">
+            <span class="brand-mark">
+                <img src="{% static 'img/instituto-chimbarongo-logo-desde-jpg.png' %}" alt="Escudo Instituto Chimbarongo">
+            </span>
+            <span class="brand-text">
+                <strong>Instituto Chimbarongo</strong>
+            </span>
+        </a>
+
+        <a href="{% url 'login' %}" class="header-login">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Ingresar
+        </a>
+    </header>
+
+    <main>
+        <section class="hero" id="intranet">
+            <div class="hero-copy fade-in-up">
+                <span class="eyebrow">Acceso Oficial a la Intranet</span>
+                <h1>Instituto Chimbarongo</h1>
+                <p class="hero-lead">
+                    Plataforma privada para estudiantes, apoderados, docentes y administración. 
+                    Ingresa con tus credenciales institucionales para gestionar tu información académica de forma rápida y segura.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="{% url 'login' %}" class="btn-primary">
+                        Iniciar Sesión
+                    </a>
+
+                    <a href="#instituto" class="btn-primary">
+                        Conocer el instituto
+                    </a>
+
+                    <a href="{% url 'postulacion_alumno_cliente' colegio.slug %}" class="btn-postulacion">
+                        Postular alumno nuevo
+                    </a>
+                </div>
+
+                <div class="access-strip" aria-label="Perfiles de acceso">
+                    <span>👨‍🎓 Alumnos</span>
+                    <span>👨‍👩‍👧 Apoderados</span>
+                    <span>👨‍🏫 Docentes</span>
+                    <span>⚙️ Administración</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="intro-band" aria-label="Proposito institucional">
+            <div class="intro-content">
+                <span class="section-kicker">Nuestra Comunidad</span>
+                <h2>Formación integral con gestión cercana y ordenada</h2>
+            </div>
+            <p>
+                El Instituto Chimbarongo promueve un ambiente educativo donde cada 
+                estudiante puede aprender, participar y desarrollarse con el 
+                acompañamiento de sus familias y equipos pedagógicos.
+            </p>
+        </section>
+
+        <section class="identity-section" id="identidad">
+            <div class="section-heading text-center">
+                <span class="section-kicker">Identidad institucional</span>
+                <h2>Nuestros Pilares</h2>
+                <p class="section-desc">Los fundamentos que guían nuestra educación día a día.</p>
+            </div>
+
+            <div class="identity-grid">
+                <article class="identity-card value-card">
+                    <div class="icon-wrapper">🤝</div>
+                    <span class="card-label">Valor</span>
+                    <h3>Respeto</h3>
+                    <p>Fomentamos una convivencia basada en la empatía, la responsabilidad y el reconocimiento de cada integrante de la comunidad educativa.</p>
+                </article>
+
+                <article class="identity-card mission-card">
+                    <div class="icon-wrapper">🌱</div>
+                    <span class="card-label">Misión</span>
+                    <h3>Educar para crecer</h3>
+                    <p>Entregar una educación integral, inclusiva y de calidad, fortaleciendo aprendizajes, habilidades socioemocionales y compromiso con el entorno.</p>
+                </article>
+
+                <article class="identity-card vision-card">
+                    <div class="icon-wrapper">⭐</div>
+                    <span class="card-label">Visión</span>
+                    <h3>Ser líderes</h3>
+                    <p>Consolidarnos como institución reconocida por excelencia académica, innovación pedagógica y capacidad de formar personas autónomas.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="instituto" class="history-section">
+            <div class="history-content">
+                <span class="section-kicker">La historia del colegio</span>
+                <h2>Un proyecto construido junto a las familias</h2>
+                <p>
+                    El Colegio Instituto Chimbarongo tiene sus comienzos en el año 2004... Este proyecto educativo pretende crear personas con formación valórica y educativa, incentivando el lado deportivo y cultural.
+                </p>
+                <p>
+                    Actualmente poseemos laboratorios de computación e inglés, biblioteca CRA equipada, amplias instalaciones deportivas, canal comunitario y talleres de astronomía, robótica y deportes. Además, impartimos carreras técnicas desde tercer año medio.
+                </p>
+                <p>
+                    Toda la comunidad educativa confía en que día a día seguiremos creciendo para mejorar la educación Chimbaronguina.
+                </p>
+            </div>
+
+            <div class="history-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <strong>Inicios (2004)</strong>
+                    <span>Nace el proyecto educativo con foco en comunidad y aprendizaje.</span>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <strong>Crecimiento</strong>
+                    <span>Nuevas instalaciones, talleres tecnológicos y carreras técnicas.</span>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <strong>Presente</strong>
+                    <span>Digitalización total con Intranet para la comunidad escolar.</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer" id="contacto">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>Instituto Chimbarongo</h3>
+                <p>Formando el futuro de nuestra comuna.</p>
+            </div>
+            <div class="footer-info">
+                <p>📍 Camiruaga Cortina #32, Chimbarongo, VI Región</p>
+                <p>📞 Teléfono: <a href="tel:722781305">722 781305</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Instituto Chimbarongo. Gestionado por <strong>EduGestor</strong>.</p>
+        </div>
+    </footer>
+
+    </body>
+    </html>

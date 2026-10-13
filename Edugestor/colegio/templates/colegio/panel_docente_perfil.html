@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil Docente | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">EduGestor</div>
+    {% include 'colegio/docente_menu.html' %}
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div class="welcome">
+            <h1>Mi Perfil </h1>
+            <p>Información personal y profesional del docente.</p>
+        </div>
+    </div>
+
+    {% if docente %}
+
+    <!-- CABECERA DE PERFIL -->
+    <div class="profile-container" style="margin-bottom:24px">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ docente.nombre_docente|first|upper }}
+            </div>
+            <div class="profile-info">
+                <h2>{{ docente.nombre_docente }} {{ docente.apellido_docente }}</h2>
+                <p>Docente · EduGestor</p>
+                <p>{{ docente.email_institucional }}</p>
+            </div>
+        </div>
+
+        <!-- DATOS PERSONALES -->
+        <div class="info-grid" style="margin-top:24px">
+            <div class="info-box">
+                <span>Nombre completo</span>
+                <strong>{{ docente.nombre_docente }} {{ docente.apellido_docente }}</strong>
+            </div>
+            <div class="info-box">
+                <span>RUT</span>
+                <strong>{{ docente.usuario.rut|default:"No registrado" }}</strong>
+            </div>
+            <div class="info-box">
+                <span>Correo institucional</span>
+                <strong>{{ docente.email_institucional|default:"Sin correo" }}</strong>
+            </div>
+            <div class="info-box">
+                <span>Teléfono</span>
+                <strong>{{ docente.telefono|default:"No registrado" }}</strong>
+            </div>
+            <div class="info-box">
+                <span>Usuario de acceso</span>
+                <strong>{{ docente.usuario.username }}</strong>
+            </div>
+            <div class="info-box">
+                <span>Rol en el sistema</span>
+                <strong>{{ docente.usuario.tipo_usuario }}</strong>
+            </div>
+            <div class="info-box">
+                <span>Estado</span>
+                <strong style="color:#166534">
+                    {% if docente.usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                </strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASIGNATURAS ASIGNADAS -->
+    <div class="table-container">
+        <h2> Mis Asignaturas Asignadas</h2>
+        <table style="margin-top:12px">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Asignatura</th>
+                    <th>Período</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for carga in cargas %}
+                <tr>
+                    <td><strong>{{ carga.curso }}</strong></td>
+                    <td>{{ carga.asignatura.nombre_asignatura }}</td>
+                    <td>{{ carga.periodo }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3" style="color:#9ca3af; font-style:italic">
+                        No tienes asignaturas asignadas aún.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+        <div class="table-container">
+            <p style="color:#9ca3af">No se encontró un perfil de docente asociado a tu cuenta.</p>
+        </div>
+    {% endif %}
+
+</main>
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

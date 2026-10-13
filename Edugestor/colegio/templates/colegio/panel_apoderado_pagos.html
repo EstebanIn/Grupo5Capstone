@@ -1,0 +1,185 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/apoderado.css' %}">
+
+    
+</head>
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{% url 'panel_apoderado' %}">
+                     Inicio
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_estudiantes' %}">
+                     Estudiantes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_notas' %}">
+                     Notas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_asistencia' %}">
+                     Asistencia
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_pagos' %}">
+                     Pagos
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_perfil' %}">
+                     Perfil
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'logout' %}">
+                     Cerrar sesión
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>
+                    Pagos y Finanzas 
+                </h1>
+
+                <p>
+                    Revisa el estado de pagos de mensualidades y servicios.
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- CARDS -->
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Total Pagado</h3>
+                <p>$450.000</p>
+            </div>
+
+            <div class="card">
+                <h3>Pagos Pendientes</h3>
+                <p>2</p>
+            </div>
+
+            <div class="card">
+                <h3>Próximo Vencimiento</h3>
+                <p>25 Mayo</p>
+            </div>
+
+        </div>
+
+        <!-- TABLA -->
+
+        <div class="table-container">
+
+            <h2>
+                Historial de Pagos
+            </h2>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Alumno</th>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>Mensualidad Abril</td>
+                        <td>Juan Pérez</td>
+                        <td>05/04/2026</td>
+                        <td>$150.000</td>
+                        <td class="pagado">Pagado</td>
+                    </tr>
+
+                    <tr>
+                        <td>Mensualidad Mayo</td>
+                        <td>Juan Pérez</td>
+                        <td>05/05/2026</td>
+                        <td>$150.000</td>
+                        <td class="pagado">Pagado</td>
+                    </tr>
+
+                    <tr>
+                        <td>Mensualidad Mayo</td>
+                        <td>María Pérez</td>
+                        <td>05/05/2026</td>
+                        <td>$150.000</td>
+                        <td class="pendiente">Pendiente</td>
+                    </tr>
+
+                    <tr>
+                        <td>Taller Extraescolar</td>
+                        <td>María Pérez</td>
+                        <td>10/05/2026</td>
+                        <td>$35.000</td>
+                        <td class="vencido">Vencido</td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

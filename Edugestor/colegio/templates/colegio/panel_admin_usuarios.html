@@ -1,0 +1,55 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Gestión de Usuarios | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Gestión de Usuarios</h2>
+</div>
+
+<div class="card" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+    <span>Filtrar por Rol:</span>
+    <a href="{% url 'panel_admin_usuarios' %}" class="btn-action" style="background: #6b7280; color: white; font-weight: {% if not rol_filtro %}bold{% else %}normal{% endif %};">Todos</a>
+    <a href="?rol=admin" class="btn-action" style="background: #fee2e2; color: #991b1b; font-weight: {% if rol_filtro == 'admin' %}bold{% else %}normal{% endif %};">Admin</a>
+    <a href="?rol=docente" class="btn-action" style="background: #dbeafe; color: #1e40af; font-weight: {% if rol_filtro == 'docente' %}bold{% else %}normal{% endif %};">Docentes</a>
+    <a href="?rol=alumno" class="btn-action" style="background: #d1fae5; color: #065f46; font-weight: {% if rol_filtro == 'alumno' %}bold{% else %}normal{% endif %};">Alumnos</a>
+    <a href="?rol=apoderado" class="btn-action" style="background: #fef3c7; color: #92400e; font-weight: {% if rol_filtro == 'apoderado' %}bold{% else %}normal{% endif %};">Apoderados</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Rol</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td><strong>{{ usuario.username }}</strong></td>
+                <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                <td>
+                    <span class="rol {{ usuario.tipo_usuario|lower }}">
+                        {{ usuario.tipo_usuario|upper }}
+                    </span>
+                </td>
+                <td>
+                    <span class="estado {% if usuario.is_active %}activo{% else %}inactivo{% endif %}">
+                        {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #6b7280; padding: 20px;">
+                    No se encontraron usuarios registrados con este criterio.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

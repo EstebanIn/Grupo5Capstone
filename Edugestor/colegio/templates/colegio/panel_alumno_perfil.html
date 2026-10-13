@@ -1,0 +1,184 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil Alumno | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
+</head>
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">EduGestor</div>
+
+        {% include 'colegio/alumno_menu.html' %}
+
+    </aside>
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+                <h1>Mi Perfil </h1>
+                <p>Información personal del alumno registrada en EduGestor.</p>
+            </div>
+
+            
+
+        </div>
+
+        {% if alumno %}
+
+        <!-- =========================
+             CABECERA DE PERFIL
+             Muestra avatar con inicial, nombre completo
+             y datos del modelo Alumno
+        ========================== -->
+
+        <div class="profile-container" style="margin-bottom:24px">
+
+            <div class="profile-header">
+
+                <!-- Avatar con la inicial del nombre -->
+                <div class="profile-avatar">
+                    {{ alumno.nombre_alumno|first|upper }}
+                </div>
+
+                <div class="profile-info">
+                    <h2>{{ alumno.nombre_alumno }} {{ alumno.apellido_alumno }}</h2>
+                    <p>Alumno · EduGestor</p>
+                    <p>{{ alumno.usuario.email }}</p>
+                </div>
+
+            </div>
+
+            <!-- =========================
+                 DATOS PERSONALES
+                 Campos del modelo Alumno y su Usuario relacionado
+            ========================== -->
+
+            <div class="info-grid" style="margin-top:24px">
+
+                <div class="info-box">
+                    <span>Nombre completo</span>
+                    <strong>{{ alumno.nombre_alumno }} {{ alumno.apellido_alumno }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>RUT</span>
+                    <strong>{{ alumno.usuario.rut|default:"No registrado" }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>Correo electrónico</span>
+                    <strong>{{ alumno.usuario.email|default:"Sin correo" }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>Fecha de nacimiento</span>
+                    <strong>{{ alumno.fecha_nacimiento|date:"d/m/Y"|default:"No registrada" }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>Género</span>
+                    <strong>{{ alumno.genero|default:"No registrado" }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>Usuario de acceso</span>
+                    <strong>{{ alumno.usuario.username }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>Rol en el sistema</span>
+                    <strong>{{ alumno.usuario.tipo_usuario }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>Estado</span>
+                    <strong style="color:#16a34a">
+                        {% if alumno.usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- =========================
+             ASIGNATURAS MATRICULADAS
+             Muestra las asignaturas del curso
+             en el que el alumno está matriculado
+        ========================== -->
+
+        <div class="table-container">
+
+            <h2> Mis Asignaturas</h2>
+
+            <table style="margin-top:12px">
+
+                <thead>
+                    <tr>
+                        <th>Curso</th>
+                        <th>Asignatura</th>
+                        <th>Docente</th>
+                        <th>Período</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for carga in cargas %}
+                    <tr>
+                        <td><strong>{{ carga.curso }}</strong></td>
+                        <td>{{ carga.asignatura.nombre_asignatura }}</td>
+                        <td>
+                            {{ carga.docente.nombre_docente }}
+                            {{ carga.docente.apellido_docente }}
+                        </td>
+                        <td>{{ carga.periodo }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="color:#9ca3af; font-style:italic">
+                            No tienes asignaturas asignadas aún.
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+            <!-- Fallback si no se encuentra perfil de alumno asociado -->
+            <div class="table-container">
+                <p style="color:#9ca3af">
+                    No se encontró un perfil de alumno asociado a tu cuenta.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>
