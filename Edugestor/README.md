@@ -17,7 +17,9 @@ Desde PowerShell, clona el repositorio y entra a la carpeta:
     Set-Location 'Grupo5Capstone\Edugestor'
     Copy-Item .env.example .env
 
-Cada integrante conserva su propio archivo .env. Ese archivo no se sube a GitHub. Sin GEMINI_API_KEY, los asistentes de IA funcionan en modo simulado. Para usar Gemini, configura tu clave personal en .env; no la compartas ni la subas al repositorio.
+Cada integrante debe crear su propio archivo local `.env` copiando **todo** el contenido de `.env.example` (el comando anterior hace la copia). Luego abre `.env` y pega la clave de Gemini que compartió el equipo en la línea `GEMINI_API_KEY=`, por ejemplo `GEMINI_API_KEY=TU_CLAVE`. No agregues comillas salvo que la clave las incluya. Guarda el archivo antes de iniciar Docker.
+
+El `.env` normal contiene configuración local y está excluido de Git; nunca lo subas a GitHub. La clave se comparte entre integrantes solo por un canal privado. Sin una clave válida, los asistentes funcionan en modo simulado. Si ya están levantados los contenedores, aplica cambios de configuración recreando el servicio web con `docker compose up -d --force-recreate web`.
 
 ## Iniciar la aplicación y PostgreSQL
 
@@ -46,3 +48,4 @@ El comando avisa si la base ya contiene datos. No uses --limpiar a menos que qui
 Sin GEMINI_API_KEY, la IA funciona en modo simulado. Cada integrante puede configurar su propia clave en su archivo local .env. No uses datos personales ni información real de estudiantes con los asistentes.
 
 El servidor Django incluido es para desarrollo local; no lo uses para publicar el sistema en Internet.
+
