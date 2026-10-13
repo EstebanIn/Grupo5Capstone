@@ -1,0 +1,719 @@
+/* static/css/admin.css */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f3ff;
+    color: #1f2937;
+}
+
+/* =========================
+   SIDEBAR (Menú Lateral)
+========================== */
+.sidebar {
+    position: fixed;
+    width: 260px;
+    height: 100vh;
+    background: #5b21b6;
+    color: white;
+    padding: 30px 20px;
+}
+
+.sidebar .logo {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    margin-bottom: 18px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: white;
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu a:hover, .menu a.active {
+    background: #4c1d95;
+    font-weight: bold;
+    box-shadow: inset 4px 0 0 #c4b5fd, 0 8px 18px rgba(31, 41, 55, 0.18);
+    transform: translateX(4px);
+}
+
+.logout-btn {
+    display: block;
+    margin-top: 50px;
+    color: #fca5a5;
+    text-decoration: none;
+    padding: 12px;
+    text-align: center;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+.logout-btn:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* =========================
+   CONTENIDO PRINCIPAL
+========================== */
+.main-content {
+    margin-left: 260px;
+    padding: 40px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.content-header h2 {
+    font-size: 24px;
+    color: #4c1d95;
+}
+
+/* =========================
+   TARJETAS Y TABLAS
+========================== */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* =========================
+   BOTONES Y ETIQUETAS
+========================== */
+.btn-primary {
+    background: #6d28d9;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    background: #5b21b6;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.btn-edit { background: #3b82f6; }
+.btn-delete { background: #ef4444; }
+
+.rol {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.rol.admin { background: #fee2e2; color: #991b1b; }
+.rol.docente { background: #dbeafe; color: #1e40af; }
+.rol.alumno { background: #d1fae5; color: #065f46; }
+.rol.apoderado { background: #fef3c7; color: #92400e; }
+
+.estado {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.estado.activo { background: #d1fae5; color: #065f46; }
+.estado.inactivo, .estado.pendiente { background: #fef3c7; color: #92400e; }
+
+/* ==========================================================================
+   ESTILOS COMPLEMENTARIOS - MÓDULOS UNIFICADOS (USUARIOS, REPORTES Y PERFIL)
+   ========================================================================== */
+
+/* --- Barra de Filtros (Usuarios) --- */
+.filter-bar {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.filter-label {
+    font-weight: bold;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+/* Modificadores de botones de filtro por rol */
+.btn-filter-all { background: #6b7280; color: white; }
+.btn-filter-admin { background: #fee2e2; color: #991b1b; }
+.btn-filter-docente { background: #dbeafe; color: #1e40af; }
+.btn-filter-alumno { background: #d1fae5; color: #065f46; }
+.btn-filter-apoderado { background: #fef3c7; color: #92400e; }
+
+/* --- Grillas y Métricas (Reportes y Dashboard) --- */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.metric-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+.metric-value {
+    font-size: 36px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.metric-value.purple { color: #6d28d9; }
+.metric-value.green { color: #10b981; }
+
+/* --- Tarjeta de Perfil de Usuario --- */
+.profile-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: #6d28d9;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.profile-info h2 {
+    color: #1f2937;
+    font-size: 24px;
+}
+
+.profile-info p {
+    color: #6b7280;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.info-box {
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.info-box span {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+.info-box strong {
+    font-size: 16px;
+    color: #1f2937;
+}
+
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS PARA EL MÓDULO DE DOCENTES
+   ========================================================================== */
+
+/* Contenedor flexible para alinear las asignaturas si un docente dicta más de una */
+.badge-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 300px; /* Evita que la celda se estire horizontalmente en exceso */
+}
+
+/* Etiquetas (Badges) personalizadas para las asignaturas asignadas */
+.badge-asignatura {
+    background-color: #e0e7ff; /* Azul índigo muy tenue */
+    color: #4338ca;            /* Texto azul índigo corporativo */
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+    border: 1px solid #c7d2fe;
+}
+
+/* Texto de ayuda o estados vacíos secundarios */
+.text-muted-italic {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Estilo unificado para la fila vacía de la tabla */
+.table-empty {
+    text-align: center;
+    color: #6b7280;
+    padding: 30px !important;
+    font-style: italic;
+}
+
+/* Optimizaciones de espaciado para las celdas de la tabla de docentes */
+.table th, .table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+}
+
+.asignaturas-filter-bar {
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.asignaturas-filter-form,
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    min-width: 220px;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 14px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #6d28d9;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
+}
+
+.btn-filter-cycle {
+    padding: 9px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-filter-cycle:hover,
+.btn-filter-cycle.active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+
+.ciclo-todos { background: #e5e7eb; color: #374151; }
+.ciclo-todos.active { background: #6b7280; color: white; }
+.ciclo-kinder { background: #fce7f3; color: #9d174d; }
+.ciclo-kinder.active { background: #db2777; color: white; }
+.ciclo-basica { background: #d1fae5; color: #047857; }
+.ciclo-basica.active { background: #10b981; color: white; }
+.ciclo-media { background: #dbeafe; color: #1d4ed8; }
+.ciclo-media.active { background: #3b82f6; color: white; }
+
+.badge-curso {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    color: #3730a3;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #f3e8ff;
+    border: 1px solid #d8b4fe;
+    color: #6b21a8;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.docente-nombre-link {
+    color: #111827;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.docente-nombre-link:hover {
+    color: #6d28d9;
+    text-decoration: underline;
+}
+
+.asignaturas-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ==========================================================================
+   PÍLDORAS DE ASIGNATURAS (PANEL DOCENTES)
+   ========================================================================== */
+
+/* Contenedor flexible para ordenar las píldoras horizontalmente */
+.badge-container {
+    display: flex;
+    flex-wrap: wrap;  /* Permite que bajen de línea si son muchas asignaturas */
+    gap: 6px;         /* Separación uniforme entre cada píldora */
+}
+
+/* Diseño individual de cada asignatura en formato píldora */
+.badge-asignatura {
+    background-color: #f3e8ff; /* Fondo morado claro sutil */
+    color: #6b21a8;            /* Texto morado oscuro legible */
+    border: 1px solid #e9d5ff; /* Borde perimetral suave */
+    padding: 4px 12px;         /* Espaciado interno tipo cápsula */
+    border-radius: 50px;       /* Bordes 100% redondeados */
+    font-size: 0.82rem;        /* Tamaño de fuente compacto para tablas */
+    font-weight: 600;          /* Texto seminegrita para destacar */
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;       /* Evita que el texto de la materia se corte feo */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Estilo para los textos secundarios o cuando no hay materias */
+.text-muted-italic {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+/* ==========================================================================
+   MÓDULO ADMIN - POSTULACIONES DE ALUMNOS
+   ========================================================================== */
+
+.postulaciones-page {
+    width: 100%;
+}
+
+.postulaciones-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.postulaciones-header h2 {
+    font-size: 28px;
+    color: #1f2937;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.postulaciones-header p {
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.btn-postulacion-register {
+    background: #6d28d9;
+    color: white;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+.btn-postulacion-register:hover {
+    background: #5b21b6;
+    transform: translateY(-2px);
+}
+
+.postulaciones-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+}
+
+.summary-card span {
+    display: block;
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.summary-card strong {
+    font-size: 26px;
+    color: #6d28d9;
+}
+
+.postulaciones-filters {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    border: 1px solid #e5e7eb;
+}
+
+.postulacion-filter {
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.postulacion-filter:hover {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border-color: #d8b4fe;
+}
+
+.postulacion-filter.active {
+    background: #6d28d9;
+    color: #ffffff;
+    border-color: #6d28d9;
+}
+
+.postulaciones-table-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.postulaciones-table th {
+    background: #f9fafb;
+    color: #4b5563;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.postulaciones-table td {
+    vertical-align: top;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.postulaciones-table td strong {
+    color: #1f2937;
+}
+
+.postulaciones-table td span {
+    color: #6b7280;
+}
+
+.badge-postulacion {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-pendiente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-aprobada {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-rechazada {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.postulacion-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rechazar-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-aprobar,
+.btn-rechazar {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-aprobar {
+    background: #10b981;
+}
+
+.btn-aprobar:hover {
+    background: #059669;
+}
+
+.btn-rechazar {
+    background: #ef4444;
+}
+
+.btn-rechazar:hover {
+    background: #dc2626;
+}
+
+.input-rechazo {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 10px;
+    min-width: 180px;
+    font-size: 13px;
+}
+
+.input-rechazo:focus {
+    outline: none;
+    border-color: #6d28d9;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
+}
+
+.postulaciones-empty {
+    padding: 35px;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Responsive postulaciones */
+@media (max-width: 900px) {
+    .postulaciones-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-postulacion-register {
+        width: 100%;
+    }
+
+    .postulaciones-table-card {
+        overflow-x: auto;
+    }
+
+    .postulaciones-table {
+        min-width: 950px;
+    }
+
+    .rechazar-form {
+        flex-direction: column;
+    }
+
+    .input-rechazo,
+    .btn-aprobar,
+    .btn-rechazar {
+        width: 100%;
+    }
+}

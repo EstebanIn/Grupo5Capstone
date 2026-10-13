@@ -1,0 +1,29 @@
+{% extends 'colegio/base_admin.html' %}
+{% block title %}Eliminar Matrícula | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Eliminar Matrícula</h2>
+</div>
+
+<div class="card" style="max-width:500px">
+    <p style="margin-bottom:20px; font-size:16px">
+        ¿Estás seguro de eliminar la matrícula de
+        <strong>{{ matricula.alumno.nombre_alumno }} {{ matricula.alumno.apellido_alumno }}</strong>
+        en <strong>{{ matricula.curso }}</strong> ({{ matricula.periodo }})?
+    </p>
+    <p style="color:#dc2626; margin-bottom:24px; font-size:14px">
+        Esta acción no se puede deshacer.
+    </p>
+
+    <form method="POST" style="display:flex; gap:12px">
+        {% csrf_token %}
+        <button type="submit" style="background:#dc2626; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold">
+            Sí, eliminar
+        </button>
+        <a href="{% url 'panel_admin_matriculas' %}" style="background:#6b7280; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold">
+            Cancelar
+        </a>
+    </form>
+</div>
+{% endblock %}

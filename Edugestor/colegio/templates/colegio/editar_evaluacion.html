@@ -1,0 +1,101 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Evaluación | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">EduGestor</div>
+    {% include 'colegio/docente_menu.html' %}
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div class="welcome">
+            <h1>Editar Evaluación</h1>
+            <p>{{ evaluacion.carga.curso }} - {{ evaluacion.carga.asignatura.nombre_asignatura }}</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <p class="msg-{{ msg.tags }}">{{ msg }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-container evaluation-form-container">
+        <h2>Datos de la evaluación</h2>
+        <p class="form-subtitle">
+            Actualiza la información de la evaluación seleccionada.
+        </p>
+
+        <form method="post" class="evaluation-form">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <div class="form-group form-group-full">
+                    <label for="carga">Curso / Asignatura</label>
+                    <select name="carga" id="carga" required>
+                        {% for carga in cargas %}
+                            <option value="{{ carga.id }}" {% if carga.id == evaluacion.carga.id %}selected{% endif %}>
+                                {{ carga.curso }} - {{ carga.asignatura.nombre_asignatura }} ({{ carga.periodo }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre_evaluacion">Nombre de la evaluación</label>
+                    <input type="text"
+                        name="nombre_evaluacion"
+                        id="nombre_evaluacion"
+                        value="{{ evaluacion.nombre_evaluacion }}"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo_evaluacion">Tipo de evaluación</label>
+                    <input type="text"
+                        name="tipo_evaluacion"
+                        id="tipo_evaluacion"
+                        value="{{ evaluacion.tipo_evaluacion }}"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha">Fecha</label>
+                    <input type="date"
+                        name="fecha"
+                        id="fecha"
+                        value="{{ evaluacion.fecha|date:'Y-m-d' }}"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="numero_evaluacion">Número de evaluación</label>
+                    <input type="number"
+                        name="numero_evaluacion"
+                        id="numero_evaluacion"
+                        value="{{ evaluacion.numero_evaluacion }}"
+                        min="1"
+                        required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn">Guardar cambios</button>
+                <a href="{% url 'panel_docente_notas' %}?carga_id={{ evaluacion.carga.id }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+</main>
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

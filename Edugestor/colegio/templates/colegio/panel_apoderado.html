@@ -1,0 +1,177 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Apoderado | EduGestor</title>
+
+    <link rel="stylesheet" href="{% static 'css/apoderado.css' %}">
+
+    
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{% url 'panel_apoderado' %}">
+                     Inicio
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_estudiantes' %}">
+                     Estudiantes
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_notas' %}">
+                     Notas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_apoderado_asistencia' %}">
+                     Asistencia
+                </a>
+            </li>
+
+            <!--<li>
+                <a href="{% url 'panel_apoderado_pagos' %}">
+                     Pagos
+                </a>
+            </li>-->
+
+            <li>
+                <a href="{% url 'panel_apoderado_perfil' %}">
+                     Perfil
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'logout' %}">
+                     Cerrar sesión
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>
+                    Bienvenido {{ request.user.first_name }}
+                </h1>
+
+                <p>
+                    Panel de Apoderado - EduGestor
+                </p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- CARDS -->
+        <div class="cards">
+            <div class="card">
+                <h3>Alumnos Asociados</h3>
+                <p>{{ total_alumnos }}</p>
+            </div>
+            <div class="card">
+                <h3>Asistencia Promedio</h3>
+                <p>{{ asistencia_promedio }}%</p>
+            </div>
+            <div class="card">
+                <h3>Alertas Académicas</h3>
+                <p>{{ alertas }}</p>
+            </div>
+        </div>
+
+        <!-- ESTUDIANTES -->
+        <div class="section">
+            <h2>Mis Estudiantes</h2>
+            {% for info in alumnos_info %}
+            <div class="student-card">
+                <h3>{{ info.alumno.nombre_alumno }} {{ info.alumno.apellido_alumno }}</h3>
+                <div class="student-info">
+                    <div class="info-box">
+                        <span>Curso</span>
+                        <strong>{{ info.curso|default:"Sin curso" }}</strong>
+                    </div>
+                    <div class="info-box">
+                        <span>Promedio</span>
+                        <strong>{{ info.promedio }}</strong>
+                    </div>
+                    <div class="info-box">
+                        <span>Asistencia</span>
+                        <strong>{{ info.asistencia_pct }}%</strong>
+                    </div>
+                    <div class="info-box">
+                        <span>Estado</span>
+                        <strong>
+                            <span class="estado">{{ info.alumno.estado_alumno }}</span>
+                        </strong>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No tienes alumnos asociados aún.</p>
+            {% endfor %}
+        </div>
+
+        <!-- TABLA -->
+        <div class="section">
+            <h2>Últimas Evaluaciones</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Asignatura</th>
+                        <th>Evaluación</th>
+                        <th>Nota</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nota in ultimas_notas %}
+                    <tr>
+                        <td>{{ nota.alumno.nombre_alumno }} {{ nota.alumno.apellido_alumno }}</td>
+                        <td>{{ nota.evaluacion.carga.asignatura.nombre_asignatura }}</td>
+                        <td>{{ nota.evaluacion.nombre_evaluacion }}</td>
+                        <td>{{ nota.valor_nota }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No hay evaluaciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

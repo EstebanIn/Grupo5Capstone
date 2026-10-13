@@ -1,0 +1,484 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}{{ titulo }} | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>{{ titulo }}</h2>
+    <a href="javascript:history.back()" class="btn-secondary" style="text-decoration: none; color: #4b5563; font-weight: bold;">⬅️ Volver al listado</a>
+</div>
+
+<div class="card" style="max-width: 600px; margin-top: 20px; padding: 20px;">
+    <form method="POST" novalidate id="asignatura-form">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="alert alert-danger" style="color: #842029; background-color: #f8d7da; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                <strong>Por favor, corrige los siguientes errores:</strong>
+                {{ form.errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 15px;">
+            {% for field in form %}
+                {% if field.name == 'docentes' %}
+                    <!-- Campo de docentes con búsqueda y chips -->
+                    <div class="field-wrapper">
+                        <label style="font-weight: bold; display: block; margin-bottom: 8px; color:#1f2937; font-size:15px">{{ field.label }}</label>
+                        
+                        <!-- Buscador de docentes -->
+                        <input 
+                            type="text"
+                            id="docente-search"
+                            placeholder="Buscar docente por nombre o RUT..."
+                            style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px;"
+                        >
+                        
+                        <!-- Resultados desplegables -->
+                        <div id="docente-results" style="display: none; position: absolute; width: 100%; max-width: 556px; background: white; border: 1px solid #d1d5db; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 10;"></div>
+                        
+                        <!-- Chips de docentes seleccionados -->
+                        <div id="docente-chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
+                        
+                        <!-- Checkboxes ocultos para sincronización con el formulario -->
+                        <div id="docente-checkboxes" style="display: none;">
+                            {{ field }}
+                        </div>
+                        
+                        {% if field.help_text %}
+                            <small style="color: #9ca3af; display: block; margin-top: 6px; font-size: 13px;">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                    </div>
+                {% elif field.name == 'profesor_jefe' %}
+                    <div class="field-wrapper profesor-jefe-picker">
+                        <label style="font-weight: bold; display: block; margin-bottom: 8px; color:#1f2937; font-size:15px">{{ field.label }}</label>
+                        {{ field }}
+
+                        <input type="hidden" id="docente-search">
+                        <div id="docente-results" style="display:none"></div>
+                        <div id="docente-chips" style="display:none"></div>
+                        <div id="docente-checkboxes" style="display:none"></div>
+
+                        <input
+                            type="text"
+                            id="profesor-jefe-search"
+                            placeholder="Buscar profesor por nombre o RUT..."
+                            autocomplete="off"
+                            style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px;"
+                        >
+
+                        <div id="profesor-jefe-results" style="display:none; position:absolute; width:100%; max-width:556px; background:white; border:1px solid #d1d5db; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); max-height:200px; overflow-y:auto; z-index:10;"></div>
+
+                        <div id="profesor-jefe-chip" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;"
+                             data-current-id="{{ field.value|default:'' }}"
+                             data-current-name="{% if form.instance.profesor_jefe %}{{ form.instance.profesor_jefe.nombre_docente }} {{ form.instance.profesor_jefe.apellido_docente }}{% endif %}"
+                             data-current-rut="{% if form.instance.profesor_jefe %}{{ form.instance.profesor_jefe.usuario.rut }}{% endif %}">
+                        </div>
+
+                        <small style="color:#6b7280; display:block; margin-top:6px; font-size:13px;">
+                            Asigna o desasigna el profesor jefe de este curso.
+                        </small>
+                    </div>
+                {% else %}
+                    <!-- Campos normales -->
+                    <div class="field-wrapper">
+                        <label style="font-weight: bold; display: block; margin-bottom: 8px; color:#1f2937; font-size:15px">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small style="color: #6b7280; display: block; margin-top: 6px; font-size: 13px;">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 10px;">
+            <button type="submit" class="btn-primary" style="background: #6d28d9; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                💾 Guardar
+            </button>
+            <a href="javascript:history.back()" class="btn-action" style="padding: 10px 20px; background: #e5e7eb; border-radius: 5px; text-decoration: none; color: black; font-weight: bold;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .content-header .btn-secondary {
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none !important;
+        font-weight: bold;
+        display: inline-block;
+        font-size: 0;
+    }
+    .content-header .btn-secondary::after {
+        content: "\2190 Volver";
+        font-size: 16px;
+    }
+    
+    /* Estilos uniformes para inputs y selects */
+    #asignatura-form input[type="text"],
+    #asignatura-form input[type="email"],
+    #asignatura-form input[type="number"],
+    #asignatura-form input[type="date"],
+    #asignatura-form select,
+    #asignatura-form textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+        background-color: #ffffff;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    #asignatura-form input[type="text"]:focus,
+    #asignatura-form input[type="email"]:focus,
+    #asignatura-form input[type="number"]:focus,
+    #asignatura-form input[type="date"]:focus,
+    #asignatura-form select:focus,
+    #asignatura-form textarea:focus {
+        outline: none;
+        border-color: #9333ea;
+        box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+    }
+    
+    #asignatura-form select:disabled {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+    
+    #asignatura-form input:disabled {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+    
+    /* Estilos para chips de docentes */
+    .docente-chip {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 6px 12px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .docente-chip button {
+        background: none;
+        border: none;
+        color: #1e40af;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .docente-chip button:hover {
+        color: #1e3a8a;
+    }
+    
+    /* Estilos para resultados de búsqueda */
+    #docente-results .docente-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+    }
+    
+    #docente-results .docente-item:hover {
+        background: #f9fafb;
+    }
+    
+    #docente-results .docente-item.added::after {
+        content: "✓ Agregado";
+        color: #10b981;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    
+    #docente-results .docente-item:not(.added)::after {
+        content: "+ Agregar";
+        color: #9ca3af;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    #profesor-jefe-results .docente-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+    }
+
+    #profesor-jefe-results .docente-item:hover {
+        background: #f9fafb;
+    }
+
+    #profesor-jefe-results .docente-item::after {
+        content: "+ Asignar";
+        color: #9ca3af;
+        font-weight: bold;
+        font-size: 12px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('docente-search');
+        const resultsDiv = document.getElementById('docente-results');
+        const chipsDiv = document.getElementById('docente-chips');
+        const checkboxesDiv = document.getElementById('docente-checkboxes');
+        const checkboxes = checkboxesDiv.querySelectorAll('input[type="checkbox"]');
+        const selectedDocentes = new Map();
+
+        // Cargar docentes ya seleccionados
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const docenName = checkbox.parentElement.textContent.trim();
+                selectedDocentes.set(parseInt(checkbox.value), docenName);
+            }
+        });
+
+        // Renderizar chips iniciales
+        renderChips();
+
+        // Búsqueda con Fetch API
+        searchInput.addEventListener('input', async function() {
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/buscar-docentes/?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                displayResults(data.docentes);
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = '<div style="padding: 10px; color: red;">Error al buscar docentes</div>';
+                resultsDiv.style.display = 'block';
+            }
+        });
+
+        // Mostrar resultados
+        function displayResults(docentes) {
+            if (docentes.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding: 10px; color: #6b7280;">No se encontraron docentes</div>';
+            } else {
+                resultsDiv.innerHTML = docentes.map(doc => `
+                    <div class="docente-item ${selectedDocentes.has(doc.id) ? 'added' : ''}" data-id="${doc.id}" data-nombre="${doc.nombre}">
+                        <div>
+                            <strong>${doc.nombre}</strong>
+                            <div style="font-size: 12px; color: #6b7280;">${doc.rut}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            resultsDiv.style.display = 'block';
+
+            // Agregar listeners a los items
+            resultsDiv.querySelectorAll('.docente-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const nombre = this.dataset.nombre;
+
+                    if (selectedDocentes.has(id)) {
+                        selectedDocentes.delete(id);
+                    } else {
+                        selectedDocentes.set(id, nombre);
+                    }
+
+                    updateCheckboxes();
+                    renderChips();
+                    displayResults(docentes); // Re-renderizar para actualizar estado "Agregado"
+                });
+            });
+        }
+
+        // Renderizar chips
+        function renderChips() {
+            chipsDiv.innerHTML = Array.from(selectedDocentes.entries()).map(([id, nombre]) => `
+                <div class="docente-chip">
+                    ${nombre}
+                    <button type="button" data-id="${id}" aria-label="Remover ${nombre}">×</button>
+                </div>
+            `).join('');
+
+            // Agregar listeners a botones de remover
+            chipsDiv.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = parseInt(this.dataset.id);
+                    selectedDocentes.delete(id);
+                    updateCheckboxes();
+                    renderChips();
+                    // Re-buscar para actualizar estado de resultados
+                    if (searchInput.value.trim().length >= 2) {
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                });
+            });
+        }
+
+        // Actualizar checkboxes ocultos
+        function updateCheckboxes() {
+            checkboxes.forEach(checkbox => {
+                const id = parseInt(checkbox.value);
+                checkbox.checked = selectedDocentes.has(id);
+            });
+        }
+
+        // Cerrar resultados al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (e.target !== searchInput && !resultsDiv.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const jefeSearch = document.getElementById('profesor-jefe-search');
+        const jefeResults = document.getElementById('profesor-jefe-results');
+        const jefeChip = document.getElementById('profesor-jefe-chip');
+        const jefeInput = document.getElementById('id_profesor_jefe');
+
+        if (!jefeSearch || !jefeResults || !jefeChip || !jefeInput) {
+            return;
+        }
+
+        let selectedJefe = {
+            id: jefeChip.dataset.currentId || '',
+            nombre: jefeChip.dataset.currentName || '',
+            rut: jefeChip.dataset.currentRut || '',
+        };
+
+        renderJefe();
+
+        jefeSearch.addEventListener('input', async function() {
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                jefeResults.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/buscar-docentes/?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                displayJefeResults(data.docentes || []);
+            } catch (error) {
+                console.error('Error:', error);
+                jefeResults.innerHTML = '<div style="padding: 10px; color: red;">Error al buscar docentes</div>';
+                jefeResults.style.display = 'block';
+            }
+        });
+
+        function displayJefeResults(docentes) {
+            jefeResults.innerHTML = '';
+
+            if (docentes.length === 0) {
+                const empty = document.createElement('div');
+                empty.style.padding = '10px';
+                empty.style.color = '#6b7280';
+                empty.textContent = 'No se encontraron docentes';
+                jefeResults.appendChild(empty);
+            } else {
+                docentes.forEach(docente => {
+                    const item = document.createElement('div');
+                    item.className = 'docente-item';
+                    item.dataset.id = docente.id;
+                    item.dataset.nombre = docente.nombre;
+                    item.dataset.rut = docente.rut || '';
+
+                    const info = document.createElement('div');
+                    const nombre = document.createElement('strong');
+                    const rut = document.createElement('div');
+
+                    nombre.textContent = docente.nombre;
+                    rut.textContent = docente.rut || '-';
+                    rut.style.fontSize = '12px';
+                    rut.style.color = '#6b7280';
+
+                    info.appendChild(nombre);
+                    info.appendChild(rut);
+                    item.appendChild(info);
+
+                    item.addEventListener('click', function() {
+                        selectedJefe = {
+                            id: this.dataset.id,
+                            nombre: this.dataset.nombre,
+                            rut: this.dataset.rut,
+                        };
+                        jefeSearch.value = '';
+                        jefeResults.style.display = 'none';
+                        renderJefe();
+                    });
+
+                    jefeResults.appendChild(item);
+                });
+            }
+
+            jefeResults.style.display = 'block';
+        }
+
+        function renderJefe() {
+            jefeInput.value = selectedJefe.id || '';
+            jefeChip.innerHTML = '';
+
+            if (!selectedJefe.id) {
+                const empty = document.createElement('span');
+                empty.style.color = '#9ca3af';
+                empty.style.fontStyle = 'italic';
+                empty.textContent = 'Sin profesor jefe asignado.';
+                jefeChip.appendChild(empty);
+                return;
+            }
+
+            const chip = document.createElement('div');
+            chip.className = 'docente-chip';
+            chip.appendChild(document.createTextNode(selectedJefe.nombre));
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.textContent = 'x';
+            removeButton.setAttribute('aria-label', 'Quitar profesor jefe');
+            removeButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                selectedJefe = { id: '', nombre: '', rut: '' };
+                renderJefe();
+            });
+
+            chip.appendChild(removeButton);
+            jefeChip.appendChild(chip);
+        }
+
+        document.addEventListener('click', function(event) {
+            if (event.target !== jefeSearch && !jefeResults.contains(event.target)) {
+                jefeResults.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

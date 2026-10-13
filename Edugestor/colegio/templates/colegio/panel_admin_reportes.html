@@ -1,0 +1,114 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Reportes Sistema | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Reportes Estadísticos</h2>
+</div>
+
+<div class="metrics-grid">
+    <div class="card">
+        <h3>Rendimiento General</h3>
+        <p class="metric-subtitle">Promedio institucional actual</p>
+        <p class="metric-value purple">
+            {% if promedio_general is not None %}{{ promedio_general }}{% else %}-{% endif %}
+        </p>
+    </div>
+    <div class="card">
+        <h3>Asistencia Media</h3>
+        <p class="metric-subtitle">Asistencia acumulada del año</p>
+        <p class="metric-value green">
+            {% if asistencia_media is not None %}{{ asistencia_media }}%{% else %}-{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+        <span style="font-weight: bold; color: #4b5563;">Filtrar por Enseñanza:</span>
+        <a href="{% url 'panel_admin_reportes' %}" class="btn-action" style="background: #6b7280; color: white; font-weight: {% if not ciclo_filtro %}bold{% else %}normal{% endif %}; padding: 8px 16px; border-radius: 6px; text-decoration: none;">Todos</a>
+        <a href="?ciclo=KINDER" class="btn-action" style="background: #fee2e2; color: #991b1b; font-weight: {% if ciclo_filtro == 'KINDER' %}bold{% else %}normal{% endif %}; padding: 8px 16px; border-radius: 6px; text-decoration: none;">Kinder</a>
+        <a href="?ciclo=BASICA" class="btn-action" style="background: #d1fae5; color: #065f46; font-weight: {% if ciclo_filtro == 'BASICA' %}bold{% else %}normal{% endif %}; padding: 8px 16px; border-radius: 6px; text-decoration: none;">Básica</a>
+        <a href="?ciclo=MEDIA" class="btn-action" style="background: #dbeafe; color: #1e40af; font-weight: {% if ciclo_filtro == 'MEDIA' %}bold{% else %}normal{% endif %}; padding: 8px 16px; border-radius: 6px; text-decoration: none;">Media</a>
+    </div>
+    
+    <h3>Resumen de Rendimiento por Curso</h3>
+    <table class="table" style="margin-top: 15px;">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Promedio</th>
+                <th>Asistencia</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cursos_resumen %}
+            <tr>
+                <td>
+                    <a href="?curso_id={{ item.curso.id }}{% if ciclo_filtro %}&ciclo={{ ciclo_filtro }}{% endif %}" style="color:#111827; font-weight:bold; text-decoration:none;">
+                        {{ item.curso }}
+                    </a>
+                </td>
+                <td>{% if item.promedio is not None %}{{ item.promedio }}{% else %}-{% endif %}</td>
+                <td>{% if item.asistencia is not None %}{{ item.asistencia }}%{% else %}-{% endif %}</td>
+                <td>
+                    {% if item.estado_clase == "activo" %}
+                        <span class="estado activo">{{ item.estado }}</span>
+                    {% elif item.estado_clase == "atencion" %}
+                        <span class="estado" style="background: #fee2e2; color: #991b1b;">{{ item.estado }}</span>
+                    {% elif item.estado_clase == "normal" %}
+                        <span class="estado" style="background: #dbeafe; color: #1e40af;">{{ item.estado }}</span>
+                    {% else %}
+                        <span class="estado" style="background: #e5e7eb; color: #4b5563;">{{ item.estado }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #6b7280; padding: 20px;">
+                    No hay cursos registrados para generar reportes.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if curso_seleccionado %}
+<div class="card" style="margin-top: 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
+        <h3>Asistencia de alumnos - {{ curso_seleccionado }}</h3>
+        <a href="{% url 'panel_admin_reportes' %}" class="btn-action" style="background:#6b7280; color:white;">Cerrar</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Periodo</th>
+                <th>Asistencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in alumnos_curso %}
+            <tr>
+                <td>
+                    <strong>{{ item.alumno.nombre_alumno }} {{ item.alumno.apellido_alumno }}</strong>
+                </td>
+                <td>{{ item.periodo }}</td>
+                <td>{% if item.asistencia is not None %}{{ item.asistencia }}%{% else %}-{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align:center; color:#6b7280; padding:20px;">
+                    No hay alumnos matriculados en este curso.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

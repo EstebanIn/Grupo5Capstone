@@ -1,0 +1,27 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load ia_extras %}
+
+{% block titulo %}Revisar calidad de una prueba{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+<div class="ia-encabezado">
+    <h1>🔍 Revisar calidad de una prueba</h1>
+    <p>Antes de aplicarla: la IA revisa tu prueba como lo haría un colega (claridad, alternativas, nivel y alineación al OA). Para corregir las respuestas de un alumno usa <a href="{% url 'ia_corregir' %}">Corregir prueba</a>.</p>
+</div>
+
+{% if revision %}
+<div class="ia-panel">
+    <h2>Observaciones</h2>
+    <div class="ia-markdown">{{ revision|markdown_seguro }}</div>
+</div>
+{% endif %}
+
+<div class="ia-panel">
+    <form method="post" class="ia-form" data-generando="Revisando… (puede tardar un minuto)">
+        {% csrf_token %}
+        {% include 'colegio/ia/_campos.html' %}
+        <button type="submit" class="ia-boton">{% if revision %}Revisar de nuevo{% else %}Revisar prueba{% endif %}</button>
+    </form>
+</div>
+{% endblock %}

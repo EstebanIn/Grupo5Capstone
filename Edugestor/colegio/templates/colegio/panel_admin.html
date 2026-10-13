@@ -1,0 +1,56 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block title %}Dashboard | EduGestor{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h2>Resumen del Sistema</h2>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div class="card">
+        <h3>&#128101; Total Usuarios</h3>
+        <p style="font-size: 32px; font-weight: bold; color: #6d28d9; margin-top: 10px;">{{ total_usuarios }}</p>
+    </div>
+    <div class="card">
+        <h3>&#128104;&#8205;&#127979; Docentes</h3>
+        <p style="font-size: 32px; font-weight: bold; color: #3b82f6; margin-top: 10px;">{{ total_docentes }}</p>
+    </div>
+    <div class="card">
+        <h3>&#127891; Alumnos</h3>
+        <p style="font-size: 32px; font-weight: bold; color: #f59e0b; margin-top: 10px;">{{ total_alumnos }}</p>
+    </div>
+    <div class="card">
+        <h3>&#128104;&#8205;&#128105;&#8205;&#128103; Apoderados</h3>
+        <p style="font-size: 32px; font-weight: bold; color: #ec4899; margin-top: 10px;">{{ total_apoderados }}</p>
+    </div>
+    <div class="card">
+        <h3>&#128216; Cursos Habilitados</h3>
+        <p style="font-size: 32px; font-weight: bold; color: #10b981; margin-top: 10px;">{{ total_cursos }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Últimas Actividades</h3>
+    <table class="table" style="margin-top: 15px;">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for act in actividades %}
+            <tr>
+                <td>{{ act.usuario }}</td>
+                <td>{{ act.accion }}</td>
+                <td>{{ act.fecha }}</td>
+                <td><span class="estado activo">{{ act.estado }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
