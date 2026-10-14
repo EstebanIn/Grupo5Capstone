@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'colegio',
 ]
 
@@ -169,3 +170,4 @@ GEMINI_MODELOS_RESPALDO = [
     if modelo.strip()
 ]
 IA_PROVEEDOR = os.environ.get('IA_PROVEEDOR', 'gemini' if GEMINI_API_KEY else 'simulado')
+GEMINI_EMBEDDING_MODEL = os.environ.get('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-001')

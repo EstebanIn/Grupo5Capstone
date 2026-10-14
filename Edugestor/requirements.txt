@@ -7,5 +7,10 @@ pandas==3.0.3
 psycopg[binary]==3.2.13
 python-dotenv==1.2.1
 xlrd==2.0.2
+<<<<<<< HEAD
 
 pypdf
+=======
+pgvector==0.5.1
+pypdf==6.19.0
+>>>>>>> fcc8dcd9d53ea175f23fec42706f7a460103b132
