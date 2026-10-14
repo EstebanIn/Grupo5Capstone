@@ -10,6 +10,7 @@ from .tenancy import (
     resolver_institucion,
 )
 from django.db.models.signals import m2m_changed, post_save
+from pgvector.django import HnswIndex, VectorField
 from django.dispatch import receiver
 import unicodedata
 
@@ -674,3 +675,55 @@ class CorreccionPrueba(ModeloInstitucional):
 
     def __str__(self):
         return f"{self.instrumento} — {self.alumno or 'sin alumno'}: {self.nota}"
+
+
+class DocumentoCurricular(models.Model):
+    """Fuente oficial pública del Mineduc que forma parte del corpus RAG."""
+
+    titulo = models.CharField(max_length=250)
+    fuente_url = models.URLField(max_length=1000, blank=True)
+    version = models.CharField(max_length=80, blank=True)
+    asignatura = models.CharField(max_length=120, db_index=True)
+    ciclo = models.CharField(max_length=20, blank=True)
+    nivel = models.PositiveSmallIntegerField(null=True, blank=True)
+    sha256 = models.CharField(max_length=64, unique=True)
+    activo = models.BooleanField(default=True, db_index=True)
+    fecha_indexacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["asignatura", "ciclo", "nivel", "titulo"]
+
+    def __str__(self):
+        return self.titulo
+
+
+class FragmentoCurricular(models.Model):
+    """Fragmento de una fuente oficial y su embedding semántico."""
+
+    documento = models.ForeignKey(
+        DocumentoCurricular, on_delete=models.CASCADE, related_name="fragmentos",
+    )
+    numero = models.PositiveIntegerField()
+    pagina = models.PositiveIntegerField(null=True, blank=True)
+    texto = models.TextField()
+    embedding = VectorField(dimensions=768)
+
+    class Meta:
+        ordering = ["documento_id", "numero"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["documento", "numero"], name="uq_fragmento_curricular_numero",
+            ),
+        ]
+        indexes = [
+            HnswIndex(
+                name="fragmento_curricular_hnsw",
+                fields=["embedding"],
+                m=16,
+                ef_construction=64,
+                opclasses=["vector_cosine_ops"],
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.documento.titulo} · página {self.pagina or '—'}"

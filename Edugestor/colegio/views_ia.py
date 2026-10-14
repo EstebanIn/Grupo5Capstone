@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .ia import asistentes, dominio
+from .ia import asistentes, dominio, rag
 from .ia.formularios import (
     FormularioMaterial,
     FormularioPrueba,
@@ -92,8 +92,24 @@ def ia_crear_prueba(request):
     return _crear_instrumento(
         request, formulario_clase=FormularioPrueba, tipo=InstrumentoIA.TIPO_PRUEBA,
         plantilla="colegio/ia/crear_prueba.html",
-        generar=lambda contexto, d: asistentes.crear_prueba(
-            contexto, d["objetivo"], d["tema"], d["cantidad"], d["dificultad"]),
+        generar=_generar_prueba_con_rag,
+    )
+
+
+def _generar_prueba_con_rag(contexto, datos):
+    curso = datos["carga"].curso
+    fragmentos = []
+    if proveedor_activo() == "gemini":
+        consulta = "\n".join((contexto["asignatura"], contexto["nivel"], datos["objetivo"], datos["tema"]))
+        fragmentos = rag.buscar_fragmentos(
+            consulta=consulta,
+            asignatura=contexto["asignatura"],
+            ciclo=curso.ciclo,
+            nivel=curso.nivel,
+        )
+    return asistentes.crear_prueba(
+        contexto, datos["objetivo"], datos["tema"], datos["cantidad"], datos["dificultad"],
+        fragmentos=fragmentos,
     )
 
 
@@ -195,6 +211,9 @@ def ia_instrumento(request, pk):
         except ErrorIA as error:
             messages.error(request, f"No se guardó: {error} Revisa que no queden campos vacíos.")
         else:
+            if "fuentes" in instrumento.contenido_ia:
+                contenido["fuentes"] = instrumento.contenido_ia["fuentes"]
+                contenido["rag_aplicado"] = instrumento.contenido_ia.get("rag_aplicado", False)
             instrumento.contenido = contenido
             instrumento.titulo = contenido["titulo"]
             if request.POST.get("accion") == "aprobar":
