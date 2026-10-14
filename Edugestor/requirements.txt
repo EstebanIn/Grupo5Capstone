@@ -7,3 +7,5 @@ pandas==3.0.3
 psycopg[binary]==3.2.13
 python-dotenv==1.2.1
 xlrd==2.0.2
+
+pypdf
