@@ -18,6 +18,19 @@
     {% if instrumento.objetivo %}<p><strong>OA:</strong> {{ instrumento.objetivo }}</p>{% endif %}
 </div>
 
+{% if instrumento.tipo == 'PRUEBA' %}
+<div class="ia-panel ia-no-imprimir">
+    {% if contenido.rag_aplicado %}
+    <strong>Fuentes curriculares consultadas</strong>
+    <ul>
+        {% for fuente in contenido.fuentes %}
+        <li>{% if fuente.url %}<a href="{{ fuente.url }}" target="_blank" rel="noopener">{{ fuente.titulo }}</a>{% else %}{{ fuente.titulo }}{% endif %}{% if fuente.pagina %}, página {{ fuente.pagina }}{% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% else %}<p>No se aplicó RAG: el modo está simulado o aún no hay documentos oficiales indexados para este curso.</p>{% endif %}
+</div>
+{% endif %}
+
 {% if editable %}
 {# ======================= EDICIÓN DEL BORRADOR ======================= #}
 <form method="post" class="ia-form" data-generando="Guardando…">
