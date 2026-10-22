@@ -1,0 +1,103 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Evaluación | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">EduGestor</div>
+    {% include 'colegio/docente_menu.html' %}
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div class="welcome">
+            <h1>Nueva Evaluación</h1>
+            <p>Crea una evaluación para registrar notas.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <p class="msg-{{ msg.tags }}">{{ msg }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-container">
+
+            <h2>Crear Nueva Evaluación</h2>
+
+            <p class="form-subtitle">
+                Complete los datos para registrar una nueva evaluación.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="carga"> Curso / Asignatura</label>
+                    <select name="carga" id="carga" required>
+                        <option value="">Selecciona un curso</option>
+
+                        {% for carga in cargas %}
+                            <option value="{{ carga.id }}"
+                            {% if carga_id_preseleccionada and carga.id|stringformat:"s" == carga_id_preseleccionada %}selected{% endif %}>
+                                {{ carga.curso }} - {{ carga.asignatura.nombre_asignatura }} ({{ carga.periodo }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre_evaluacion">Nombre de la evaluación</label>
+                    <input type="text"
+                        name="nombre_evaluacion"
+                        id="nombre_evaluacion"
+                        placeholder="Ej: Prueba Unidad 1"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo_evaluacion">Tipo de evaluación</label>
+                    <input type="text"
+                        name="tipo_evaluacion"
+                        id="tipo_evaluacion"
+                        placeholder="Prueba, Trabajo, Tarea..."
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="numero_evaluacion">Número de evaluación</label>
+                    <input type="number"
+                        name="numero_evaluacion"
+                        id="numero_evaluacion"
+                        placeholder="1"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha">Fecha</label>
+                    <input type="date"
+                        name="fecha"
+                        id="fecha"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-full">
+                    Crear Evaluación
+                </button>
+
+            </form>
+
+        </div>
+
+</main>
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

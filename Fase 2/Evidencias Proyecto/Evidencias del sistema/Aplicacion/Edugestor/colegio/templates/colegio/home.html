@@ -1,0 +1,282 @@
+    {% load static %}
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>EduGestor - Sistema de Gestión Escolar</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- CSS principal -->
+        <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    </head>
+    <body>
+
+    <header>
+        <div class="logo">EduGestor</div>
+
+    <nav class="main-nav">
+
+        <!-- INICIO -->
+        <div class="nav-item mega-item">
+            <a href="{% url 'inicio' %}" class="nav-link active">Inicio</a>
+
+            <div class="mega-menu">
+                <div class="mega-column">
+                    <h4>Inicio</h4>
+                    <p>Accede rápidamente a las secciones principales de EduGestor.</p>
+
+                    <a href="#inicio">→ Presentación principal</a>
+                    <a href="#modulos">→ Ver módulos</a>
+                    <a href="#contacto">→ Contacto</a>
+                </div>
+
+                <div class="mega-column">
+                    <h4>Accesos rápidos</h4>
+                    <p>Opciones principales para ingresar o conocer la plataforma.</p>
+
+                    <a href="{% url 'login' %}">→ Iniciar sesión</a>
+                    <a href="#beneficios">→ Ver beneficios</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARACTERÍSTICAS -->
+        <div class="nav-item mega-item">
+            <a href="#caracteristicas" class="nav-link">Características</a>
+
+            <div class="mega-menu">
+                <div class="mega-column">
+                    <h4>Gestión escolar</h4>
+                    <p>Herramientas para centralizar la información académica y administrativa.</p>
+
+                    <a href="#modulos">→ Gestión de alumnos</a>
+                    <a href="#modulos">→ Gestión de apoderados</a>
+                    <a href="#modulos">→ Cursos y asignaturas</a>
+                </div>
+
+                <div class="mega-column">
+                    <h4>Control académico</h4>
+                    <p>Funciones pensadas para apoyar el trabajo diario del establecimiento.</p>
+
+                    <a href="#modulos">→ Notas y asistencia</a>
+                    <a href="#modulos">→ Acceso por roles</a>
+                    <a href="#modulos">→ Información centralizada</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÓDULOS -->
+        <div class="nav-item mega-item">
+            <a href="#modulos" class="nav-link">Módulos</a>
+
+            <div class="mega-menu mega-menu-right">
+                <div class="mega-column">
+                    <h4>Módulos principales</h4>
+                    <p>Secciones del sistema organizadas según cada tipo de usuario.</p>
+
+                    <a href="#modulos">→ Administrador</a>
+                    <a href="#modulos">→ Docente</a>
+                    <a href="#modulos">→ Alumno</a>
+                    <a href="#modulos">→ Apoderado</a>
+                </div>
+
+                <div class="mega-column">
+                    <h4>Personalización Modulos</h4>
+                    <p>EduGestor permite adaptar módulos según las necesidades del instituto.</p>
+
+                    <a href="#modulos">→ Módulos personalizados</a>
+                    <a href="#modulos">→ Funciones por suscripción</a>
+                </div>
+            </div>
+        </div>
+
+        <a href="#beneficios" class="nav-link">Beneficios</a>
+
+        <details class="client-dropdown">
+            <summary class="client-btn">
+                🏫 Acceso clientes
+                <span class="arrow">▾</span>
+            </summary>
+
+            <div class="client-menu">
+                <a href="{% url 'landing_cliente' 'instituto-chimbarongo' %}">
+                    Instituto Chimbarongo
+                </a>
+            </div>
+        </details>
+    </nav>
+    </header>
+
+    <main>
+        <section class="hero" id="inicio">
+            <div class="hero-text">
+                <div class="badge">🎓 PLATAFORMA ESCOLAR INTEGRAL</div>
+
+                <h1>Gestión escolar simple, segura y centralizada</h1>
+
+                <p>
+                    EduGestor permite administrar alumnos, docentes, apoderados y
+                    matrículas de forma integral. Además, automatiza tus procesos
+                    escolares para que puedas enfocarte en educar.
+                </p>
+
+                <div class="buttons">
+                    <a href="{% url 'login' %}" class="btn-primary">Iniciar</a>
+                    <a href="#modulos" class="btn-secondary">Conocer más</a>
+                </div>
+
+                <div class="quick-points">
+                    <span><i>✓</i> Fácil de usar</span>
+                    <span><i>✓</i> Acceso por roles</span>
+                    <span><i>✓</i> Información segura</span>
+                </div>
+            </div>
+
+            <div class="hero-image">
+                <img src="{% static 'img/home-dashboard.png' %}" alt="Dashboard EduGestor">
+            </div>
+        </section>
+
+        <section class="features" id="modulos">
+            <div class="feature">
+                <div class="feature-icon">👥</div>
+                <div>
+                    <h3>Gestión de alumnos</h3>
+                    <p>Registro y administración de estudiantes.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">👤</div>
+                <div>
+                    <h3>Gestión de apoderados</h3>
+                    <p>Comunicación y seguimiento con apoderados.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">📘</div>
+                <div>
+                    <h3>Cursos y asignaturas</h3>
+                    <p>Administración de cursos, asignaturas y profesores.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">📋</div>
+                <div>
+                    <h3>Notas y asistencia</h3>
+                    <p>Registro de evaluaciones, notas y asistencia.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🛡️</div>
+                <div>
+                    <h3>Acceso por roles</h3>
+                    <p>Permisos diferenciados para cada tipo de usuario.</p>
+                </div>
+            </div>
+        </section>
+        <section class="benefits-showcase" id="beneficios">
+        <div class="benefits-header">
+            <h2>El software de gestión escolar que impulsa la organización de tu institución</h2>
+
+            <div class="benefits-tabs">
+                <span class="active">Gestión eficiente</span>
+                <span>Control académico</span>
+                <span>Acceso centralizado</span>
+            </div>
+        </div>
+        <div class="benefit-row">
+        <div class="benefit-image">
+            <img src="{% static 'img/beneficio-alumnos.png' %}" alt="Gestión de alumnos y matrículas">
+        </div>
+
+        <div class="benefit-text">
+            <h3>Ahorra tiempo con la gestión escolar digitalizada</h3>
+
+            <p>
+                EduGestor centraliza procesos que normalmente se realizan en planillas,
+                registros manuales o sistemas separados. Desde la administración de alumnos
+                y matrículas hasta el seguimiento de apoderados y cursos, la plataforma
+                permite reducir tareas repetitivas y mejorar la organización diaria del establecimiento.
+            </p>
+
+            <blockquote>
+                “EduGestor facilita el acceso a la información escolar desde un solo lugar,
+                permitiendo que los procesos administrativos sean más ordenados, rápidos y seguros.”
+            </blockquote>
+
+            <div class="benefit-author">
+                <strong>Equipo Administrativo</strong>
+                <span>Institución Educativa</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BENEFICIO 2 -->
+    <div class="benefit-row reverse">
+        <div class="benefit-image">
+            <img src="{% static 'img/beneficio-docentes.png' %}" alt="Gestión de docentes y asignaturas">
+        </div>
+
+        <div class="benefit-text">
+            <h3>Organiza la información académica para tomar mejores decisiones</h3>
+
+            <p>
+                Accede de forma clara y estructurada a la información de docentes,
+                asignaturas, cursos y asignaciones. EduGestor ayuda a coordinar mejor
+                el trabajo académico, facilitando el seguimiento de responsabilidades
+                y permitiendo una visión más ordenada de la institución.
+            </p>
+
+            <blockquote>
+                “Contar con información centralizada nos permite tomar decisiones más rápidas,
+                detectar necesidades a tiempo y mejorar la gestión académica del establecimiento.”
+            </blockquote>
+
+            <div class="benefit-author">
+                <strong>Coordinación Académica</strong>
+                <span>Institución Educativa</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BENEFICIO 3 -->
+    <div class="benefit-row">
+        <div class="benefit-image">
+            <img src="{% static 'img/beneficio-asistencia.png' %}" alt="Asistencia y calificaciones">
+        </div>
+
+        <div class="benefit-text">
+            <h3>Supervisa asistencia y calificaciones desde un solo lugar</h3>
+
+            <p>
+                EduGestor permite visualizar asistencia, evaluaciones, promedios
+                y alertas académicas en una sola plataforma. Esto facilita el seguimiento
+                del rendimiento estudiantil y ayuda a actuar de manera oportuna ante
+                situaciones que requieren atención.
+            </p>
+
+            <blockquote>
+                “Lo más valioso de EduGestor es que entrega visibilidad inmediata sobre
+                la situación académica, permitiendo una gestión más preventiva y eficiente.”
+            </blockquote>
+
+            <div class="benefit-author">
+                <strong>Dirección Académica</strong>
+                <span>Institución Educativa</span>
+            </div>
+        </div>
+    </div>
+</section>
+    </main>
+
+    <footer id="contacto">
+        <p>© 2026 EduGestor - Sistema de Gestión Escolar</p>
+    </footer>
+
+    </body>
+    </html>
+

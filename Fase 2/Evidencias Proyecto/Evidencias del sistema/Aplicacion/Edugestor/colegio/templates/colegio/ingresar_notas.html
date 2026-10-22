@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar Notas | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">EduGestor</div>
+    {% include 'colegio/docente_menu.html' %}
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div class="welcome">
+            <h1>Ingresar Notas</h1>
+            <p>
+                <strong>{{ evaluacion.nombre_evaluacion }}</strong> -
+                {{ evaluacion.carga.curso }} /
+                {{ evaluacion.carga.asignatura.nombre_asignatura }} /
+                {{ evaluacion.carga.periodo }}
+            </p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div style="padding: 0 2rem">
+        {% for msg in messages %}
+            <p class="msg-{{ msg.tags }}">{{ msg }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-container">
+        <a href="{% url 'panel_docente_notas' %}?carga_id={{ evaluacion.carga.id }}">Volver a evaluaciones</a>
+
+        {% if alumnos_data %}
+        <form method="POST" style="margin-top:1.5rem">
+            {% csrf_token %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Nota (1.0 - 7.0)</th>
+                        <th>Observación (opcional)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in alumnos_data %}
+                    <tr>
+                        <td>{{ item.alumno.nombre_alumno }} {{ item.alumno.apellido_alumno }}</td>
+                        <td>
+                            <input
+                                type="number"
+                                name="nota_{{ item.alumno.id }}"
+                                min="1.0" max="7.0" step="0.1"
+                                value="{{ item.nota.valor_nota|default:'' }}"
+                                style="width:80px"
+                            >
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                name="obs_{{ item.alumno.id }}"
+                                value="{{ item.nota.observacion|default:'' }}"
+                                placeholder="Opcional"
+                                style="width:200px"
+                            >
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn" style="margin-top:1.5rem">
+                Guardar Notas
+            </button>
+        </form>
+        {% else %}
+            <p style="margin-top:1rem">No hay alumnos matriculados en este curso/periodo.</p>
+        {% endif %}
+    </div>
+</main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>
