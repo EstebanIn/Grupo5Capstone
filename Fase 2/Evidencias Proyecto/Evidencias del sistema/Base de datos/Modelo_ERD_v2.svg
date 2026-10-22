@@ -1,0 +1,393 @@
+<?xml version='1.0' encoding='utf8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2020" height="2121" viewBox="0 0 2020 2121" role="img" aria-labelledby="title desc">
+  <title id="title">EduGestor · Modelo ERD · Fase 2</title>
+  <desc id="desc">Modelo de aplicación contrastado con Edugestor/colegio/models.py y las 22 migraciones del grafo hasta 0021 del ZIP Grupo5Capstone-main (1).zip. Fase 2: una institución por instalación. El código conserva soporte para varias instituciones. Corpus curricular global sin FK a institución. Tipos PostgreSQL.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f3f6fb; }
+      .heading { font: 700 31px "Segoe UI", Arial, sans-serif; fill: #142b4a; }
+      .subtitle { font: 15px "Segoe UI", Arial, sans-serif; fill: #53657d; }
+      .group { font: 700 15px "Segoe UI", Arial, sans-serif; fill: #2b527e; letter-spacing: 1px; }
+      .card { fill: #fff; stroke: #bdcde0; stroke-width: 1.5; }
+      .bar { fill: #214b78; }
+      .bartext { font: 700 16px "Segoe UI", Arial, sans-serif; fill: #fff; }
+      .field { font: 13px Consolas, "Courier New", monospace; fill: #26374c; }
+      .key { font: 700 13px Consolas, "Courier New", monospace; fill: #0e6b79; }
+      .note { font: 13px "Segoe UI", Arial, sans-serif; fill: #344b66; }
+      .notehead { font: 700 14px "Segoe UI", Arial, sans-serif; fill: #142b4a; }
+      .foot { font: 12px "Segoe UI", Arial, sans-serif; fill: #53657d; }
+    </style>
+  </defs>
+  <rect class="bg" width="2020" height="2121" />
+  <text class="heading" x="28" y="43">EduGestor · Modelo entidad-relación (ERD / MER)</text>
+  <text class="subtitle" x="30" y="70">Contrastado con Edugestor/colegio/models.py y el grafo de migraciones hasta 0021 · Tipos PostgreSQL</text>
+  <text class="subtitle" x="30" y="94">PK = clave primaria · FK → tabla.id = N:1 · NULL explícito; resto NOT NULL · UNIQUE = unicidad · M:N por tabla puente</text>
+  <text class="group" x="28" y="192">INSTITUCIÓN Y PERSONAS</text>
+  <text class="group" x="520" y="192">GESTIÓN ACADÉMICA</text>
+  <text class="group" x="1012" y="192">EVALUACIÓN E IA</text>
+  <text class="group" x="1504" y="192">CORPUS CURRICULAR Y TABLAS PUENTE</text>
+  <g transform="translate(20,208)">
+    <rect class="card" width="475" height="150" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_institucion</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="field" x="13" y="78">nombre VARCHAR(150)</text>
+    <text class="field" x="13" y="97">slug VARCHAR(80) · UNIQUE</text>
+    <text class="field" x="13" y="116">activa BOOLEAN</text>
+    <text class="field" x="13" y="135">fecha_creacion TIMESTAMPTZ</text>
+  </g>
+  <g transform="translate(20,373)">
+    <rect class="card" width="475" height="359" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_usuario (AbstractUser)</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="field" x="13" y="78">password VARCHAR(128)</text>
+    <text class="field" x="13" y="97">last_login TIMESTAMPTZ NULL</text>
+    <text class="field" x="13" y="116">is_superuser BOOLEAN</text>
+    <text class="field" x="13" y="135">username VARCHAR(150) · UNIQUE</text>
+    <text class="field" x="13" y="154">first_name VARCHAR(150)</text>
+    <text class="field" x="13" y="173">last_name VARCHAR(150)</text>
+    <text class="field" x="13" y="192">email VARCHAR(254)</text>
+    <text class="field" x="13" y="211">is_staff BOOLEAN</text>
+    <text class="field" x="13" y="230">is_active BOOLEAN</text>
+    <text class="field" x="13" y="249">date_joined TIMESTAMPTZ</text>
+    <text class="field" x="13" y="268">tipo_usuario VARCHAR(20)</text>
+    <text class="field" x="13" y="287">rut VARCHAR(12)</text>
+    <text class="key" x="13" y="306">institucion_id BIGINT NULL · FK → institucion</text>
+    <text class="field" x="13" y="325">UNIQUE (institucion_id, rut)</text>
+    <text class="foot" x="13" y="344">Grupos y permisos: tablas puente en gestión académica.</text>
+  </g>
+  <g transform="translate(20,747)">
+    <rect class="card" width="475" height="188" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_alumno</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">usuario_id BIGINT · FK → usuario · UNIQUE</text>
+    <text class="field" x="13" y="116">nombre_alumno, apellido_alumno VARCHAR(100)</text>
+    <text class="field" x="13" y="135">fecha_nacimiento DATE · genero VARCHAR(20)</text>
+    <text class="field" x="13" y="154">estado_alumno VARCHAR(30)</text>
+    <text class="foot" x="13" y="173">Usuario 1 → 0..1 Alumno; FK del perfil obligatoria.</text>
+  </g>
+  <g transform="translate(20,950)">
+    <rect class="card" width="475" height="188" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_docente</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">usuario_id BIGINT · FK → usuario · UNIQUE</text>
+    <text class="field" x="13" y="116">nombre_docente, apellido_docente VARCHAR(100)</text>
+    <text class="field" x="13" y="135">telefono VARCHAR(20) NULL</text>
+    <text class="field" x="13" y="154">email_institucional VARCHAR(254)</text>
+    <text class="foot" x="13" y="173">UNIQUE (institucion_id, email_institucional)</text>
+  </g>
+  <g transform="translate(20,1153)">
+    <rect class="card" width="475" height="188" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_apoderado</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">usuario_id BIGINT · FK → usuario · UNIQUE</text>
+    <text class="field" x="13" y="116">nombre_apoderado, apellido_apoderado VARCHAR(100)</text>
+    <text class="field" x="13" y="135">direccion VARCHAR(255) NULL · telefono VARCHAR(20) NULL</text>
+    <text class="field" x="13" y="154">email VARCHAR(254)</text>
+    <text class="foot" x="13" y="173">UNIQUE (institucion_id, email)</text>
+  </g>
+  <g transform="translate(20,1356)">
+    <rect class="card" width="475" height="188" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_alumnoapoderado</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">alumno_id BIGINT · FK → alumno</text>
+    <text class="key" x="13" y="116">apoderado_id BIGINT · FK → apoderado</text>
+    <text class="field" x="13" y="135">parentesco VARCHAR(50) · is_principal BOOLEAN</text>
+    <text class="field" x="13" y="154">UNIQUE (alumno_id, apoderado_id)</text>
+    <text class="foot" x="13" y="173">Resuelve la relación M:N alumno–apoderado.</text>
+  </g>
+  <g transform="translate(20,1559)">
+    <rect class="card" width="475" height="511" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_solicitudpostulacion</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="field" x="13" y="97">rut_alumno, rut_alumno_normalizado VARCHAR(12)</text>
+    <text class="field" x="13" y="116">nombre_alumno, apellido_alumno VARCHAR(100)</text>
+    <text class="field" x="13" y="135">fecha_nacimiento DATE · genero VARCHAR(20)</text>
+    <text class="field" x="13" y="154">ciclo_postulacion VARCHAR(10) NULL</text>
+    <text class="field" x="13" y="173">nivel_postulacion SMALLINT NULL</text>
+    <text class="field" x="13" y="192">rut_apoderado, rut_apoderado_normalizado VARCHAR(12)</text>
+    <text class="field" x="13" y="211">nombre_apoderado, apellido_apoderado VARCHAR(100)</text>
+    <text class="field" x="13" y="230">direccion VARCHAR(255) NULL · telefono VARCHAR(20) NULL</text>
+    <text class="field" x="13" y="249">email_apoderado VARCHAR(254) · parentesco VARCHAR(50)</text>
+    <text class="field" x="13" y="268">is_principal BOOLEAN</text>
+    <text class="field" x="13" y="287">estado VARCHAR(20)</text>
+    <text class="field" x="13" y="306">fecha_solicitud TIMESTAMPTZ</text>
+    <text class="field" x="13" y="325">fecha_resolucion TIMESTAMPTZ NULL</text>
+    <text class="field" x="13" y="344">observacion_admin TEXT NULL</text>
+    <text class="key" x="13" y="363">procesada_por_id BIGINT NULL · FK → usuario</text>
+    <text class="key" x="13" y="382">alumno_creado_id BIGINT NULL · FK → alumno</text>
+    <text class="key" x="13" y="401">apoderado_creado_id BIGINT NULL · FK → apoderado</text>
+    <text class="foot" x="13" y="420">Campos descriptivos del postulante y su apoderado</text>
+    <text class="foot" x="13" y="439">se guardan en la solicitud antes de crear perfiles.</text>
+    <text class="foot" x="13" y="458">Índices: estado, rut_alumno_normalizado,</text>
+    <text class="foot" x="13" y="477">rut_apoderado_normalizado.</text>
+    <text class="foot" x="13" y="496">CHECK ≥ 0: nivel_postulacion.</text>
+  </g>
+  <g transform="translate(512,208)">
+    <rect class="card" width="475" height="188" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_curso</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="field" x="13" y="97">nivel SMALLINT · seccion VARCHAR(2)</text>
+    <text class="field" x="13" y="116">ciclo VARCHAR(10) · estado_curso BOOLEAN</text>
+    <text class="key" x="13" y="135">profesor_jefe_id BIGINT NULL · FK → docente</text>
+    <text class="foot" x="13" y="154">Sin UNIQUE en (ciclo, nivel, seccion): retirada en 0007.</text>
+    <text class="foot" x="13" y="173">CHECK ≥ 0: nivel.</text>
+  </g>
+  <g transform="translate(512,411)">
+    <rect class="card" width="475" height="188" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_asignatura</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">curso_id BIGINT · FK → curso</text>
+    <text class="field" x="13" y="116">nombre_asignatura VARCHAR(100)</text>
+    <text class="field" x="13" y="135">descripcion TEXT NULL · estado_asignatura BOOLEAN</text>
+    <text class="field" x="13" y="154">docentes: M:N por colegio_asignatura_docentes</text>
+    <text class="foot" x="13" y="173">Una asignatura pertenece a un curso.</text>
+  </g>
+  <g transform="translate(512,614)">
+    <rect class="card" width="475" height="169" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_periodoacademico</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="field" x="13" y="97">anio INTEGER · semestre SMALLINT</text>
+    <text class="field" x="13" y="116">UNIQUE (institucion_id, anio, semestre)</text>
+    <text class="foot" x="13" y="135">Periodo académico por institución.</text>
+    <text class="foot" x="13" y="154">CHECK ≥ 0: anio, semestre.</text>
+  </g>
+  <g transform="translate(512,798)">
+    <rect class="card" width="475" height="207" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_matricula</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">periodo_id BIGINT · FK → periodoacademico</text>
+    <text class="key" x="13" y="116">alumno_id BIGINT · FK → alumno</text>
+    <text class="key" x="13" y="135">curso_id BIGINT · FK → curso</text>
+    <text class="field" x="13" y="154">estado VARCHAR(20) · fecha_matricula DATE</text>
+    <text class="field" x="13" y="173">UNIQUE (periodo_id, alumno_id)</text>
+    <text class="foot" x="13" y="192">Apoderados: M:N por tabla puente.</text>
+  </g>
+  <g transform="translate(512,1020)">
+    <rect class="card" width="475" height="207" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_cargaacademica</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">curso_id BIGINT · FK → curso</text>
+    <text class="key" x="13" y="116">asignatura_id BIGINT · FK → asignatura</text>
+    <text class="key" x="13" y="135">periodo_id BIGINT · FK → periodoacademico</text>
+    <text class="key" x="13" y="154">docente_id BIGINT · FK → docente</text>
+    <text class="field" x="13" y="173">UNIQUE (curso_id, asignatura_id, periodo_id, docente_id)</text>
+    <text class="foot" x="13" y="192">Vincula curso, asignatura, periodo y docente.</text>
+  </g>
+  <g transform="translate(1004,208)">
+    <rect class="card" width="475" height="207" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_evaluacion</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">carga_id BIGINT · FK → cargaacademica</text>
+    <text class="field" x="13" y="116">nombre_evaluacion VARCHAR(100)</text>
+    <text class="field" x="13" y="135">tipo_evaluacion VARCHAR(50) · porcentaje DECIMAL(5,2)</text>
+    <text class="field" x="13" y="154">fecha DATE · numero_evaluacion SMALLINT</text>
+    <text class="foot" x="13" y="173">Una carga académica puede tener evaluaciones.</text>
+    <text class="foot" x="13" y="192">CHECK ≥ 0: numero_evaluacion.</text>
+  </g>
+  <g transform="translate(1004,430)">
+    <rect class="card" width="475" height="207" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_nota</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">evaluacion_id BIGINT · FK → evaluacion</text>
+    <text class="key" x="13" y="116">alumno_id BIGINT · FK → alumno</text>
+    <text class="field" x="13" y="135">valor_nota DECIMAL(4,2)</text>
+    <text class="field" x="13" y="154">observacion TEXT NULL · fecha_registro DATE</text>
+    <text class="field" x="13" y="173">UNIQUE (evaluacion_id, alumno_id)</text>
+    <text class="foot" x="13" y="192">Máximo una nota por alumno y evaluación.</text>
+  </g>
+  <g transform="translate(1004,652)">
+    <rect class="card" width="475" height="207" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_asistencia</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">alumno_id BIGINT · FK → alumno</text>
+    <text class="key" x="13" y="116">carga_id BIGINT · FK → cargaacademica</text>
+    <text class="field" x="13" y="135">fecha DATE · estado_asistencia VARCHAR(20)</text>
+    <text class="field" x="13" y="154">observacion TEXT NULL</text>
+    <text class="field" x="13" y="173">UNIQUE (alumno_id, carga_id, fecha)</text>
+    <text class="foot" x="13" y="192">Una asistencia por alumno/carga/fecha.</text>
+  </g>
+  <g transform="translate(1004,874)">
+    <rect class="card" width="475" height="302" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_instrumentoia</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">docente_id BIGINT · FK → docente</text>
+    <text class="key" x="13" y="116">carga_id BIGINT · FK → cargaacademica</text>
+    <text class="field" x="13" y="135">tipo VARCHAR(10) · titulo VARCHAR(200)</text>
+    <text class="field" x="13" y="154">objetivo TEXT · parametros JSONB</text>
+    <text class="field" x="13" y="173">contenido_ia JSONB · contenido JSONB</text>
+    <text class="field" x="13" y="192">estado VARCHAR(10)</text>
+    <text class="field" x="13" y="211">porcentaje_corregido DECIMAL(5,1) NULL</text>
+    <text class="field" x="13" y="230">fecha_creacion TIMESTAMPTZ</text>
+    <text class="field" x="13" y="249">fecha_aprobacion TIMESTAMPTZ NULL</text>
+    <text class="foot" x="13" y="268">Material, rúbrica o prueba generada con IA.</text>
+    <text class="foot" x="13" y="287">Los documentos JSON guardan contenido flexible.</text>
+  </g>
+  <g transform="translate(1004,1191)">
+    <rect class="card" width="475" height="283" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_correccionprueba</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">institucion_id BIGINT · FK → institucion</text>
+    <text class="key" x="13" y="97">instrumento_id BIGINT · FK → instrumentoia</text>
+    <text class="key" x="13" y="116">alumno_id BIGINT NULL · FK → alumno</text>
+    <text class="field" x="13" y="135">respuestas JSONB · correctas SMALLINT</text>
+    <text class="field" x="13" y="154">total SMALLINT · nota DECIMAL(3,1)</text>
+    <text class="field" x="13" y="173">leida_con_ia BOOLEAN · ajustes_docente SMALLINT</text>
+    <text class="key" x="13" y="192">nota_registrada_id BIGINT NULL · FK → nota</text>
+    <text class="field" x="13" y="211">fecha TIMESTAMPTZ</text>
+    <text class="foot" x="13" y="230">Registra resultados y ajustes de corrección.</text>
+    <text class="foot" x="13" y="249">Alumno y nota registrada son opcionales.</text>
+    <text class="foot" x="13" y="268">CHECK ≥ 0: correctas, total, ajustes_docente.</text>
+  </g>
+  <g transform="translate(1496,208)">
+    <rect class="card" width="500" height="245" rx="8" />
+    <path class="bar" d="M8 0h484a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_documentocurricular</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="field" x="13" y="78">titulo VARCHAR(250)</text>
+    <text class="field" x="13" y="97">fuente_url VARCHAR(1000) · version VARCHAR(80)</text>
+    <text class="field" x="13" y="116">asignatura VARCHAR(120) · ciclo VARCHAR(20)</text>
+    <text class="field" x="13" y="135">nivel SMALLINT NULL</text>
+    <text class="field" x="13" y="154">sha256 VARCHAR(64) · UNIQUE</text>
+    <text class="field" x="13" y="173">activo BOOLEAN · fecha_indexacion TIMESTAMPTZ</text>
+    <text class="foot" x="13" y="192">Corpus global; asignatura es texto, no una FK.</text>
+    <text class="foot" x="13" y="211">Sin institucion_id; índices en asignatura y activo.</text>
+    <text class="foot" x="13" y="230">CHECK ≥ 0: nivel.</text>
+  </g>
+  <g transform="translate(1496,468)">
+    <rect class="card" width="500" height="188" rx="8" />
+    <path class="bar" d="M8 0h484a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_fragmentocurricular</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">documento_id BIGINT · FK → documentocurricular</text>
+    <text class="field" x="13" y="97">numero INTEGER · pagina INTEGER NULL</text>
+    <text class="field" x="13" y="116">texto TEXT · embedding VECTOR(768)</text>
+    <text class="field" x="13" y="135">UNIQUE (documento_id, numero)</text>
+    <text class="foot" x="13" y="154">HNSW: vector_cosine_ops; m=16, ef_construction=64.</text>
+    <text class="foot" x="13" y="173">CHECK ≥ 0: numero, pagina.</text>
+  </g>
+  <g transform="translate(1496,671)">
+    <rect class="card" width="500" height="150" rx="8" />
+    <path class="bar" d="M8 0h484a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_asignatura_docentes</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">asignatura_id BIGINT · FK → asignatura</text>
+    <text class="key" x="13" y="97">docente_id BIGINT · FK → docente</text>
+    <text class="field" x="13" y="116">UNIQUE (asignatura_id, docente_id)</text>
+    <text class="foot" x="13" y="135">M:N automática; sin institucion_id propio.</text>
+  </g>
+  <g transform="translate(1496,836)">
+    <rect class="card" width="500" height="150" rx="8" />
+    <path class="bar" d="M8 0h484a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_matricula_apoderados</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">matricula_id BIGINT · FK → matricula</text>
+    <text class="key" x="13" y="97">apoderado_id BIGINT · FK → apoderado</text>
+    <text class="field" x="13" y="116">UNIQUE (matricula_id, apoderado_id)</text>
+    <text class="foot" x="13" y="135">M:N automática; sin institucion_id propio.</text>
+  </g>
+  <g transform="translate(1496,1001)">
+    <rect class="card" width="500" height="289" rx="8" />
+    <path class="bar" d="M8 0h484a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25" style="font:700 16px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#ffffff">Relaciones principales</text>
+    <text class="note" x="13" y="61" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Institucion 1 → 0..N filas institucionales.</text>
+    <text class="note" x="13" y="82" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Cada fila institucional → 1 Institucion.</text>
+    <text class="note" x="13" y="103" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Usuario → 0..1 Institucion (FK nullable).</text>
+    <text class="note" x="13" y="124" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Usuario 1 → 0..1 de cada perfil; sin exclusión SQL.</text>
+    <text class="note" x="13" y="145" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Curso 1 → 0..N Asignatura y CargaAcademica.</text>
+    <text class="note" x="13" y="166" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Periodo 1 → 0..N Matricula y CargaAcademica.</text>
+    <text class="note" x="13" y="187" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Carga 1 → 0..N Evaluacion, Asistencia e InstrumentoIA.</text>
+    <text class="note" x="13" y="208" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Evaluacion 1 → 0..N Nota; Alumno 1 → 0..N Nota.</text>
+    <text class="note" x="13" y="229" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">DocumentoCurricular 1 → 0..N FragmentoCurricular.</text>
+    <text class="note" x="13" y="250" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">FK NULL: la fila referencia 0..1 padre, no 1 obligatorio.</text>
+    <text class="note" x="13" y="271" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Puentes M:N: cada FK apunta a exactamente 1 padre.</text>
+  </g>
+  <g transform="translate(1496,1305)">
+    <rect class="card" width="500" height="352" rx="8" />
+    <path class="bar" d="M8 0h484a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25" style="font:700 16px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#ffffff">Notas de alcance del diagrama</text>
+    <text class="note" x="13" y="61" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Fase 2: una institución por instalación.</text>
+    <text class="note" x="13" y="82" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">institucion_id se conserva por soporte del código.</text>
+    <text class="note" x="13" y="103" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Usuario: NULL permitido en la BD; save() exige</text>
+    <text class="note" x="13" y="124" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">institución si tipo_usuario no está vacío.</text>
+    <text class="note" x="13" y="145" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Corpus global: sin FK a institución, curso ni asignatura.</text>
+    <text class="note" x="13" y="166" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">TIMESTAMPTZ = TIMESTAMP WITH TIME ZONE.</text>
+    <text class="note" x="13" y="187" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Positive*Integer: INTEGER/SMALLINT con CHECK ≥ 0.</text>
+    <text class="note" x="13" y="208" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">blank=True permite vacío; no equivale a NULL.</text>
+    <text class="note" x="13" y="229" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Las referencias abreviadas usan prefijo colegio_;</text>
+    <text class="note" x="13" y="250" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">auth_group y auth_permission conservan su prefijo.</text>
+    <text class="note" x="13" y="271" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">auth_*, sesiones y tablas internas Django se omiten;</text>
+    <text class="note" x="13" y="292" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">sí se muestran las cuatro M:N automáticas de colegio.</text>
+    <text class="note" x="13" y="313" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">HNSW y VECTOR(768): PostgreSQL con pgvector.</text>
+    <text class="note" x="13" y="334" style="font:400 13px &quot;Segoe UI&quot;, Arial, sans-serif;fill:#214b78">Revisión estática; no acredita migraciones aplicadas.</text>
+  </g>
+  <text class="notehead" x="30" y="126">FASE 2 · Una institución por instalación.</text>
+  <text class="note" x="30" y="148">El código conserva soporte para varias instituciones; esa capacidad técnica no amplía el alcance acordado.</text>
+  <text class="note" x="30" y="169">Corpus curricular global de la instalación: DocumentoCurricular y FragmentoCurricular no tienen institucion_id.</text>
+  <g transform="translate(512,1242)">
+    <rect class="card" width="475" height="150" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_usuario_groups</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">usuario_id BIGINT · FK → usuario</text>
+    <text class="key" x="13" y="97">group_id INTEGER · FK → auth_group</text>
+    <text class="field" x="13" y="116">UNIQUE (usuario_id, group_id)</text>
+    <text class="foot" x="13" y="135">M:N automática de AbstractUser; sin institucion_id.</text>
+  </g>
+  <g transform="translate(512,1407)">
+    <rect class="card" width="475" height="150" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">colegio_usuario_user_permissions</text>
+    <text class="key" x="13" y="59">id BIGINT · PK</text>
+    <text class="key" x="13" y="78">usuario_id BIGINT · FK → usuario</text>
+    <text class="key" x="13" y="97">permission_id INTEGER · FK → auth_permission</text>
+    <text class="field" x="13" y="116">UNIQUE (usuario_id, permission_id)</text>
+    <text class="foot" x="13" y="135">M:N automática de AbstractUser; sin institucion_id.</text>
+  </g>
+  <g transform="translate(1004,1489)">
+    <rect class="card" width="475" height="226" rx="8" />
+    <path class="bar" d="M8 0h459a8 8 0 0 1 8 8v31H0V8a8 8 0 0 1 8-8z" />
+    <text class="bartext" x="13" y="25">Reglas de integridad</text>
+    <text class="note" x="13" y="59">Django on_delete: institución PROTECT;</text>
+    <text class="note" x="13" y="78">jefatura, FK de postulación, alumno/nota de</text>
+    <text class="note" x="13" y="97">corrección SET_NULL; resto del dominio CASCADE.</text>
+    <text class="note" x="13" y="116">Son reglas del ORM, no cláusulas SQL ON DELETE.</text>
+    <text class="note" x="13" y="135">Coherencia institucional: save() y señales M:N;</text>
+    <text class="note" x="13" y="154">no hay FK compuesta ni CHECK entre instituciones.</text>
+    <text class="note" x="13" y="173">choices y validadores no se presentan como CHECK.</text>
+    <text class="note" x="13" y="192">UNIQUE permite múltiples NULL según PostgreSQL;</text>
+    <text class="note" x="13" y="211">institucion_id NULL no vuelve único el rut por sí solo.</text>
+  </g>
+  <text class="foot" x="28" y="2103">Fuente: ZIP Grupo5Capstone-main (1).zip · Edugestor/colegio/models.py + migraciones 0001–0021 (22 archivos, incluida la bifurcación 0007). Revisión: 15-10-2026.</text>
+  <metadata>{"source_archive": "Grupo5Capstone-main (1).zip", "source_svg_sha256": "bb61289c36afb53fc86f0826e821b8e1ac104c04d9bab7d4b60c8724a67e07b1", "source_models": "Edugestor/colegio/models.py", "migration_leaf": "0021_corpus_curricular_rag", "scope": "Fase 2: una institución por instalación", "corpus": "global, sin institucion_id", "review": "static models/migration graph comparison; no database migration applied", "constraints": {"asignatura": {}, "curso": {}, "usuario": {"uq_usuario_institucion_rut": ["institucion", "rut"]}, "alumno": {}, "apoderado": {"uq_apoderado_institucion_email": ["institucion", "email"]}, "docente": {"uq_docente_institucion_email": ["institucion", "email_institucional"]}, "cargaacademica": {"uq_carga_academica": ["curso", "asignatura", "periodo", "docente"]}, "evaluacion": {}, "periodoacademico": {"uq_periodo_institucion_anio_semestre": ["institucion", "anio", "semestre"]}, "alumnoapoderado": {"uq_alumno_apoderado": ["alumno", "apoderado"]}, "asistencia": {"uq_asistencia_alumno_carga_fecha": ["alumno", "carga", "fecha"]}, "nota": {"uq_nota_evaluacion_alumno": ["evaluacion", "alumno"]}, "matricula": {"uq_periodo_alumno": ["periodo", "alumno"]}, "solicitudpostulacion": {}, "institucion": {}, "instrumentoia": {}, "correccionprueba": {}, "documentocurricular": {}, "fragmentocurricular": {"uq_fragmento_curricular_numero": ["documento", "numero"]}}}</metadata>
+</svg>

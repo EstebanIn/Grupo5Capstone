@@ -1,0 +1,100 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Docente | EduGestor</title>
+    <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+
+
+
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            EduGestor
+        </div>
+
+        {% include 'colegio/docente_menu.html' %}
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="welcome">
+
+                <h1>Bienvenido, Prof. {{ docente.nombre_docente }} {{ docente.apellido_docente }} </h1>
+                <p>Panel Docente · EduGestor</p>
+
+            </div>
+
+            
+
+        </div>
+
+        <!-- CARDS -->
+        <div class="cards">
+            <div class="card" style="border-left: 4px solid #166534;">
+                <div style="font-size:28px; margin-bottom:8px"></div>
+                <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; margin-bottom:6px">Cursos Asignados</h3>
+                <p class="num" style="font-size:32px; font-weight:bold; color:#166534">{{ total_cursos }}</p>
+                <p style="font-size:12px; color:#9ca3af; margin-top:4px">asignaturas activas</p>
+            </div>
+            <div class="card" style="border-left: 4px solid #166534;">
+                <div style="font-size:28px; margin-bottom:8px"></div>
+                <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; margin-bottom:6px">Total Alumnos</h3>
+                <p style="font-size:32px; font-weight:bold; color:#166534">{{ total_alumnos }}</p>
+                <p style="font-size:12px; color:#9ca3af; margin-top:4px">matriculados</p>
+            </div>
+            <div class="card" style="border-left: 4px solid #166534;">
+                <div style="font-size:28px; margin-bottom:8px"></div>
+                <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; margin-bottom:6px">Evaluaciones</h3>
+                <p style="font-size:32px; font-weight:bold; color:#166534">{{ total_evaluaciones }}</p>
+                <p style="font-size:12px; color:#9ca3af; margin-top:4px">creadas este período</p>
+            </div>
+        </div>
+
+        <!-- LISTADO DE CURSOS -->
+        <div class="table-container">
+            <h2 style="display:flex; align-items:center; gap:8px">Mis Cursos</h2>
+
+            {% for carga in cargas %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid #e5e7eb;">
+                <div>
+                    <strong style="font-size:16px">{{ carga.curso }}</strong>
+                    <p style="font-size:13px; color:#6b7280; margin-top:2px">
+                        {{ carga.asignatura.nombre_asignatura }} · {{ carga.periodo }}
+                    </p>
+                </div>
+
+                <div style="display:flex; gap:10px">
+                    <a href="{% url 'panel_docente_asistencia' %}?carga_id={{ carga.id }}" class="btn">
+                        Asistencia
+                    </a>
+                    <a href="{% url 'panel_docente_notas' %}?carga_id={{ carga.id }}" class="btn">
+                        Notas
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color:#9ca3af; font-style:italic; padding:16px 0">No tienes cursos asignados.</p>
+            {% endfor %}
+
+        </div>
+    </main>
+
+    {% include 'colegio/sidebar_active_script.html' %}
+</body>
+</html>

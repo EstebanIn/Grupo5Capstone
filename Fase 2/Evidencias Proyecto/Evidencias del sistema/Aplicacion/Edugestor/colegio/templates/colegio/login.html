@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | EduGestor</title>
+
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+    <div class="login-container">
+
+        <div class="logo">
+            <h1>EduGestor</h1>
+            <p>Plataforma de Gestión Escolar</p>
+        </div>
+
+        {% if error %}
+            <div class="error">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label>Usuario o RUT</label>
+            <input
+                type="text"
+                name="username"
+                placeholder="Ingrese su usuario o RUT"
+                required
+            >
+
+            <label>Contraseña</label>
+            <input
+                type="password"
+                name="password"
+                placeholder="Ingrese su contraseña"
+                required
+            >
+
+            <button type="submit">
+                Ingresar
+            </button>
+        </form>
+
+        <div class="extra-links">
+            <a href="{% url 'password_reset' %}">
+                ¿Olvidaste tu contraseña?
+            </a>
+            <a href="{% url 'inicio' %}">
+                Volver al inicio
+            </a>
+        </div>
+
+        <div class="footer">
+            © 2026 EduGestor
+        </div>
+
+    </div>
+
+</body>
+</html>

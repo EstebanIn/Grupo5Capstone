@@ -1,0 +1,327 @@
+{% extends 'colegio/base_admin.html' %}
+
+{% block content %}
+
+<style>
+    .registro-page {
+        padding: 24px;
+    }
+
+    .registro-header {
+        margin-bottom: 24px;
+    }
+
+    .registro-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 6px;
+    }
+
+    .registro-subtitle {
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+    .edugestor-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.08);
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .edugestor-card-header {
+        padding: 18px 22px;
+        background: linear-gradient(135deg, #6b21a8, #7e22ce);
+        color: #ffffff;
+    }
+
+    .edugestor-card-header h5 {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .edugestor-card-body {
+        padding: 22px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        padding: 10px 12px;
+    }
+
+    .form-control:focus {
+        border-color: #6b21a8;
+        box-shadow: 0 0 0 0.2rem rgba(107, 33, 168, 0.18);
+    }
+
+    .form-check-input:checked {
+        background-color: #6b21a8;
+        border-color: #6b21a8;
+    }
+
+    .field-error {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .btn-edugestor {
+        background-color: #6b21a8;
+        border-color: #6b21a8;
+        color: #ffffff;
+        padding: 12px 28px;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-edugestor:hover {
+        background-color: #581c87;
+        border-color: #581c87;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .actions-box {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .alert {
+        border-radius: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .registro-page {
+            padding: 16px;
+        }
+
+        .registro-title {
+            font-size: 24px;
+        }
+
+        .actions-box {
+            flex-direction: column-reverse;
+        }
+
+        .actions-box .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid registro-page">
+
+    <div class="registro-header">
+        <h1 class="registro-title">Registro de Alumno y Apoderado</h1>
+        <p class="registro-subtitle">
+            Ingresa en una sola pantalla los datos del alumno y su apoderado principal.
+        </p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-3">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row g-4">
+
+            <!-- Tarjeta Alumno -->
+            <div class="col-12 col-lg-6">
+                <div class="edugestor-card">
+                    <div class="edugestor-card-header">
+                        <h5>Datos del Alumno</h5>
+                    </div>
+
+                    <div class="edugestor-card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.rut_alumno.id_for_label }}">
+                                {{ form.rut_alumno.label }}
+                            </label>
+                            {{ form.rut_alumno }}
+                            {% for error in form.rut_alumno.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.nombre_alumno.id_for_label }}">
+                                {{ form.nombre_alumno.label }}
+                            </label>
+                            {{ form.nombre_alumno }}
+                            {% for error in form.nombre_alumno.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.apellido_alumno.id_for_label }}">
+                                {{ form.apellido_alumno.label }}
+                            </label>
+                            {{ form.apellido_alumno }}
+                            {% for error in form.apellido_alumno.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.fecha_nacimiento.id_for_label }}">
+                                {{ form.fecha_nacimiento.label }}
+                            </label>
+                            {{ form.fecha_nacimiento }}
+                            {% for error in form.fecha_nacimiento.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.genero.id_for_label }}">
+                                {{ form.genero.label }}
+                            </label>
+                            {{ form.genero }}
+                            {% for error in form.genero.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta Apoderado -->
+            <div class="col-12 col-lg-6">
+                <div class="edugestor-card">
+                    <div class="edugestor-card-header">
+                        <h5>Datos del Apoderado</h5>
+                    </div>
+
+                    <div class="edugestor-card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.rut_apoderado.id_for_label }}">
+                                {{ form.rut_apoderado.label }}
+                            </label>
+                            {{ form.rut_apoderado }}
+                            {% for error in form.rut_apoderado.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.nombre_apoderado.id_for_label }}">
+                                {{ form.nombre_apoderado.label }}
+                            </label>
+                            {{ form.nombre_apoderado }}
+                            {% for error in form.nombre_apoderado.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.apellido_apoderado.id_for_label }}">
+                                {{ form.apellido_apoderado.label }}
+                            </label>
+                            {{ form.apellido_apoderado }}
+                            {% for error in form.apellido_apoderado.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.direccion.id_for_label }}">
+                                {{ form.direccion.label }}
+                            </label>
+                            {{ form.direccion }}
+                            {% for error in form.direccion.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.telefono.id_for_label }}">
+                                {{ form.telefono.label }}
+                            </label>
+                            {{ form.telefono }}
+                            {% for error in form.telefono.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.email_apoderado.id_for_label }}">
+                                {{ form.email_apoderado.label }}
+                            </label>
+                            {{ form.email_apoderado }}
+                            {% for error in form.email_apoderado.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.parentesco.id_for_label }}">
+                                {{ form.parentesco.label }}
+                            </label>
+                            {{ form.parentesco }}
+                            {% for error in form.parentesco.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-check mt-4">
+                            {{ form.is_principal }}
+                            <label class="form-check-label" for="{{ form.is_principal.id_for_label }}">
+                                {{ form.is_principal.label }}
+                            </label>
+                            {% for error in form.is_principal.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="actions-box">
+            <a href="{% url 'panel_admin_matriculas' %}" class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+
+            <button type="submit" class="btn btn-edugestor">
+                Registrar alumno y apoderado
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'colegio/ia/base_docente.html' %}
+
+{% block titulo %}Material de estudio{% endblock %}
+
+{% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+<div class="ia-encabezado">
+    <h1>📚 Material de estudio</h1>
+    <p>La IA redacta una guía, un resumen o un set de ejercicios para tus estudiantes. Podrás editar el texto antes de aprobarlo e imprimirlo.</p>
+</div>
+
+<div class="ia-panel">
+    <form method="post" class="ia-form" data-generando="Generando material… (puede tardar un minuto)">
+        {% csrf_token %}
+        {% include 'colegio/ia/_campos.html' %}
+        <button type="submit" class="ia-boton">Generar borrador</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1680" viewBox="0 0 1600 1680" role="img" aria-labelledby="title desc">
+<title id="title">EduGestor · Arquitectura actual y alcance de Fase 2</title>
+<desc id="desc">Una institución por instalación. Configuración local Django y Docker Compose. RAG curricular integrado en pruebas con pgvector; RAG del tutor presente como código sin conexión a la vista. Revisión estática del ZIP proporcionado, 15 de octubre de 2026.</desc>
+<defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17395f"/>
+      <stop offset="1" stop-color="#28618c"/>
+    </linearGradient>
+    <style>
+      .bg { fill: #f2f6fb; }
+      .title { font: 700 32px "Segoe UI", Arial, sans-serif; fill: #fff; }
+      .subtitle { font: 15px "Segoe UI", Arial, sans-serif; fill: #d8e8f6; }
+      .zone { fill: #fff; stroke: #aabbd0; stroke-width: 2; }
+      .zone-dash { fill: #f7f9fc; stroke: #7c91aa; stroke-width: 2; stroke-dasharray: 10 8; }
+      .zone-title { font: 700 17px "Segoe UI", Arial, sans-serif; fill: #254b72; letter-spacing: .7px; }
+      .card { fill: #fff; stroke: #b9c9da; stroke-width: 1.5; }
+      .card-blue { fill: #eaf3fb; stroke: #8eafcf; stroke-width: 1.5; }
+      .card-green { fill: #e9f6ef; stroke: #83b99a; stroke-width: 1.5; }
+      .card-gold { fill: #fff5df; stroke: #d9b66e; stroke-width: 1.5; }
+      .card-violet { fill: #f2edfb; stroke: #ad9acb; stroke-width: 1.5; }
+      .card-title { font: 700 17px "Segoe UI", Arial, sans-serif; fill: #183b60; }
+      .card-title-white { font: 700 17px "Segoe UI", Arial, sans-serif; fill: #fff; }
+      .body { font: 14px "Segoe UI", Arial, sans-serif; fill: #334b63; }
+      .small { font: 12px "Segoe UI", Arial, sans-serif; fill: #52677d; }
+      .tiny { font: 11px "Segoe UI", Arial, sans-serif; fill: #53687d; }
+      .mono { font: 12px Consolas, "Courier New", monospace; fill: #31475d; }
+      .arrow { fill: none; stroke: #376d9c; stroke-width: 2.5; marker-end: url(#arrow); }
+      .arrow-dash { fill: none; stroke: #7d6aa5; stroke-width: 2.2; stroke-dasharray: 7 6; marker-end: url(#arrow-violet); }
+      .arrow-green { fill: none; stroke: #39835c; stroke-width: 2.5; marker-end: url(#arrow-green); }
+      .arrow-gold { fill: none; stroke: #ae7a22; stroke-width: 2.5; marker-end: url(#arrow-gold); }
+      .line-label { font: 700 12px "Segoe UI", Arial, sans-serif; fill: #345a7e; }
+      .legend { font: 12px "Segoe UI", Arial, sans-serif; fill: #40566d; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#376d9c"/>
+    </marker>
+    <marker id="arrow-violet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#7d6aa5"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#39835c"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#ae7a22"/>
+    </marker>
+  </defs>
+<rect class="bg" width="1600" height="1680"/><rect width="1600" height="102" fill="url(#header)"/>
+<text class="title" x="34" y="46">EduGestor · Arquitectura del proyecto</text>
+<text class="subtitle" x="36" y="75">Fase 2 · Una institución por instalación · Estado contrastado con código y configuración del ZIP</text>
+<rect class="card-blue" x="26" y="120" width="1548" height="66" rx="12"/>
+<text class="card-title" x="46" y="146">ALCANCE ACORDADO: UNA INSTITUCIÓN POR INSTALACIÓN</text>
+<text class="body" x="46" y="171">El código conserva Institucion, middleware y filtros por institución; ese soporte técnico no amplía el objetivo de Fase 2.</text>
+<rect class="zone-dash" x="300" y="210" width="900" height="668" rx="17"/>
+<text class="zone-title" x="324" y="241">DOCKER COMPOSE · web · Python 3.12 / Django</text>
+<rect class="card" x="326" y="263" width="848" height="94" rx="12"/>
+<text class="card-title" x="346" y="292">Entrada HTTP y contexto</text>
+<text class="body" x="346" y="321">config/urls.py → colegio/urls.py · autenticación, sesiones y formularios</text>
+<text class="body" x="346" y="345">InstitucionMiddleware resuelve la institución y activa los filtros de los modelos.</text>
+<rect class="card-blue" x="26" y="277" width="220" height="150" rx="12"/>
+<text class="card-title" x="46" y="306">Usuario / navegador</text>
+<text class="body" x="46" y="335">HTML · CSS · JavaScript</text>
+<text class="body" x="46" y="359">Interfaz y formularios</text>
+<text class="body" x="46" y="383">HTTP al host :8000</text>
+<rect class="card-blue" x="326" y="394" width="395" height="140" rx="12"/>
+<text class="card-title" x="346" y="423">Gestión escolar · colegio/</text>
+<text class="body" x="346" y="452">views.py · views_ia.py · templates/</text>
+<text class="body" x="346" y="476">Usuarios, roles, matrícula y cursos</text>
+<text class="body" x="346" y="500">Notas, asistencia e instrumentos IA</text>
+<text class="body" x="346" y="524">Tutor actual: responder_tutor()</text>
+<rect class="card-violet" x="780" y="394" width="394" height="140" rx="12"/>
+<text class="card-title" x="800" y="423">Servicios IA · colegio/ia/</text>
+<text class="body" x="800" y="452">proveedor.py: generación y respaldos</text>
+<text class="body" x="800" y="476">rag.py: embeddings + recuperación</text>
+<text class="body" x="800" y="500">Pruebas: RAG curricular conectado</text>
+<text class="body" x="800" y="524">Tutor de la UI: generación sin RAG</text>
+<rect class="card-green" x="326" y="579" width="848" height="123" rx="12"/>
+<text class="card-title" x="346" y="608">ORM y persistencia</text>
+<text class="body" x="346" y="637">models.py + migrations/ · datos escolares, sesiones e instrumentos IA</text>
+<text class="body" x="346" y="661">DocumentoCurricular + FragmentoCurricular: texto, página, metadatos y vector(768)</text>
+<text class="body" x="346" y="685">Migración 0021: extensión vector e índice HNSW con distancia coseno</text>
+<rect class="card" x="326" y="738" width="848" height="115" rx="12"/>
+<text class="card-title" x="346" y="767">Construcción y arranque local</text>
+<text class="body" x="346" y="796">Dockerfile: COPY requirements.txt, instala dependencias y COPY . . hacia /app</text>
+<text class="body" x="346" y="820">Compose: .:/app sustituye el código de la imagen por la carpeta del host.</text>
+<text class="body" x="346" y="844">.env → web · espera db saludable → migrate → runserver 0.0.0.0:8000</text>
+<rect class="card-violet" x="1260" y="263" width="314" height="208" rx="12"/>
+<text class="card-title" x="1280" y="292">Google Gemini API</text>
+<text class="body" x="1280" y="321">Generación de contenido</text>
+<text class="body" x="1280" y="348">Embeddings de 768 dimensiones</text>
+<text class="body" x="1280" y="375">Clave, conexión y cuota requeridas</text>
+<text class="body" x="1280" y="402">Generación sin clave: simulada*</text>
+<text class="small" x="1280" y="449">Servicio externo; llamadas desde Django.</text>
+<rect class="card-green" x="1260" y="548" width="314" height="239" rx="12"/>
+<text class="card-title" x="1280" y="577">Compose · db</text>
+<text class="body" x="1280" y="606">PostgreSQL 17 + pgvector</text>
+<text class="body" x="1280" y="633">Datos escolares y corpus curricular</text>
+<text class="body" x="1280" y="660">Texto + vectores en la base de datos</text>
+<text class="body" x="1280" y="687">Red interna: db:5432</text>
+<text class="body" x="1280" y="714">Sin ports: no se publica al host.</text>
+<text class="small" x="1280" y="752">pgvector/pgvector:0.8.7-pg17-trixie</text>
+<text class="tiny" x="1280" y="774">No se guardan los PDF binarios en estas tablas.</text>
+<rect class="card-green" x="1260" y="823" width="314" height="55" rx="12"/>
+<text class="body" x="1280" y="846">Volumen: edugestor_pgdata</text>
+<text class="tiny" x="1280" y="866">→ /var/lib/postgresql/data (según Compose)</text>
+<rect class="card-gold" x="26" y="579" width="220" height="274" rx="12"/>
+<text class="card-title" x="46" y="608">Archivos del proyecto</text>
+<text class="body" x="46" y="637">knowledge/: PDF y JSON</text>
+<text class="body" x="46" y="661">Presentes en el ZIP.</text>
+<text class="body" x="46" y="685">Sin .git: seguimiento</text>
+<text class="body" x="46" y="709">en Git no comprobable.</text>
+<text class="body" x="46" y="733"></text>
+<text class="body" x="46" y="757">.gitignore no excluye</text>
+<text class="body" x="46" y="781">estos PDF ni JSON.</text>
+<text class="small" x="46" y="826">.env sí está ignorado.</text>
+<path class="arrow" d="M246 332H326" marker-start="url(#arrow)"/>
+<text class="line-label" x="252" y="315">HTTP</text>
+<path class="arrow" d="M520 357V394"/>
+<path class="arrow" d="M721 444H780" marker-start="url(#arrow)"/>
+<text class="line-label" x="730" y="429">IA</text>
+<path class="arrow" d="M1174 437H1260" marker-start="url(#arrow)"/>
+<text class="tiny" x="1182" y="414">API / vectores</text>
+<path class="arrow" d="M520 534V579"/>
+<path class="arrow-green" d="M1174 643H1260"/>
+<path class="arrow-green" d="M1260 672H1174"/>
+<text class="line-label" x="1180" y="628">ORM / SQL</text>
+<path class="arrow-green" d="M1415 787V823"/>
+<rect class="zone" x="26" y="905" width="1548" height="242" rx="17"/>
+<text class="zone-title" x="46" y="937">IMPLEMENTADO · INDEXACIÓN CURRICULAR POR CLI (no se ejecuta automáticamente al arrancar)</text>
+<rect class="card-gold" x="46" y="962" width="215" height="155" rx="12"/>
+<text class="card-title" x="66" y="991">PDF local</text>
+<text class="body" x="66" y="1020">Ruta indicada al comando</text>
+<text class="body" x="66" y="1042">Texto extraíble con pypdf</text>
+<text class="body" x="66" y="1064">PDF escaneado: requiere</text>
+<text class="body" x="66" y="1086">OCR previo externo.</text>
+<rect class="card-gold" x="305" y="962" width="378" height="155" rx="12"/>
+<text class="card-title" x="325" y="991">indexar_documento_curricular</text>
+<text class="body" x="325" y="1020">Extrae páginas y divide el texto.</text>
+<text class="body" x="325" y="1042">Escribe JSON junto al PDF: texto y metadatos,</text>
+<text class="body" x="325" y="1064">sin embeddings. Comprueba SHA-256</text>
+<text class="body" x="325" y="1086">para evitar duplicar documentos.</text>
+<rect class="card-violet" x="727" y="962" width="287" height="155" rx="12"/>
+<text class="card-title" x="747" y="991">Gemini · embeddings</text>
+<text class="body" x="747" y="1020">rag.py → embed_content</text>
+<text class="body" x="747" y="1042">RETRIEVAL_DOCUMENT</text>
+<text class="body" x="747" y="1064">768 valores por fragmento</text>
+<text class="body" x="747" y="1086">Respuesta: vectores normalizados</text>
+<rect class="card-green" x="1058" y="962" width="496" height="155" rx="12"/>
+<text class="card-title" x="1078" y="991">Mismo servicio db · PostgreSQL / pgvector</text>
+<text class="body" x="1078" y="1020">Transacción ORM: DocumentoCurricular + FragmentoCurricular</text>
+<text class="body" x="1078" y="1042">Guarda texto, página, SHA-256, metadatos y vectores.</text>
+<text class="body" x="1078" y="1064">Los embeddings curriculares persisten en la base,</text>
+<text class="body" x="1078" y="1086">respaldada por el volumen de Compose.</text>
+<path class="arrow-gold" d="M261 1035H305"/>
+<path class="arrow-gold" d="M683 1035H727"/>
+<path class="arrow-green" d="M1014 1035H1058"/>
+<text class="small" x="46" y="1134">El JSON curricular queda en disco; con .:/app, una ruta dentro de /app corresponde a la carpeta del host.</text>
+<rect class="card-blue" x="26" y="1173" width="1548" height="125" rx="12"/>
+<text class="zone-title" x="46" y="1204">IMPLEMENTADO · RAG EN LA CREACIÓN DE PRUEBAS DOCENTES</text>
+<text class="body" x="46" y="1232">views_ia._generar_prueba_con_rag → embedding de consulta en Gemini → rag.buscar_fragmentos → PostgreSQL (CosineDistance, hasta 5 fragmentos)</text>
+<text class="body" x="46" y="1256">Filtra por asignatura, ciclo y nivel → asistentes.crear_prueba añade extractos al prompt → proveedor.generar → prueba con fuentes → InstrumentoIA (ORM).</text>
+<text class="body" x="46" y="1280">Solo se intenta con proveedor Gemini; sin corpus compatible devuelve cero fragmentos. No es RAG general para todos los asistentes.</text>
+<rect class="zone-dash" x="26" y="1324" width="1548" height="192" rx="17"/>
+<text class="zone-title" x="46" y="1356">CÓDIGO PRESENTE · RAG DEL TUTOR CON JSON · INTEGRACIÓN A LA INTERFAZ PENDIENTE</text>
+<rect class="card-gold" x="46" y="1380" width="442" height="112" rx="12"/>
+<text class="card-title" x="66" y="1409">knowledge/procesados/</text>
+<text class="body" x="66" y="1438">libro_matematica_embeddings.json</text>
+<text class="body" x="66" y="1460">626 fragmentos con texto y vectores de 768 valores</text>
+<text class="body" x="66" y="1482">PDF fuente separado; generación del JSON no localizada.</text>
+<rect class="card-violet" x="536" y="1380" width="513" height="112" rx="12"/>
+<text class="card-title" x="556" y="1409">ia/tutor/ · recuperación implementada</text>
+<text class="body" x="556" y="1438">rag_service carga el JSON y lo conserva en caché.</text>
+<text class="body" x="556" y="1460">Gemini crea el vector de consulta → coseno con NumPy, top 4</text>
+<text class="body" x="556" y="1482">tutor_service.responder_con_rag prepara prompt y respuesta.</text>
+<rect class="card-violet" x="1127" y="1380" width="427" height="112" rx="12"/>
+<text class="card-title" x="1147" y="1409">Planificado / por integrar</text>
+<text class="body" x="1147" y="1438">Conectar responder_con_rag con la vista del tutor.</text>
+<text class="body" x="1147" y="1460">Hoy la vista llama a asistentes.responder_tutor.</text>
+<text class="body" x="1147" y="1482">No hay carga de este JSON a pgvector en este flujo.</text>
+<path class="arrow" d="M488 1436H536"/>
+<path class="arrow-dash" d="M1049 1436H1127"/>
+<text class="tiny" x="1062" y="1414">pendiente</text>
+<rect class="card" x="26" y="1540" width="1548" height="112" rx="12"/>
+<path class="arrow" d="M46 1567H101"/>
+<text class="legend" x="117" y="1572">Continuo: relación respaldada por código o configuración</text>
+<path class="arrow-dash" d="M614 1567H669"/>
+<text class="legend" x="685" y="1572">Discontinuo violeta: conexión pendiente</text>
+<text class="small" x="46" y="1597">* El proveedor puede simular generación; los embeddings reales requieren GEMINI_API_KEY. Sin POSTGRES_DB, settings.py usa SQLite (sin RAG curricular vectorial).</text>
+<text class="small" x="46" y="1619">El mapeo 8000:8000 no restringe la interfaz del host a localhost. Es un arranque de desarrollo con runserver, sin infraestructura productiva configurada.</text>
+<text class="small" x="46" y="1641">Revisión estática del ZIP indicado · 15-10-2026 · Implementado describe código presente, no confirma ejecución, migraciones aplicadas ni datos cargados.</text>
+</svg>
