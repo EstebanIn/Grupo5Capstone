@@ -1,6 +1,6 @@
-services:
+﻿services:
   db:
-    image: pgvector/pgvector:0.8.7-pg17-trixie
+    image: pgvector/pgvector:pg17
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-edugestor}
       POSTGRES_USER: ${POSTGRES_USER:-edugestor}

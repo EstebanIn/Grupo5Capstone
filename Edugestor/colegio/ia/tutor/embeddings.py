@@ -1,314 +1,150 @@
+"""Embeddings de Gemini para el Tutor Escolar RAG de EduGestor.
+
+El modelo y la dimensionalidad deben coincidir con los usados para indexar
+los documentos. Este módulo no vuelve a indexar el corpus existente.
+"""
+
+import logging
 import time
 
 from django.conf import settings
 from google import genai
-from google.genai import types, errors
+from google.genai import errors, types
 
+logger = logging.getLogger(__name__)
 
-# ============================================================
-# CONFIGURACIÓN
-# ============================================================
-
+# NO modificar este modelo sin comprobar con cuál se creó el JSON existente.
 MODELO_EMBEDDING = "gemini-embedding-001"
 DIMENSION_EMBEDDING = 768
-MAX_INTENTOS = 6
+MAX_INTENTOS = 3
 
 _cliente = None
 
 
-# ============================================================
-# CLIENTE GEMINI
-# ============================================================
+class CuotaEmbeddingAgotada(RuntimeError):
+    """La cuota diaria de embeddings está agotada; reintentar no ayudará."""
+
 
 def obtener_cliente():
-    """
-    Crea el cliente Gemini una sola vez
-    y lo reutiliza durante toda la ejecución.
-    """
-
     global _cliente
-
-    if _cliente is not None:
-        return _cliente
-
-    api_key = getattr(
-        settings,
-        "GEMINI_API_KEY",
-        ""
-    )
-
-    if not api_key:
-        raise RuntimeError(
-            "GEMINI_API_KEY no está configurada."
-        )
-
-    _cliente = genai.Client(
-        api_key=api_key
-    )
-
+    if _cliente is None:
+        api_key = getattr(settings, "GEMINI_API_KEY", "")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY no está configurada.")
+        _cliente = genai.Client(api_key=api_key)
     return _cliente
 
 
-# ============================================================
-# VALIDACIÓN DE TEXTO
-# ============================================================
-
 def _validar_texto(texto):
-    """
-    Limpia y valida un texto antes de enviarlo a Gemini.
-    """
+    if texto is None or not str(texto).strip():
+        raise ValueError("No se puede generar embedding de un texto vacío.")
+    return str(texto).strip()
 
-    if texto is None:
-        raise ValueError(
-            "No se puede generar embedding de un texto vacío."
+
+def _codigo_error(error):
+    """Compatibilidad con atributos de código utilizados por el SDK."""
+    codigo = getattr(error, "code", None)
+    if codigo is None:
+        codigo = getattr(error, "status_code", None)
+    try:
+        return int(codigo)
+    except (TypeError, ValueError):
+        return None
+
+
+def _cuota_diaria_agotada(error):
+    detalle = str(error).lower()
+    return any(
+        identificador in detalle
+        for identificador in (
+            "embed_content_free_tier_requests",
+            "embedcontentrequestsperdayperprojectpermodel",
+            "requestsperday",
         )
-
-    texto = str(texto).strip()
-
-    if not texto:
-        raise ValueError(
-            "No se puede generar embedding de un texto vacío."
-        )
-
-    return texto
-
-
-# ============================================================
-# ESPERA ENTRE REINTENTOS
-# ============================================================
-
-def _esperar_reintento(
-    intento,
-    codigo,
-    max_intentos
-):
-    """
-    Espera progresiva para rate limits y errores temporales.
-    """
-
-    if codigo == 429:
-        espera = min(
-            10 * (2 ** (intento - 1)),
-            90
-        )
-    else:
-        espera = min(
-            5 * (2 ** (intento - 1)),
-            60
-        )
-
-    print(
-        f"Gemini respondió HTTP {codigo}. "
-        f"Intento {intento}/{max_intentos}. "
-        f"Reintentando en {espera}s..."
     )
 
+
+def _esperar_reintento(intento, codigo):
+    espera = min((10 if codigo == 429 else 5) * (2 ** (intento - 1)), 30)
+    logger.warning(
+        "Gemini embeddings respondió HTTP %s. Reintento %s en %ss.",
+        codigo, intento + 1, espera,
+    )
     time.sleep(espera)
 
 
-# ============================================================
-# GENERAR EMBEDDINGS EN BATCH
-# ============================================================
-
-def generar_embeddings(
-    textos,
-    max_intentos=MAX_INTENTOS
-):
-    """
-    Genera embeddings para varios textos
-    utilizando una sola solicitud a Gemini.
-    """
-
+def generar_embeddings(textos, max_intentos=MAX_INTENTOS):
+    """Genera un vector por texto. No regenera los embeddings del JSON."""
     if not textos:
         return []
+    if max_intentos < 1:
+        raise ValueError("max_intentos debe ser mayor o igual a 1.")
 
-    textos = [
-        _validar_texto(texto)
-        for texto in textos
-    ]
-
+    textos = [_validar_texto(texto) for texto in textos]
     cliente = obtener_cliente()
 
-    ultimo_error = None
-
-    for intento in range(
-        1,
-        max_intentos + 1
-    ):
-
+    for intento in range(1, max_intentos + 1):
         try:
             respuesta = cliente.models.embed_content(
                 model=MODELO_EMBEDDING,
                 contents=textos,
                 config=types.EmbedContentConfig(
-                    output_dimensionality=DIMENSION_EMBEDDING
+                    output_dimensionality=DIMENSION_EMBEDDING,
                 ),
             )
-
-            if not respuesta.embeddings:
+            embeddings = respuesta.embeddings or []
+            if len(embeddings) != len(textos):
                 raise RuntimeError(
-                    "Gemini no devolvió embeddings."
+                    "La cantidad de embeddings recibidos no coincide con los textos enviados."
                 )
-
-            if len(respuesta.embeddings) != len(textos):
-                raise RuntimeError(
-                    "La cantidad de embeddings recibidos "
-                    "no coincide con los textos enviados."
-                )
-
             vectores = []
-
-            for embedding in respuesta.embeddings:
+            for embedding in embeddings:
                 vector = embedding.values
-
-                if len(vector) != DIMENSION_EMBEDDING:
+                if not vector or len(vector) != DIMENSION_EMBEDDING:
                     raise RuntimeError(
-                        "Dimensión inesperada. "
-                        f"Esperada: {DIMENSION_EMBEDDING}. "
-                        f"Recibida: {len(vector)}."
+                        f"Dimensión de embedding inesperada; se requieren {DIMENSION_EMBEDDING}."
                     )
-
                 vectores.append(vector)
-
             return vectores
 
-        # ====================================================
-        # ERRORES TEMPORALES SERVIDOR
-        # ====================================================
+        except errors.ClientError as error:
+            codigo = _codigo_error(error)
+            if codigo == 429:
+                if _cuota_diaria_agotada(error):
+                    logger.warning("Cuota diaria de embeddings Gemini agotada.")
+                    raise CuotaEmbeddingAgotada(
+                        "La cuota diaria de embeddings de Gemini está agotada. "
+                        "La búsqueda vectorial no está disponible temporalmente."
+                    ) from error
+                if intento < max_intentos:
+                    _esperar_reintento(intento, codigo)
+                    continue
+                raise RuntimeError(
+                    "Gemini limita temporalmente las solicitudes de embeddings."
+                ) from error
+            if codigo == 401:
+                raise RuntimeError("Gemini rechazó la autenticación. Revisa GEMINI_API_KEY.") from error
+            if codigo == 403:
+                raise RuntimeError("Sin permisos para utilizar embeddings de Gemini.") from error
+            if codigo == 404:
+                raise RuntimeError(f"Modelo de embeddings no encontrado: {MODELO_EMBEDDING}") from error
+            raise
 
         except errors.ServerError as error:
-            ultimo_error = error
-
-            codigo = getattr(
-                error,
-                "code",
-                None
-            )
-
-            if codigo in (
-                500,
-                502,
-                503,
-                504
-            ):
-                if intento >= max_intentos:
-                    break
-
-                _esperar_reintento(
-                    intento,
-                    codigo,
-                    max_intentos
-                )
-
+            codigo = _codigo_error(error)
+            if codigo in (500, 502, 503, 504) and intento < max_intentos:
+                _esperar_reintento(intento, codigo)
                 continue
+            raise RuntimeError("El servicio de embeddings Gemini no está disponible.") from error
 
-            raise
-
-        # ====================================================
-        # ERRORES CLIENTE
-        # ====================================================
-
-        except errors.ClientError as error:
-            ultimo_error = error
-
-            codigo = getattr(
-                error,
-                "code",
-                None
-            )
-
-            if codigo == 429:
-                print(
-                    "\n=== GEMINI RATE LIMIT ==="
-                )
-
-                print(error)
-
-                print(
-                    "=========================\n"
-                )
-
-                if intento >= max_intentos:
-                    break
-
-                _esperar_reintento(
-                    intento,
-                    codigo,
-                    max_intentos
-                )
-
+        except (ConnectionError, TimeoutError) as error:
+            if intento < max_intentos:
+                _esperar_reintento(intento, "red")
                 continue
+            raise RuntimeError("No fue posible conectar con Gemini para generar embeddings.") from error
 
-            if codigo == 401:
-                raise RuntimeError(
-                    "Gemini rechazó la autenticación. "
-                    "Revisa GEMINI_API_KEY."
-                ) from error
-
-            if codigo == 403:
-                raise RuntimeError(
-                    "El proyecto Gemini no tiene permisos "
-                    "para embeddings."
-                ) from error
-
-            if codigo == 404:
-                raise RuntimeError(
-                    "Modelo de embeddings no encontrado: "
-                    f"{MODELO_EMBEDDING}"
-                ) from error
-
-            raise
-
-        # ====================================================
-        # ERRORES RED
-        # ====================================================
-
-        except (
-            ConnectionError,
-            TimeoutError
-        ) as error:
-            ultimo_error = error
-
-            if intento >= max_intentos:
-                break
-
-            espera = min(
-                5 * (2 ** (intento - 1)),
-                60
-            )
-
-            print(
-                "Error de conexión con Gemini. "
-                f"Intento {intento}/{max_intentos}. "
-                f"Reintentando en {espera}s..."
-            )
-
-            time.sleep(espera)
-
-    raise RuntimeError(
-        "No fue posible generar los embeddings "
-        f"después de {max_intentos} intentos."
-    ) from ultimo_error
+    raise RuntimeError("No fue posible generar embeddings.")
 
 
-# ============================================================
-# GENERAR UN SOLO EMBEDDING
-# ============================================================
-
-def generar_embedding(
-    texto,
-    max_intentos=MAX_INTENTOS
-):
-    """
-    Genera el embedding de un único texto.
-
-    Se utiliza para preguntas del alumno
-    y búsquedas individuales.
-    """
-
-    vectores = generar_embeddings(
-        [texto],
-        max_intentos=max_intentos
-    )
-
-    return vectores[0]
+def generar_embedding(texto, max_intentos=MAX_INTENTOS):
+    return generar_embeddings([texto], max_intentos=max_intentos)[0]

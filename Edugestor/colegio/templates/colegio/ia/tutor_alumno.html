@@ -7,6 +7,19 @@
     <title>Tutor IA | EduGestor</title>
     <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
     <link rel="stylesheet" href="{% static 'css/ia.css' %}">
+    <style>
+        /* Complementos específicos del Tutor; conservan los estilos del proyecto. */
+        .ia-mensaje-modelo-contenido { min-width: 0; }
+        .ia-mensaje-modelo-contenido .ia-markdown { overflow-wrap: anywhere; line-height: 1.65; }
+        .ia-fuentes { margin-top: 14px; padding-top: 12px; border-top: 1px solid #dbe3ee; }
+        .ia-fuentes-titulo { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #435673; margin-bottom: 8px; }
+        .ia-fuentes-lista { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
+        .ia-fuente { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border: 1px solid #cad7ee; border-radius: 8px; background: #edf3ff; color: #234385; font-size: 12px; font-weight: 600; }
+        .ia-fuente small { font-weight: 400; color: #566b8d; }
+        .ia-chat-form textarea { min-width: 0; }
+        .ia-chat-vacio { text-align: center; }
+        @media (max-width: 600px) { .ia-fuentes { margin-top: 10px; } .ia-fuente { font-size: 11px; } }
+    </style>
 </head>
 <body class="ia-alumno">
     <aside class="sidebar">
@@ -26,7 +39,9 @@
 
         {% if messages %}
         <ul class="ia-mensajes">
-            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
         </ul>
         {% endif %}
 
@@ -42,7 +57,7 @@
                 {% endfor %}
             </nav>
 
-            <section class="ia-chat">
+            <section class="ia-chat" aria-label="Conversación con el tutor">
                 <div class="ia-chat-cabecera">
                     <strong>{{ asignatura.nombre_asignatura }}</strong>
                     {% if historial %}
@@ -54,16 +69,36 @@
                     {% endif %}
                 </div>
 
-                <div class="ia-chat-mensajes" id="mensajes">
+                <div class="ia-chat-mensajes" id="mensajes" aria-live="polite" aria-relevant="additions">
                     {% for mensaje in historial %}
                     <div class="ia-burbuja {{ mensaje.rol }}" {% if forloop.last %}id="ultimo"{% endif %}>
-                        {% if mensaje.rol == 'modelo' %}<div class="ia-markdown">{{ mensaje.texto|markdown_seguro }}</div>{% else %}{{ mensaje.texto }}{% endif %}
+                        {% if mensaje.rol == 'modelo' %}
+                        <div class="ia-mensaje-modelo-contenido">
+                            <div class="ia-markdown">{{ mensaje.texto|markdown_seguro }}</div>
+                            {% if mensaje.fuentes %}
+                            <div class="ia-fuentes" aria-label="Fuentes documentales consultadas">
+                                <div class="ia-fuentes-titulo">📖 Fuentes consultadas</div>
+                                <ul class="ia-fuentes-lista">
+                                    {% for fuente in mensaje.fuentes %}
+                                    <li>
+                                        <span class="ia-fuente" title="Fragmento recuperado del documento de Matemática">
+                                            Libro de Matemática · pág. {{ fuente.pagina }}
+                                        </span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        {{ mensaje.texto }}
+                        {% endif %}
                     </div>
                     {% empty %}
                     <div class="ia-chat-vacio">
-                        <p style="font-size:32px">👋</p>
+                        <p style="font-size:32px" aria-hidden="true">👋</p>
                         <p>¡Hola! Pregúntame lo que no entiendas de <strong>{{ asignatura.nombre_asignatura }}</strong>.
-                        Por ejemplo: "¿cómo sumo fracciones con distinto denominador?"</p>
+                        Por ejemplo: «¿Cómo sumo fracciones con distinto denominador?»</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -82,24 +117,26 @@
     {% include 'colegio/sidebar_active_script.html' %}
     <script>
         (function () {
-            var mensajes = document.getElementById("mensajes");
+            const mensajes = document.getElementById('mensajes');
             if (mensajes) mensajes.scrollTop = mensajes.scrollHeight;
 
-            var form = document.getElementById("form-tutor");
+            const form = document.getElementById('form-tutor');
             if (!form) return;
-            var area = form.querySelector("textarea");
+            const area = form.querySelector('textarea');
+            if (!area) return;
             area.focus();
-            // Enter envía; Shift+Enter hace salto de línea.
-            area.addEventListener("keydown", function (evento) {
-                if (evento.key === "Enter" && !evento.shiftKey) {
+
+            // Enter envía; Shift+Enter agrega un salto de línea.
+            area.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Enter' && !evento.shiftKey && !evento.isComposing) {
                     evento.preventDefault();
                     if (area.value.trim()) form.requestSubmit();
                 }
             });
-            form.addEventListener("submit", function () {
-                var boton = form.querySelector("button[type=submit]");
-                boton.disabled = true;
-                boton.textContent = "Pensando…";
+            form.addEventListener('submit', function (evento) {
+                if (!area.value.trim()) { evento.preventDefault(); return; }
+                const boton = form.querySelector('button[type="submit"]');
+                if (boton) { boton.disabled = true; boton.textContent = 'Pensando…'; }
                 area.readOnly = true;
             });
         })();
