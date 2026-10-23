@@ -38,6 +38,7 @@ from .ia.formularios import (
 )
 
 from .ia.proveedor import ErrorIA, proveedor_activo
+from .ia.ejecucion import anotar, anotar_fuentes
 
 from .ia.tutor.tutor_service import responder_con_rag
 
@@ -69,7 +70,7 @@ def solo_rol(tipo_usuario):
 
 def _contexto_base(request, **extra):
 
-    return {"modo_simulado": proveedor_activo() != "gemini", **extra}
+    return {"modo_simulado": proveedor_activo() == "simulado", **extra}
 
 
 # ============================================================
@@ -124,7 +125,8 @@ def _crear_instrumento(request, *, formulario_clase, tipo, plantilla, generar):
             contenido = generar(contexto, datos)
 
         except (ErrorIA, RuntimeError) as error:
-                messages.error(request, str(error))
+            anotar(estado='ERROR', detalle=str(error) if isinstance(error, ErrorIA) else 'No se pudo recuperar el contexto documental.')
+            messages.error(request, str(error) if isinstance(error, ErrorIA) else 'No se pudo recuperar el contexto documental.')
 
         else:
 
@@ -177,7 +179,7 @@ def _generar_prueba_con_rag(contexto, datos):
 
     fragmentos = []
 
-    if proveedor_activo() == "gemini":
+    if proveedor_activo() in ("gemini", "qwen"):
 
         consulta = "\n".join((contexto["asignatura"], contexto["nivel"], datos["objetivo"], datos["tema"]))
 
@@ -193,6 +195,7 @@ def _generar_prueba_con_rag(contexto, datos):
 
         )
 
+    anotar_fuentes(fragmentos)
     return asistentes.crear_prueba(
 
         contexto, datos["objetivo"], datos["tema"], datos["cantidad"], datos["dificultad"],
@@ -445,7 +448,7 @@ def ia_eliminar_instrumento(request, pk):
 # ============================================================
 
 def _clave_historial(asignatura):
-    return f"tutor_historial_{asignatura.pk}"
+    return f"tutor_historial_{asignatura.pk}" + ("_qwen" if proveedor_activo() == "qwen" else "")
 
 
 @solo_rol("ALUMNO")
@@ -478,6 +481,7 @@ def tutor_alumno(request):
                     pregunta=mensaje,
                 )
             except ErrorIA as error:
+                anotar(estado='ERROR', detalle=str(error))
                 messages.error(request, str(error))
             else:
                 historial = (historial + [

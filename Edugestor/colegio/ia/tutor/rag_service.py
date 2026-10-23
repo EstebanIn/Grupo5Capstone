@@ -26,6 +26,16 @@ def cargar_documentos_rag():
 
 
 def recuperar_contexto(pregunta, top_k=4):
+    from colegio.ia.proveedor import proveedor_activo
+    if proveedor_activo() == 'qwen':
+        from colegio.ia.indice_qwen import documentos_tutor_qwen
+        from colegio.ia.qwen import embeddings
+        from .retriever import similitud_coseno
+        documentos = documentos_tutor_qwen()
+        vector = embeddings([pregunta], tipo='RETRIEVAL_QUERY')[0]
+        resultados = [{**d, 'similitud':similitud_coseno(vector,d['embedding']), 'metodo_recuperacion':'vectorial_qwen'} for d in documentos]
+        resultados.sort(key=lambda d:d['similitud'],reverse=True)
+        return resultados[:top_k]
     documentos = cargar_documentos_rag()
 
     resultados = buscar_chunks_relevantes(

@@ -1,0 +1,31 @@
+<section class="ia-proveedor-lateral" aria-label="Proveedor de inteligencia artificial">
+    <p class="ia-proveedor-titulo">INTELIGENCIA ARTIFICIAL</p>
+    <form method="post" action="{% url 'seleccionar_proveedor_ia' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <label for="ia-proveedor-select">Proveedor de IA</label>
+        <div class="ia-proveedor-control">
+            <select id="ia-proveedor-select" name="proveedor">
+                <option value="gemini" {% if ia_proveedor == 'gemini' %}selected{% endif %}>Gemini</option>
+                <option value="qwen" {% if ia_proveedor == 'qwen' %}selected{% endif %}>Qwen</option>
+            </select>
+            <button type="submit">Aplicar</button>
+        </div>
+    </form>
+    <p class="ia-proveedor-ayuda">Se aplica a tus próximas operaciones.</p>
+    <a class="ia-proveedor-registro" href="{% url 'registro_ia' %}">Registro de IA <span aria-hidden="true">↗</span></a>
+</section>
+<style>
+    .sidebar:has(.ia-proveedor-lateral){display:flex;flex-direction:column;overflow-y:auto;gap:0;}
+    .ia-proveedor-lateral{margin-top:auto;padding:22px 4px 0;color:#fff;flex-shrink:0;}
+    .ia-proveedor-titulo{font-size:10px;font-weight:700;letter-spacing:1.2px;color:#d7efdf;margin:8px 0 12px;}
+    .ia-proveedor-lateral label{display:block;font-size:14px;font-weight:700;margin-bottom:9px;}
+    .ia-proveedor-control{display:flex;gap:7px;align-items:stretch;}
+    .ia-proveedor-control select{min-width:0;flex:1;background:#fff;color:#18352b;border:1px solid #b6d8c6;border-radius:7px;padding:9px 7px;font:inherit;font-size:13px;}
+    .ia-proveedor-control button{background:transparent;color:white;border:1px solid #b6d8c6;border-radius:7px;padding:8px;cursor:pointer;font-weight:700;font-size:12px;}
+    .ia-proveedor-control :focus-visible,.ia-proveedor-registro:focus-visible{outline:3px solid #b8d9ff;outline-offset:3px;}
+    .ia-proveedor-ayuda{font-size:11px;line-height:1.5;color:#e2eee8;margin:9px 0 13px;}
+    .ia-proveedor-registro{color:white;display:flex;justify-content:space-between;padding:10px 0;text-decoration:none;font-size:14px;font-weight:700;}
+    @media(max-height:700px){.ia-proveedor-lateral{padding-top:10px;}.sidebar:has(.ia-proveedor-lateral) .logo{margin-bottom:20px;}.sidebar:has(.ia-proveedor-lateral) .menu li{margin-bottom:6px;}}
+    @media print{.ia-proveedor-lateral{display:none;}}
+</style>

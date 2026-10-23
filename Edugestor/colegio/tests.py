@@ -1116,7 +1116,8 @@ class AislamientoInstitucionesTests(DjangoTestCase):
     def modelos_institucionales(self):
         return [
             modelo for modelo in apps.get_app_config("colegio").get_models()
-            if modelo is not Institucion and not modelo._meta.auto_created
+            # El corpus curricular es público y compartido; no contiene datos de alumnos.
+            if modelo not in (Institucion, apps.get_model('colegio','DocumentoCurricular'), apps.get_model('colegio','FragmentoCurricular')) and not modelo._meta.auto_created
         ]
 
     def test_todos_los_modelos_declaran_su_institucion(self):
@@ -1129,7 +1130,7 @@ class AislamientoInstitucionesTests(DjangoTestCase):
 
     def test_cada_modelo_filtra_por_la_institucion_activa(self):
         for modelo in self.modelos_institucionales():
-            if modelo in (SolicitudPostulacion, InstrumentoIA, CorreccionPrueba):
+            if modelo in (SolicitudPostulacion, InstrumentoIA, CorreccionPrueba, apps.get_model('colegio','RegistroIA')):
                 continue  # el comando no genera postulaciones ni documentos de IA
             total = modelo.objects.count()
             with self.subTest(modelo=modelo.__name__), institucion_activa(self.chimbarongo):

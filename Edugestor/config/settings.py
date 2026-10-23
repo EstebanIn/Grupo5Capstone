@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'colegio.middleware.InstitucionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'colegio.ia.middleware.ProveedorIAMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -81,6 +82,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'colegio.context_processors.docente_jefatura',
+                'colegio.context_processors.proveedor_ia',
             ],
         },
     },
@@ -171,3 +173,13 @@ GEMINI_MODELOS_RESPALDO = [
 ]
 IA_PROVEEDOR = os.environ.get('IA_PROVEEDOR', 'gemini' if GEMINI_API_KEY else 'simulado')
 GEMINI_EMBEDDING_MODEL = os.environ.get('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-001')
+
+
+# Model Studio, Singapur. Las claves nunca se entregan al navegador.
+QWEN_API_KEY = os.environ.get('QWEN_API_KEY', '')
+QWEN_BASE_URL = os.environ.get('QWEN_BASE_URL', 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1')
+QWEN_MODEL = os.environ.get('QWEN_MODEL', 'qwen3.8-flash')
+QWEN_EMBEDDING_MODEL = os.environ.get('QWEN_EMBEDDING_MODEL', 'text-embedding-v4')
+
+# Clave local de cifrado para conexiones personales (excluida de Git e imagen).
+IA_CREDENCIALES_ARCHIVO = os.environ.get('IA_CREDENCIALES_ARCHIVO', str(BASE_DIR / '.ia-credentials.key'))

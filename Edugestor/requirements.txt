@@ -10,3 +10,6 @@ python-dotenv==1.2.1
 xlrd==2.0.2
 pgvector==0.5.1
 pypdf==6.19.0
+
+httpx==0.28.1
+cryptography==50.0.2

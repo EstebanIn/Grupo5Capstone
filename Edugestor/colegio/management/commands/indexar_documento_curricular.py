@@ -18,6 +18,7 @@ class Command(BaseCommand):
     help = "Indexa un PDF curricular oficial del Mineduc para la recuperación RAG."
 
     def add_arguments(self, parser):
+        parser.add_argument('--solo-gemini', action='store_true', help='Excluye Qwen explícitamente; su cobertura quedará pendiente.')
         parser.add_argument("pdf", type=Path, help="Ruta local al PDF descargado desde una fuente oficial")
         parser.add_argument("--titulo", required=True, help="Título legible del documento")
         parser.add_argument("--asignatura", required=True, help="Nombre de asignatura, por ejemplo Matemática")
@@ -86,10 +87,16 @@ class Command(BaseCommand):
             return
 
         textos = [fragmento["contenido"] for fragmento in corpus["fragmentos"]]
-        vectores = crear_embeddings(textos, tipo="RETRIEVAL_DOCUMENT")
+        vectores = crear_embeddings(textos, tipo="RETRIEVAL_DOCUMENT", proveedor="gemini")
         if any(len(vector) != DIMENSIONES_EMBEDDING for vector in vectores):
             raise CommandError("La dimensión del embedding no coincide con la configuración del índice.")
 
+        from colegio.ia.indice_qwen import huella
+        from colegio.ia.proveedor import ErrorIA
+        try:
+            qwen_vectores = [None]*len(textos) if options['solo_gemini'] else crear_embeddings(textos,tipo='RETRIEVAL_DOCUMENT',proveedor='qwen')
+        except ErrorIA as error:
+            raise CommandError(str(error)) from None
         with transaction.atomic():
             documento = DocumentoCurricular.objects.create(
                 titulo=options["titulo"], fuente_url=options["url"], version=options["version_documento"],
@@ -102,8 +109,11 @@ class Command(BaseCommand):
                     pagina=fragmento["pagina"],
                     texto=fragmento["contenido"],
                     embedding=vector,
+                    embedding_qwen=qwen_vector,
+                    modelo_embedding_qwen=settings.QWEN_EMBEDDING_MODEL if qwen_vector is not None else '',
+                    huella_texto_qwen=huella(fragmento['contenido']) if qwen_vector is not None else '',
                 )
-                for fragmento, vector in zip(corpus["fragmentos"], vectores)
+                for fragmento, vector, qwen_vector in zip(corpus["fragmentos"], vectores, qwen_vectores)
             ], batch_size=100)
 
         self.stdout.write(self.style.SUCCESS(
