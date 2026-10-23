@@ -1,0 +1,102 @@
+<section id="conexiones-ia" class="ia-conexiones" aria-labelledby="titulo-conexiones">
+  <div class="ia-conexiones-cabecera"><h2 id="titulo-conexiones">Conexiones de IA</h2><p>Elige un proveedor o conecta tu propia cuenta para las próximas operaciones.</p></div>
+  <div class="ia-conexiones-grid">
+  {% for conexion in conexiones %}
+    <article class="ia-panel ia-conexion {% if ia_proveedor == conexion.nombre %}ia-conexion-activa{% endif %}">
+      <div class="ia-conexion-titulo"><h3>{{ conexion.titulo }}</h3>{% if ia_proveedor == conexion.nombre %}<span class="ia-conexion-insignia">En uso</span>{% endif %}</div>
+      <p class="ia-conexion-estado">{% if conexion.caducada %}Conexión personal caducada o no disponible. Vuelve a conectarla o usa la configuración del servidor.{% elif conexion.personal %}<strong>Tu conexión personal</strong> · comprobada{% elif conexion.configurado %}Configuración del servidor disponible{% else %}Sin conexión configurada{% endif %}</p>
+      <p class="ia-conexion-modelo">Modelo: <strong>{{ conexion.modelo }}</strong></p>
+      {% if conexion.configurado %}<form method="post" action="{% url 'seleccionar_proveedor_ia' %}">{% csrf_token %}<input type="hidden" name="proveedor" value="{{ conexion.nombre }}"><input type="hidden" name="next" value="{% url 'registro_ia' %}#conexiones-ia"><button class="ia-boton secundario" type="submit" {% if ia_proveedor == conexion.nombre %}disabled{% endif %}>{% if ia_proveedor == conexion.nombre %}Proveedor seleccionado{% else %}Usar {{ conexion.nombre|title }}{% endif %}</button></form>{% endif %}
+      <div class="ia-conexion-separador"></div>
+      <h4>{% if conexion.personal %}Actualizar tu conexión{% else %}Conectar mi cuenta{% endif %}</h4>
+      <p class="ia-conexion-ayuda">{% if conexion.nombre == 'qwen' %}Usa la clave y el API Host de la misma región y workspace de Alibaba Model Studio. La dirección inicial corresponde a Singapur.{% else %}Introduce una clave de Google AI Studio y elige el modelo que quieres utilizar.{% endif %}</p>
+      <form class="ia-form ia-conexion-form" method="post" action="{% url 'configurar_conexion_ia' conexion.nombre %}" autocomplete="off" data-catalogo-url="{% url 'consultar_modelos_ia' conexion.nombre %}" data-proveedor="{{ conexion.nombre }}" data-configurado="{{ conexion.configurado|yesno:'si,no' }}">
+        {% csrf_token %}
+        {{ conexion.formulario.non_field_errors }}
+        {% if conexion.nombre == 'qwen' %}<div class="campo"><label for="{{ conexion.formulario.base_url.id_for_label }}">{{ conexion.formulario.base_url.label }}</label>{{ conexion.formulario.base_url }}{{ conexion.formulario.base_url.errors }}</div>{% endif %}
+        <div class="campo"><label for="{{ conexion.formulario.api_key.id_for_label }}">{{ conexion.formulario.api_key.label }}</label>{{ conexion.formulario.api_key }}{{ conexion.formulario.api_key.errors }}</div>
+        <div class="campo"><label for="{{ conexion.formulario.model.id_for_label }}">{{ conexion.formulario.model.label }}</label>{{ conexion.formulario.model }}{{ conexion.formulario.model.errors }}
+          <div class="ia-catalogo-acciones"><button type="button" class="ia-boton secundario ia-catalogo-actualizar">Actualizar modelos</button></div>
+          <p class="ayuda ia-catalogo-estado" role="status">{% if conexion.configurado %}Consultando el catálogo del proveedor…{% else %}Introduce tu clave y pulsa «Actualizar modelos» para cargar el catálogo.{% endif %}</p>
+          <p class="ayuda ia-catalogo-modelo" aria-live="polite"></p>
+          <p class="ayuda">La disponibilidad del modelo se confirma con «Guardar y comprobar clave».</p>
+        </div>
+        <p class="ia-conexion-embedding">RAG · {{ conexion.embedding }} · 768 dimensiones<br>El modelo de embeddings lo administra EduGestor para conservar la compatibilidad del índice.</p>
+        <button type="submit" class="ia-boton">Guardar y comprobar clave</button>
+        <p class="ia-conexion-espera" role="status" hidden>Comprobando la conexión…</p>
+      </form>
+      {% if conexion.personal %}<form class="ia-conexion-restablecer" method="post" action="{% url 'configurar_conexion_ia' conexion.nombre %}">{% csrf_token %}<input type="hidden" name="accion" value="servidor"><button class="ia-boton secundario" type="submit">Usar configuración del servidor</button></form>{% endif %}
+    </article>
+  {% endfor %}
+  </div>
+  <p class="ia-conexiones-privacidad">La clave se envía al servidor de EduGestor y al proveedor para comprobar la conexión. Se conserva cifrada en el servidor para esta sesión, durante un máximo de 8 horas o hasta cerrar sesión. No se muestra de nuevo ni se comparte con otros usuarios. La comprobación realiza una solicitud breve y puede consumir cuota de tu cuenta.</p>
+</section>
+<script>
+document.querySelectorAll('.ia-conexion-form').forEach(function(form) {
+  const proveedor = form.dataset.proveedor;
+  const selector = form.querySelector('select[name="' + proveedor + '-model"]');
+  const clave = form.querySelector('input[type="password"]');
+  const endpoint = form.querySelector('input[type="url"]');
+  const actualizar = form.querySelector('.ia-catalogo-actualizar');
+  const estado = form.querySelector('.ia-catalogo-estado');
+  const detalle = form.querySelector('.ia-catalogo-modelo');
+  const csrf = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+  let modelos = [];
+  let revision = 0;
+  let pendiente = false;
+  function mostrarModelo() {
+    const modelo = modelos.find(function(m) { return m.id === selector.value; });
+    detalle.textContent = modelo ? 'Identificador: ' + modelo.id + (modelo.imagenes === true ? ' · Admite imágenes según el catálogo.' : modelo.imagenes === false ? ' · Solo texto según el catálogo.' : '') : '';
+  }
+  function cambioConexion() {
+    revision += 1;
+    modelos = [];
+    const actual = selector.value;
+    selector.replaceChildren(new Option(actual || 'Selecciona un modelo', actual));
+    estado.textContent = 'Pulsa «Actualizar modelos» para consultar esta conexión.';
+    detalle.textContent = '';
+  }
+  clave.addEventListener('input', cambioConexion);
+  if (endpoint) endpoint.addEventListener('input', cambioConexion);
+  selector.addEventListener('change', mostrarModelo);
+  async function cargarModelos(usarActual) {
+    if (pendiente) return;
+    pendiente = true;
+    actualizar.disabled = true;
+    const version = revision;
+    estado.textContent = 'Consultando el catálogo del proveedor…';
+    const cuerpo = new FormData();
+    cuerpo.append('csrfmiddlewaretoken', csrf);
+    if (usarActual) cuerpo.append('usar_actual', '1');
+    else {
+      cuerpo.append(proveedor + '-api_key', clave.value);
+      if (endpoint) cuerpo.append(proveedor + '-base_url', endpoint.value);
+    }
+    try {
+      const respuesta = await fetch(form.dataset.catalogoUrl, {method: 'POST', body: cuerpo, credentials: 'same-origin', headers: {'Accept': 'application/json'}});
+      const datos = await respuesta.json();
+      if (version !== revision) return;
+      if (!respuesta.ok || !Array.isArray(datos.modelos) || !datos.modelos.length) throw new Error(datos.error || 'El catálogo no está disponible.');
+      const actual = selector.value;
+      const opciones = datos.modelos.map(function(m) { return new Option(m.nombre, m.id); });
+      if (!datos.modelos.some(function(m) { return m.id === actual; })) opciones.unshift(new Option(actual ? actual + ' (modelo configurado)' : 'Selecciona un modelo', actual));
+      selector.replaceChildren(...opciones);
+      selector.value = actual;
+      modelos = datos.modelos;
+      estado.textContent = modelos.length + ' modelos consultados · ' + new Date(datos.actualizado).toLocaleString('es-CL');
+      mostrarModelo();
+    } catch (error) {
+      if (version === revision) estado.textContent = error.message === 'Failed to fetch' || error instanceof SyntaxError ? 'No se pudo consultar el catálogo. Se conserva tu selección.' : error.message;
+    } finally {
+      pendiente = false;
+      actualizar.disabled = false;
+    }
+  }
+  actualizar.addEventListener('click', function() { cargarModelos(false); });
+  if (form.dataset.configurado === 'si') cargarModelos(true);
+  form.addEventListener('submit', function() {
+    form.querySelector('button[type="submit"]').disabled = true;
+    form.querySelector('.ia-conexion-espera').hidden = false;
+  });
+});
+</script>

@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registro de IA | EduGestor</title>
+{% if user.tipo_usuario == 'ALUMNO' %}<link rel="stylesheet" href="{% static 'css/alumno.css' %}">{% else %}<link rel="stylesheet" href="{% static 'css/docente.css' %}">{% endif %}
+<link rel="stylesheet" href="{% static 'css/ia.css' %}?v=modelos-1">
+<style>.registro-cabecera{max-width:980px;margin-bottom:28px;}.registro-cabecera p{margin-top:9px;color:#5c6875;line-height:1.6;}.registro-resumen{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:24px;}.registro-resumen h2{font-size:17px;margin-bottom:8px;}.registro-resumen p{font-size:14px;line-height:1.7;}.registro-scroll{overflow-x:auto;}.registro-detalle dt{font-size:13px;color:#596779;margin-top:14px;}.registro-detalle dd{margin:5px 0;overflow-wrap:anywhere;}.registro-fuente{padding:15px 0;border-bottom:1px solid #e5e7eb;line-height:1.6;}.registro-fuente p{margin-top:7px;color:#4b5563;}.registro-estado{font-weight:700;}.registro-error{color:#a32525;}.registro-vacio{padding:35px 0;line-height:1.8;color:#52606f;}.registro-huella{font-family:monospace;font-size:12px;}</style>
+</head><body {% if user.tipo_usuario == 'ALUMNO' %}class="ia-alumno"{% endif %}>
+<aside class="sidebar"><div class="logo">EduGestor</div>
+{% if user.tipo_usuario == 'ALUMNO' %}{% include 'colegio/alumno_menu.html' %}{% else %}{% include 'colegio/docente_menu.html' %}{% endif %}
+</aside><main class="main">
+<header class="registro-cabecera"><h1>Registro de IA</h1><p>Revisa las entradas preparadas, las fuentes consultadas y el resultado de tus operaciones. Este registro muestra datos observables de la lectura, no el razonamiento interno del modelo.</p></header>
+{% if messages %}<ul class="ia-mensajes">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>{% endif %}
+<section class="ia-panel registro-resumen" aria-label="Estado de los proveedores">
+<div><h2>Gemini</h2><p>{% if gemini_configurado %}Clave configurada{% else %}Sin clave configurada{% endif %}<br>Proveedor predeterminado</p></div>
+<div><h2>Qwen</h2><p>{% if qwen_configurado %}Clave configurada{% else %}Sin clave configurada{% endif %}<br>{% if indices.completo %}RAG disponible{% else %}RAG pendiente de indexación{% endif %}</p></div>
+<div><h2>Cobertura del índice Qwen</h2><p>Curricular: {{ indices.curricular_completos }} de {{ indices.curricular_total }} fragmentos<br>Tutor: {{ indices.tutor_completos }} de {{ indices.tutor_total }} fragmentos</p></div>
+</section>
+{% if registro %}
+<section class="ia-panel"><a class="ia-volver" href="{% url 'registro_ia' %}">← Todas mis operaciones</a><h2>Operación #{{ registro.pk }}</h2>
+<dl class="registro-detalle"><dt>Proveedor y modelo</dt><dd>{{ registro.proveedor|title }} · {{ registro.modelo|default:'Sin llamada al modelo' }}</dd>
+<dt>Estado y duración</dt><dd>{{ registro.estado }} · {{ registro.duracion_ms }} ms{% if registro.detalle %}<br>{{ registro.detalle }}{% endif %}</dd>
+<dt>Entrada preparada para el proveedor</dt><dd>{{ registro.caracteres_entrada }} caracteres de contexto y mensajes. Respuesta: {{ registro.caracteres_salida }} caracteres.</dd>
+<dt>Huella de la entrada</dt><dd class="registro-huella">{{ registro.huella_entrada|default:'La solicitud no llegó al proveedor' }}</dd></dl>
+<h2 style="margin-top:28px">Archivos procesados</h2>{% for archivo in registro.archivos %}<p>{{ archivo.tipo }} · {{ archivo.bytes }} bytes</p><p class="registro-huella">SHA-256: {{ archivo.sha256 }}</p>{% empty %}<p>Sin imágenes ni PDF adjuntos.</p>{% endfor %}
+<h2 style="margin-top:28px">Lectura de respuestas</h2>{% if registro.lectura %}<div class="registro-scroll"><table class="ia-tabla"><thead><tr><th>Pregunta</th><th>Marca leída</th><th>Estado de lectura</th></tr></thead><tbody>{% for item in registro.lectura %}<tr><td>{{ item.pregunta }}</td><td>{{ item.marcada|default_if_none:'Sin marca' }}</td><td>{{ item.estado }}</td></tr>{% endfor %}</tbody></table></div><p style="margin-top:12px">Esta es la lectura inicial de la IA. La confirmación del docente y la nota definitiva se revisan en la corrección de la prueba.</p>{% else %}<p>Esta operación no produjo una lectura estructurada de alternativas.</p>{% endif %}
+<h2 style="margin-top:28px">Fuentes recuperadas por RAG</h2>{% for fuente in registro.fuentes %}<article class="registro-fuente"><strong>{{ fuente.titulo }} · pág. {{ fuente.pagina|default_if_none:'sin indicar' }}</strong><p>{{ fuente.fragmento }}</p><small>Método: {{ fuente.metodo }}</small></article>{% empty %}<p>No se recuperaron fuentes documentales para esta operación.</p>{% endfor %}
+</section>
+{% else %}
+{% include 'colegio/ia/_conexiones.html' %}
+<section class="ia-panel"><h2>Mis últimas operaciones</h2>{% if registros %}<div class="registro-scroll"><table class="ia-tabla"><thead><tr><th>Fecha (UTC)</th><th>Operación</th><th>Proveedor</th><th>Estado</th><th>Tiempo</th><th></th></tr></thead><tbody>{% for item in registros %}<tr><td>{{ item.fecha|date:'d/m/Y H:i' }}</td><td>{{ item.operacion }}</td><td>{{ item.proveedor|title }}</td><td class="registro-estado {% if item.estado == 'ERROR' %}registro-error{% endif %}">{{ item.estado }}</td><td>{{ item.duracion_ms }} ms</td><td><a href="{% url 'detalle_registro_ia' item.pk %}">Ver detalle</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="registro-vacio">Todavía no tienes operaciones registradas.<br>Genera un instrumento, consulta al tutor o envía una hoja para corregir. Su registro aparecerá aquí.</div>{% endif %}</section>
+{% endif %}
+<p style="font-size:13px;color:#596779;line-height:1.6">Un error de configuración puede impedir el envío. Por privacidad, no guardamos prompts completos, claves API ni copias de los archivos en este registro. Cada persona ve solo sus propias operaciones.</p>
+</main>{% include 'colegio/sidebar_active_script.html' %}</body></html>

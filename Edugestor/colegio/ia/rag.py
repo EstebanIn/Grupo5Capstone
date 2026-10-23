@@ -12,22 +12,30 @@ from pgvector.django import CosineDistance
 
 from ..models import FragmentoCurricular
 from .proveedor import ErrorIA
+from .configuracion import valor
 
 logger = logging.getLogger(__name__)
 DIMENSIONES_EMBEDDING = 768
 
 
 def _cliente_embeddings():
-    if not settings.GEMINI_API_KEY:
+    if not valor('gemini', 'api_key'):
         raise ErrorIA("Configura GEMINI_API_KEY para indexar o buscar documentos curriculares.")
 
     from google import genai
 
-    return genai.Client(api_key=settings.GEMINI_API_KEY)
+    return genai.Client(api_key=valor('gemini', 'api_key'))
 
 
-def crear_embeddings(textos, *, tipo):
+def crear_embeddings(textos, *, tipo, proveedor=None):
     """Devuelve vectores Gemini de 768 dimensiones para documentos o consultas."""
+    from .proveedor import proveedor_activo
+    nombre = proveedor or proveedor_activo()
+    if nombre == 'qwen':
+        from .qwen import embeddings
+        return embeddings(textos, tipo=tipo)
+    if nombre != 'gemini':
+        raise ErrorIA('La búsqueda vectorial necesita un proveedor real configurado.')
     if not textos:
         return []
     if tipo not in ("RETRIEVAL_DOCUMENT", "RETRIEVAL_QUERY"):
@@ -77,7 +85,7 @@ def crear_embeddings(textos, *, tipo):
     except ErrorIA:
         raise
     except Exception as error:
-        logger.exception("No se pudo crear embeddings curriculares en Gemini")
+        logger.warning("No se pudo crear embeddings curriculares en Gemini; detalle omitido")
         raise ErrorIA(
             "No se pudieron generar los vectores del material curricular. Revisa la API key, cuota y conexión."
         ) from error
@@ -90,6 +98,9 @@ def crear_embeddings(textos, *, tipo):
 def buscar_fragmentos(*, consulta, asignatura, ciclo, nivel, limite=5):
     """Busca fragmentos relevantes, filtrando por asignatura y nivel escolar."""
     if connection.vendor != "postgresql":
+        from .proveedor import proveedor_activo
+        if proveedor_activo() == 'qwen':
+            raise ErrorIA('El RAG de Qwen requiere PostgreSQL con pgvector.')
         return []
 
     base = FragmentoCurricular.objects.filter(
@@ -98,12 +109,21 @@ def buscar_fragmentos(*, consulta, asignatura, ciclo, nivel, limite=5):
         documento__ciclo__in=(ciclo, ""),
     )
     base = base.filter(Q(documento__nivel=nivel) | Q(documento__nivel__isnull=True))
+    from .proveedor import proveedor_activo
+    if proveedor_activo() == 'qwen':
+        from .indice_qwen import exigir_indice_completo
+        exigir_indice_completo()
     if not base.exists():
         return []
 
-    vector = crear_embeddings([consulta], tipo="RETRIEVAL_QUERY")[0]
+    from .proveedor import proveedor_activo
+    nombre = proveedor_activo()
+    campo = 'embedding'
+    if nombre == 'qwen':
+        campo = 'embedding_qwen'
+    vector = crear_embeddings([consulta], tipo="RETRIEVAL_QUERY", proveedor=nombre)[0]
     resultados = (
-        base.annotate(distancia=CosineDistance("embedding", vector))
+        base.annotate(distancia=CosineDistance(campo, vector))
         .select_related("documento")
         .order_by("distancia")[:limite]
     )

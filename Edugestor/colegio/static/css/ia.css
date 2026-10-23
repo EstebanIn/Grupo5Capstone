@@ -48,7 +48,7 @@ body.ia-alumno {
 /* Formularios */
 .ia-form .campo { margin-bottom: 16px; }
 .ia-form label { display: block; font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #374151; }
-.ia-form input[type=text], .ia-form input[type=number], .ia-form select, .ia-form textarea {
+.ia-form input[type=text], .ia-form input[type=number], .ia-form input[type=password], .ia-form input[type=url], .ia-form select, .ia-form textarea {
     width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
     font-size: 14px; font-family: inherit; background: #fff;
 }
@@ -65,8 +65,34 @@ body.ia-alumno {
 }
 .ia-boton:hover { filter: brightness(1.1); }
 .ia-boton:disabled { opacity: .6; cursor: wait; }
+.ia-boton.secundario:disabled { cursor: default; }
 .ia-boton.secundario { background: #fff; color: var(--ia-acento); border: 1px solid var(--ia-acento); }
 .ia-boton.peligro { background: #fff; color: #b91c1c; border: 1px solid #fca5a5; }
+
+/* Conexiones personales: conserva los colores y formularios del panel. */
+.ia-conexiones { margin: 30px 0; scroll-margin-top: 24px; }
+.ia-conexiones-cabecera { margin-bottom: 18px; }
+.ia-conexiones-cabecera h2 { font-size: 21px; margin-bottom: 6px; }
+.ia-conexiones-cabecera p, .ia-conexion-ayuda, .ia-conexion-estado { font-size: 14px; color: #52606f; line-height: 1.6; }
+.ia-conexiones-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; align-items: start; }
+.ia-conexion { margin-bottom: 0; min-width: 0; border-top: 4px solid #d1d5db; }
+.ia-conexion-activa { border-top-color: var(--ia-acento); }
+.ia-conexion-titulo { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ia-conexion-titulo h3 { font-size: 18px; line-height: 1.4; }
+.ia-conexion-insignia { flex-shrink: 0; padding: 4px 10px; border-radius: 99px; background: var(--ia-acento-suave); color: var(--ia-acento); font-size: 12px; font-weight: bold; }
+.ia-conexion-modelo { margin: 8px 0 15px; font-size: 13px; overflow-wrap: anywhere; }
+.ia-conexion-separador { height: 1px; background: var(--ia-borde); margin: 22px 0; }
+.ia-conexion h4 { font-size: 15px; margin-bottom: 9px; color: var(--ia-acento); }
+.ia-conexion-ayuda { margin-bottom: 20px; }
+.ia-conexion-embedding { margin: 0 0 18px; padding: 12px; border-radius: 8px; background: #f8faf9; font-size: 12px; line-height: 1.6; color: #52606f; overflow-wrap: anywhere; }
+.ia-conexiones-privacidad { margin-top: 16px; max-width: 1050px; font-size: 13px; line-height: 1.7; color: #596779; }
+.ia-conexion-restablecer { margin-top: 12px; }
+.ia-conexion-form > .errorlist { margin-bottom: 16px; padding: 12px; background: #fef2f2; border-radius: 8px; line-height: 1.6; }
+.ia-conexion-espera { margin-top: 10px; color: var(--ia-acento); font-size: 13px; }
+.ia-catalogo-acciones { margin: 10px 0 7px; }
+.ia-catalogo-actualizar { font-size: 12px; padding: 7px 12px; }
+.ia-form .ia-catalogo-estado, .ia-form .ia-catalogo-modelo { line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 1100px) { .ia-conexiones-grid { grid-template-columns: 1fr; } }
 .ia-acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
 
 /* Tabla de instrumentos */

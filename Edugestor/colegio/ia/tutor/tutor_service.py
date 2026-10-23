@@ -22,15 +22,24 @@ def responder_con_rag(contexto, historial, pregunta):
     """
 
     # 1. Recuperación semántica
-    fragmentos = recuperar_contexto(
-        pregunta,
-        top_k=4,
-    )
+    from colegio.ia.proveedor import proveedor_activo
+    from colegio.ia.ejecucion import anotar_fuentes
+    if proveedor_activo() == 'simulado':
+        from colegio.ia import asistentes
+        return {'respuesta': asistentes.responder_tutor(contexto, historial, pregunta), 'fuentes': []}
+    try:
+        fragmentos = recuperar_contexto(pregunta, top_k=4)
+    except Exception as error:
+        from colegio.ia.proveedor import ErrorIA
+        if isinstance(error, ErrorIA):
+            raise
+        raise ErrorIA('No fue posible consultar el índice del tutor con el proveedor seleccionado.') from None
 
     # 2. Construcción del contexto documental
     prompt = construir_prompt_tutor(
         pregunta,
         fragmentos,
+        contexto_escolar=contexto,
     )
 
     # 3. Instrucciones pedagógicas originales
@@ -59,6 +68,7 @@ indícalo claramente.
         "texto": prompt,
     })
 
+    anotar_fuentes(fragmentos)
     # 5. Generación con el proveedor de IA
     respuesta = generar(
         sistema,
@@ -75,7 +85,8 @@ indícalo claramente.
         {
             "id": item["id"],
             "pagina": item["pagina"],
-            "similitud": round(item["similitud"], 4),
+            "similitud": round(item["similitud"], 4) if item.get("similitud") is not None else None,
+            "metodo": item.get("metodo_recuperacion", "vectorial"),
         }
         for item in fragmentos
     ]

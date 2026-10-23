@@ -1,6 +1,6 @@
 ﻿services:
   db:
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:0.8.7-pg17-trixie@sha256:7a7e9f22015b67edb4bef5c59daeebcd7e74bfa570df6ce60ae01237c8648a84
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-edugestor}
       POSTGRES_USER: ${POSTGRES_USER:-edugestor}

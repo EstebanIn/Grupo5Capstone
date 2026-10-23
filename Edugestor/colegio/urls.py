@@ -1,7 +1,13 @@
 from django.urls import path
 from . import views, views_ia
+from .ia import views_proveedores
 
 urlpatterns = [
+    path('panel/ia/proveedor/', views_proveedores.seleccionar_proveedor, name='seleccionar_proveedor_ia'),
+    path('panel/ia/conexion/<str:proveedor>/', views_proveedores.configurar_conexion, name='configurar_conexion_ia'),
+    path('panel/ia/modelos/<str:proveedor>/', views_proveedores.consultar_modelos, name='consultar_modelos_ia'),
+    path('panel/ia/registro/', views_proveedores.registro_ia, name='registro_ia'),
+    path('panel/ia/registro/<int:pk>/', views_proveedores.registro_ia, name='detalle_registro_ia'),
     path("", views.inicio, name="inicio"),
     path(
     "clientes/<slug:slug_colegio>/",

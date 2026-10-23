@@ -20,6 +20,7 @@
 <div class="ia-panel">
     <form method="post" class="ia-form" data-generando="Revisando… (puede tardar un minuto)">
         {% csrf_token %}
+<input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
         {% include 'colegio/ia/_campos.html' %}
         <button type="submit" class="ia-boton">{% if revision %}Revisar de nuevo{% else %}Revisar prueba{% endif %}</button>
     </form>

@@ -63,6 +63,7 @@
                     {% if historial %}
                     <form method="post">
                         {% csrf_token %}
+<input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
                         <input type="hidden" name="asignatura" value="{{ asignatura.pk }}">
                         <button type="submit" name="accion" value="nueva" class="ia-boton secundario">Nueva conversación</button>
                     </form>
@@ -105,6 +106,7 @@
 
                 <form method="post" class="ia-chat-form" id="form-tutor">
                     {% csrf_token %}
+<input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
                     <input type="hidden" name="asignatura" value="{{ asignatura.pk }}">
                     {{ form.mensaje }}
                     <button type="submit" class="ia-boton">Enviar</button>

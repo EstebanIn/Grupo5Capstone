@@ -16,6 +16,7 @@
     <h2>1. Sube la prueba respondida</h2>
     <form method="post" enctype="multipart/form-data" class="ia-form" data-generando="Leyendo respuestas… (puede tardar un minuto)">
         {% csrf_token %}
+<input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
         <div class="ia-fila">
             <div class="campo">
                 <label for="alumno">Alumno</label>
@@ -67,6 +68,7 @@
 
     <form method="post" class="ia-form" data-generando="Calculando…">
         {% csrf_token %}
+<input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
         <input type="hidden" name="alumno" value="{{ alumno_id }}">
         <input type="hidden" name="leida_con_ia" value="{% if leida_con_ia %}1{% else %}0{% endif %}">
 

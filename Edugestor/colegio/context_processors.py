@@ -15,3 +15,9 @@ def docente_jefatura(request):
             tiene_jefatura = False
 
     return {"docente_tiene_jefatura": tiene_jefatura}
+
+
+
+def proveedor_ia(request):
+    from django.conf import settings
+    return {'ia_proveedor': getattr(request, 'ia_proveedor', request.session.get('ia_proveedor', settings.IA_PROVEEDOR))}

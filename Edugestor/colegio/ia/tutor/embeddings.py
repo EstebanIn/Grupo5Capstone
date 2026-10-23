@@ -10,6 +10,7 @@ import time
 from django.conf import settings
 from google import genai
 from google.genai import errors, types
+from ..configuracion import valor
 
 logger = logging.getLogger(__name__)
 
@@ -18,21 +19,17 @@ MODELO_EMBEDDING = "gemini-embedding-001"
 DIMENSION_EMBEDDING = 768
 MAX_INTENTOS = 3
 
-_cliente = None
-
 
 class CuotaEmbeddingAgotada(RuntimeError):
     """La cuota diaria de embeddings está agotada; reintentar no ayudará."""
 
 
 def obtener_cliente():
-    global _cliente
-    if _cliente is None:
-        api_key = getattr(settings, "GEMINI_API_KEY", "")
-        if not api_key:
-            raise RuntimeError("GEMINI_API_KEY no está configurada.")
-        _cliente = genai.Client(api_key=api_key)
-    return _cliente
+    # Un cliente global reutilizaría la clave personal de otro usuario.
+    api_key = valor('gemini', 'api_key')
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY no está configurada.")
+    return genai.Client(api_key=api_key)
 
 
 def _validar_texto(texto):

@@ -1,0 +1,69 @@
+name: EduGestor · pruebas
+
+on:
+  push:
+    branches: [main, 'codex/**']
+    paths:
+      - 'Edugestor/**'
+      - '.github/workflows/edugestor-tests.yml'
+  pull_request:
+    paths:
+      - 'Edugestor/**'
+      - '.github/workflows/edugestor-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  django:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Edugestor
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.7-pg17-trixie@sha256:7a7e9f22015b67edb4bef5c59daeebcd7e74bfa570df6ce60ae01237c8648a84
+        env:
+          POSTGRES_DB: edugestor_ci
+          POSTGRES_USER: edugestor
+          POSTGRES_PASSWORD: edugestor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U edugestor -d edugestor_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DJANGO_DEBUG: 'False'
+      DJANGO_SECRET_KEY: 'ci-only-synthetic-secret-not-for-deployment'
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      POSTGRES_DB: edugestor_ci
+      POSTGRES_USER: edugestor
+      POSTGRES_PASSWORD: edugestor
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: '5432'
+      IA_PROVEEDOR: simulado
+      GEMINI_API_KEY: ''
+      QWEN_API_KEY: ''
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Preparar Python 3.12
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: Edugestor/requirements.txt
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+      - name: Comprobar Django y migraciones
+        run: |
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
+      - name: Ejecutar pruebas sin proveedores externos
+        run: python manage.py test colegio.tests_catalogo_modelos colegio.tests_conexiones colegio.tests_proveedores colegio.tests --noinput

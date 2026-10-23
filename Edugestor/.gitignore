@@ -1,7 +1,15 @@
 .env
+.env.*
+.ia-credentials.*
+.ia-credentials.key
 !.env.example
 .venv/
 venv/
 __pycache__/
 *.py[cod]
 db.sqlite3
+backups/
+*.dump
+
+knowledge/procesados/*.qwen.json
+knowledge/procesados/*.qwen.tmp

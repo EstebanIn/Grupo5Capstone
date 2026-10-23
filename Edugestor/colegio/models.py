@@ -707,6 +707,9 @@ class FragmentoCurricular(models.Model):
     pagina = models.PositiveIntegerField(null=True, blank=True)
     texto = models.TextField()
     embedding = VectorField(dimensions=768)
+    embedding_qwen = VectorField(dimensions=768, null=True, blank=True)
+    modelo_embedding_qwen = models.CharField(max_length=160, blank=True, default='')
+    huella_texto_qwen = models.CharField(max_length=64, blank=True, default='')
 
     class Meta:
         ordering = ["documento_id", "numero"]
@@ -723,7 +726,32 @@ class FragmentoCurricular(models.Model):
                 ef_construction=64,
                 opclasses=["vector_cosine_ops"],
             ),
+            HnswIndex(name="fragmento_qwen_hnsw", fields=["embedding_qwen"], m=16, ef_construction=64, opclasses=["vector_cosine_ops"]),
         ]
 
     def __str__(self):
         return f"{self.documento.titulo} · página {self.pagina or '—'}"
+
+
+
+class RegistroIA(ModeloInstitucional):
+    PADRES_INSTITUCION = ("usuario",)
+    """Metadatos de operaciones. No conserva prompts, claves ni archivos."""
+    usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='registros_ia')
+    fecha = models.DateTimeField(auto_now_add=True)
+    proveedor = models.CharField(max_length=30)
+    operacion = models.CharField(max_length=100)
+    modelo = models.CharField(max_length=160, blank=True)
+    estado = models.CharField(max_length=20)
+    duracion_ms = models.PositiveIntegerField(default=0)
+    caracteres_entrada = models.PositiveIntegerField(default=0)
+    caracteres_salida = models.PositiveIntegerField(default=0)
+    huella_entrada = models.CharField(max_length=64, blank=True)
+    archivos = models.JSONField(default=list)
+    fuentes = models.JSONField(default=list)
+    lectura = models.JSONField(default=list)
+    detalle = models.CharField(max_length=400, blank=True)
+
+    class Meta:
+        ordering = ['-fecha', '-pk']
+        indexes = [models.Index(fields=['usuario','-fecha'], name='registro_ia_usuario_fecha')]
