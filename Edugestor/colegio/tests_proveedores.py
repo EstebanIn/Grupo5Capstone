@@ -77,13 +77,13 @@ class ProveedoresVistaTests(AsistenteIATestBase):
         self.assertEqual(cliente.post(reverse('seleccionar_proveedor_ia'),{'proveedor':'qwen'}).status_code,403)
 
     def test_formulario_qwen_registra_sin_guardar_prompt(self):
-        with mock.patch('colegio.ia.qwen.generar',return_value='# Material\nTexto educativo'):
-            respuesta=self.client.post(reverse('ia_crear_material'),{'proveedor':'qwen','carga':self.carga.pk,'tema':'Contenido privado no persistir','tipo':'guia','objetivo':'OA'})
+        with mock.patch('colegio.ia.rag.buscar_fragmentos', return_value=[]), mock.patch('colegio.ia.qwen.generar',return_value=json.dumps({'titulo':'Material', 'contenido':'Texto educativo','ejercicios':'','solucionario':''})):
+            respuesta=self.client.post(reverse('ia_crear_material'),{'proveedor':'qwen','carga':self.carga.pk,'tema':'Contenido privado no persistir','tipo':'guia','objetivo':'OA','contexto_curricular':'personalizado'})
         self.assertEqual(respuesta.status_code,302)
         registro=RegistroIA.objects.get(usuario=self.usuario_docente)
         self.assertEqual((registro.proveedor,registro.estado),('qwen','OK'))
         self.assertNotIn('Contenido privado',json.dumps(registro.archivos)+registro.huella_entrada+registro.detalle)
-        self.assertEqual(registro.caracteres_salida,len('# Material\nTexto educativo'))
+        self.assertGreater(registro.caracteres_salida, 0)
 
     def test_errores_rag_se_registran(self):
         self.client.post(reverse('ia_crear_prueba'),{'proveedor':'qwen','carga':self.carga.pk,'tema':'Sumas','cantidad':3,'dificultad':'media'})

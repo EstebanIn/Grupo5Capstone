@@ -1,0 +1,16 @@
+{$ORIGIN_HOST} {
+    @sin_worker not header X-Edugestor-Origin {$ORIGIN_SHARED_SECRET}
+    respond @sin_worker "Origen no autorizado" 403
+    request_body {
+        max_size 55MB
+    }
+    reverse_proxy web:8000 {
+        header_up Host {$PUBLIC_HOST}
+        header_up X-Forwarded-Host {$PUBLIC_HOST}
+        header_up X-Forwarded-Proto https
+    }
+    header {
+        -Server
+        Cache-Control "private, no-store"
+    }
+}

@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views_trabajos, views_biblioteca
 from . import views, views_ia
 from .ia import views_proveedores
 
@@ -14,7 +15,7 @@ urlpatterns = [
     views.landing_cliente,
     name="landing_cliente"
 ),
-    
+
     # LOGIN
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
@@ -53,7 +54,18 @@ urlpatterns = [
     path('admin-dashboard/usuarios/', views.panel_admin_usuarios, name='panel_admin_usuarios'),
 
     # Asistentes de IA
+    path('panel/docente/asistente/biblioteca/', views_biblioteca.biblioteca_docente, name='ia_biblioteca'),
+    path('panel/docente/asistente/biblioteca/<int:pk>/actualizar/', views_biblioteca.actualizar, name='ia_biblioteca_actualizar'),
+    path('panel/docente/asistente/biblioteca/exportar/', views_biblioteca.exportar, name='ia_biblioteca_exportar'),
+    path("panel/docente/asistente/trabajos/<uuid:pk>/", views_trabajos.trabajo, name="ia_trabajo"),
+    path("panel/docente/asistente/trabajos/<uuid:pk>/estado/", views_trabajos.estado, name="ia_trabajo_estado"),
+    path("panel/docente/asistente/trabajos/<uuid:pk>/descargar/", views_trabajos.descargar, name="ia_trabajo_descargar"),
+    path("panel/docente/asistente/<int:pk>/exportar/", views_trabajos.exportar, name="ia_exportar"),
+    path("panel/docente/asistente/<int:pk>/copiar/", views_trabajos.copiar, name="ia_copiar"),
+    path("panel/docente/asistente/<int:pk>/imprimir/<str:version>/", views_trabajos.imprimir, name="ia_imprimir"),
     path("panel/docente/asistente/", views_ia.asistente_docente, name="asistente_docente"),
+    path("panel/docente/asistente/documentos/", views_ia.ia_documentos, name="ia_documentos"),
+    path("panel/docente/asistente/operaciones/", views_ia.ia_operaciones, name="ia_operaciones"),
     path("panel/docente/asistente/prueba/", views_ia.ia_crear_prueba, name="ia_crear_prueba"),
     path("panel/docente/asistente/rubrica/", views_ia.ia_crear_rubrica, name="ia_crear_rubrica"),
     path("panel/docente/asistente/material/", views_ia.ia_crear_material, name="ia_crear_material"),
@@ -97,9 +109,9 @@ urlpatterns = [
     path('admin-dashboard/cursos/editar/<int:pk>/', views.editar_curso, name='editar_curso'),
     path('admin-dashboard/cursos/eliminar/<int:pk>/', views.eliminar_curso, name='eliminar_curso'),
     path('admin-dashboard/cursos/carga-masiva/', views.carga_masiva_cursos, name='carga_masiva_cursos'),
-    
-    
-    
+
+
+
     path('admin-dashboard/asignaturas/', views.panel_admin_asignaturas, name='panel_admin_asignaturas'),
     path('admin-dashboard/matriculas/', views.panel_admin_matriculas, name='panel_admin_matriculas'),
     path('admin-dashboard/reportes/', views.panel_admin_reportes, name='panel_admin_reportes'),

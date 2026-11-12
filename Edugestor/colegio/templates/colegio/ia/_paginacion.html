@@ -1,0 +1,7 @@
+{% if pagina.has_other_pages %}
+<nav class="ia-paginacion" aria-label="Páginas de resultados">
+    {% if pagina.has_previous %}<a class="ia-boton secundario" href="?pagina={{ pagina.previous_page_number }}">← Anterior</a>{% endif %}
+    <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}<a class="ia-boton secundario" href="?pagina={{ pagina.next_page_number }}">Siguiente →</a>{% endif %}
+</nav>
+{% endif %}

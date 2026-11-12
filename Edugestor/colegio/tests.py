@@ -1117,7 +1117,8 @@ class AislamientoInstitucionesTests(DjangoTestCase):
         return [
             modelo for modelo in apps.get_app_config("colegio").get_models()
             # El corpus curricular es público y compartido; no contiene datos de alumnos.
-            if modelo not in (Institucion, apps.get_model('colegio','DocumentoCurricular'), apps.get_model('colegio','FragmentoCurricular')) and not modelo._meta.auto_created
+            if modelo not in (Institucion, apps.get_model('colegio','DocumentoCurricular'),
+                apps.get_model('colegio','FragmentoCurricular'), apps.get_model('colegio','FuenteBiblioteca')) and not modelo._meta.auto_created
         ]
 
     def test_todos_los_modelos_declaran_su_institucion(self):
@@ -1130,7 +1131,7 @@ class AislamientoInstitucionesTests(DjangoTestCase):
 
     def test_cada_modelo_filtra_por_la_institucion_activa(self):
         for modelo in self.modelos_institucionales():
-            if modelo in (SolicitudPostulacion, InstrumentoIA, CorreccionPrueba, apps.get_model('colegio','RegistroIA')):
+            if modelo in (SolicitudPostulacion, InstrumentoIA, CorreccionPrueba, apps.get_model('colegio','RegistroIA'), apps.get_model('colegio','TrabajoIA')):
                 continue  # el comando no genera postulaciones ni documentos de IA
             total = modelo.objects.count()
             with self.subTest(modelo=modelo.__name__), institucion_activa(self.chimbarongo):
@@ -1255,7 +1256,20 @@ from .templatetags.ia_extras import markdown_seguro
 
 @override_settings(IA_PROVEEDOR="simulado")
 class AsistenteIATestBase(TestCase):
+    ejecutar_en_pruebas = True
+
     def setUp(self):
+        # El cliente conserva la respuesta asíncrona; solo el worker se ejecuta
+        # en este proceso para las pruebas existentes de documentos y notas.
+        if self.ejecutar_en_pruebas:
+            from .ia.trabajos import ejecutar
+            original_post = self.client.post
+            def post_con_worker(*args, **kwargs):
+                with mock.patch('colegio.ia.trabajos.encolar', side_effect=ejecutar):
+                    with self.captureOnCommitCallbacks(execute=True):
+                        return original_post(*args, **kwargs)
+            self.client.post = post_con_worker
+
         self.periodo = PeriodoAcademico.objects.create(anio=2026, semestre=1)
         self.curso = Curso.objects.create(ciclo=Curso.CICLO_BASICA, nivel=4, seccion="A")
         self.otro_curso = Curso.objects.create(ciclo=Curso.CICLO_BASICA, nivel=5, seccion="A")
@@ -1315,12 +1329,13 @@ class AsistenteDocenteTests(AsistenteIATestBase):
         response = self.crear_prueba(cantidad=5)
 
         instrumento = InstrumentoIA.objects.get()
-        self.assertRedirects(response, reverse("ia_instrumento", args=[instrumento.pk]))
+        trabajo = apps.get_model('colegio', 'TrabajoIA').objects.get()
+        self.assertRedirects(response, reverse('ia_trabajo', args=[trabajo.pk]))
         self.assertEqual(instrumento.tipo, InstrumentoIA.TIPO_PRUEBA)
         self.assertEqual(instrumento.estado, InstrumentoIA.ESTADO_BORRADOR)
         self.assertEqual(instrumento.institucion, self.institucion)
         self.assertEqual(len(instrumento.contenido["preguntas"]), 5)
-        self.assertContains(self.client.get(response.url), 'name="p4_enunciado"')
+        self.assertContains(self.client.get(reverse('ia_instrumento', args=[instrumento.pk])), 'name="p4_enunciado"')
 
     def test_solo_ofrece_las_cargas_del_docente(self):
         response = self.client.post(reverse("ia_crear_prueba"), {
@@ -1394,8 +1409,11 @@ class AsistenteDocenteTests(AsistenteIATestBase):
         for i, criterio in enumerate(contenido["criterios"]):
             datos[f"c{i}_criterio"] = criterio["criterio"]
             datos[f"c{i}_puntaje"] = criterio["puntaje_maximo"]
+            for k in ('aprendizaje', 'evidencia', 'actividad'):
+                datos[f'c{i}_{k}'] = criterio[k]
             for j, descriptor in enumerate(criterio["descriptores"]):
                 datos[f"c{i}_d{j}"] = descriptor
+        datos.update({f'revision_{i}': 'on' for i in range(5)})
         datos["c0_criterio"] = "Dominio del tema"
         self.client.post(reverse("ia_instrumento", args=[instrumento.pk]), datos)
 
@@ -1410,7 +1428,7 @@ class AsistenteDocenteTests(AsistenteIATestBase):
         })
         instrumento = InstrumentoIA.objects.get(tipo=InstrumentoIA.TIPO_MATERIAL)
         self.client.post(reverse("ia_instrumento", args=[instrumento.pk]), {
-            "accion": "aprobar", "titulo": instrumento.titulo, "texto": instrumento.contenido["texto"],
+            "accion": "aprobar", **instrumento.contenido, "separacion_revisada": "on",
         })
 
         response = self.client.get(reverse("ia_instrumento", args=[instrumento.pk]))
@@ -1421,15 +1439,16 @@ class AsistenteDocenteTests(AsistenteIATestBase):
             "carga": self.carga.pk, "texto": "1. ¿Cuánto es 1/2 + 1/4?\na) 2/6 b) 3/4 c) 1/8 d) 2/4",
         })
 
+        response = self.client.get(response.url)
         self.assertContains(response, "Observaciones")
-        self.assertIsNotNone(response.context["revision"])
+        self.assertTrue(response.context['trabajo'].resultado['revision'])
 
     def test_error_de_la_ia_se_muestra_y_no_crea_nada(self):
         with mock.patch("colegio.ia.asistentes.generar", side_effect=ErrorIA("Servicio caído")):
             response = self.crear_prueba()
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Servicio caído")
+        self.assertEqual(response.status_code, 302)
+        self.assertContains(self.client.get(response.url), "Servicio caído")
         self.assertFalse(InstrumentoIA.objects.exists())
 
     def test_otro_docente_no_ve_ni_elimina_el_instrumento(self):
@@ -1583,6 +1602,10 @@ class CorregirPruebaTests(AsistenteIATestBase):
 
     def test_lee_la_hoja_y_destaca_preguntas_en_blanco(self):
         response = self.client.post(self.url, {"accion": "leer", "archivos": [hoja()]})
+        from .views_trabajos import enlace_resultado
+        trabajo = apps.get_model('colegio', 'TrabajoIA').objects.filter(operacion='lectura').get()
+        self.assertRedirects(response, reverse('ia_trabajo', args=[trabajo.pk]))
+        response = self.client.get(enlace_resultado(trabajo))
 
         self.assertEqual(response.context["paso"], "confirmar")
         self.assertEqual(response.context["por_revisar"], 1)

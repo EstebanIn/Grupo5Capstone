@@ -1,0 +1,19 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load tz %}
+{% block titulo %}Operaciones recientes{% endblock %}
+{% block cabecera %}
+<header class="ia-encabezado"><h1>Operaciones recientes</h1><p>Consulta el progreso y los resultados de tus solicitudes al asistente. Fechas y horas de Chile.</p></header>
+{% endblock %}
+{% block contenido %}
+<section class="ia-panel">
+    <div class="ia-seccion"><h2>Actividad del asistente</h2><a href="{% url 'asistente_docente' %}">Volver al asistente →</a></div>
+    <ul class="ia-trabajos-lista">
+    {% for t in pagina %}
+        <li><a href="{% url 'ia_trabajo' t.pk %}"><strong>{{ t.operacion|title }}</strong><small>{{ t.proveedor|title }} · {{ t.creado|timezone:'America/Santiago'|date:'d/m/Y H:i' }}</small></a><span class="ia-estado {{ t.estado }}">{{ t.get_estado_display }}</span></li>
+    {% empty %}
+        <li class="ia-vacio">Aquí verás el progreso de tus próximas operaciones.</li>
+    {% endfor %}
+    </ul>
+    {% include 'colegio/ia/_paginacion.html' %}
+</section>
+{% endblock %}

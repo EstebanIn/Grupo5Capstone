@@ -1,5 +1,8 @@
 .env
 .env.*
+deploy/.env.production
+deploy/.env.backup
+!deploy/.env.production.example
 !.env.example
 .ia-credentials.*
 .ia-credentials.key
@@ -10,6 +13,11 @@ __pycache__
 *.sqlite3
 .git
 backups
+private
+staticfiles
 *.dump
 knowledge/procesados/*.qwen.json
 knowledge/procesados/*.qwen.tmp
+knowledge/biblioteca
+deploy/.env.tunnel
+!deploy/.env.tunnel.example

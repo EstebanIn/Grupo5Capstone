@@ -1,0 +1,8 @@
+[Unit]
+Description=Respaldo diario de EduGestor
+[Timer]
+OnCalendar=*-*-* 04:00:00
+RandomizedDelaySec=20m
+Persistent=true
+[Install]
+WantedBy=timers.target

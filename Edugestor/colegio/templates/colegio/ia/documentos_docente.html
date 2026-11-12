@@ -1,0 +1,21 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load tz %}
+{% block titulo %}Tus documentos{% endblock %}
+{% block cabecera %}
+<header class="ia-encabezado"><h1>Tus documentos</h1><p>Encuentra tus borradores y el material que ya aprobaste.</p></header>
+{% endblock %}
+{% block contenido %}
+<section class="ia-panel">
+    <div class="ia-seccion"><h2>{{ pagina.paginator.count }} documento{{ pagina.paginator.count|pluralize:'s' }}</h2><a class="ia-boton secundario" href="{% url 'ia_corregir' %}">Corregir respuestas →</a></div>
+    <div class="ia-tabla-scroll" tabindex="0" role="region" aria-label="Tus documentos">
+        <table class="ia-tabla"><thead><tr><th scope="col">Documento</th><th scope="col">Curso y asignatura</th><th scope="col">Estado</th><th scope="col">Fecha</th></tr></thead><tbody>
+        {% for i in pagina %}
+            <tr><td><a href="{% url 'ia_instrumento' i.pk %}">{{ i.titulo }}</a><small>{{ i.get_tipo_display }}</small></td><td>{{ i.carga.curso }}<small>{{ i.carga.asignatura.nombre_asignatura }}</small></td><td><span class="ia-estado {{ i.estado }}">{{ i.get_estado_display }}</span></td><td>{{ i.fecha_creacion|timezone:'America/Santiago'|date:'d/m/Y' }}</td></tr>
+        {% empty %}
+            <tr><td colspan="4" class="ia-vacio">Todavía no tienes documentos. <a href="{% url 'asistente_docente' %}">Crear tu primer material →</a></td></tr>
+        {% endfor %}
+        </tbody></table>
+    </div>
+    {% include 'colegio/ia/_paginacion.html' %}
+</section>
+{% endblock %}

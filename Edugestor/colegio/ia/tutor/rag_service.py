@@ -25,7 +25,13 @@ def cargar_documentos_rag():
     return documentos
 
 
-def recuperar_contexto(pregunta, top_k=4):
+def recuperar_contexto(pregunta, top_k=4, contexto=None):
+    from colegio.ia import biblioteca
+    contexto = contexto or {}
+    scope = {'asignatura': contexto.get('asignatura', ''), 'ciclo': contexto.get('ciclo', ''),
+             'nivel': contexto.get('grado')}
+    if biblioteca.fragmentos_scope(**scope).exists():
+        return biblioteca.recuperar(consulta=pregunta, limite=top_k, **scope)
     from colegio.ia.proveedor import proveedor_activo
     if proveedor_activo() == 'qwen':
         from colegio.ia.indice_qwen import documentos_tutor_qwen

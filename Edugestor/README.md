@@ -2,6 +2,18 @@
 
 Aplicación Django de gestión escolar. El alcance del piloto es **una institución por instalación**. Ejecutar la aplicación de esta carpeta `Edugestor/`. La copia bajo `Fase 2/Evidencias Proyecto/Evidencias del sistema/Aplicacion/Edugestor/` es una evidencia diferente y no se sincroniza automáticamente.
 
+## Asistente docente y pruebas
+
+La rama incorpora web, PostgreSQL/pgvector, Redis, Celery worker y beat. Las operaciones docentes largas crean un `TrabajoIA` recuperable desde **Asistente → Operaciones recientes**. Mantener worker y beat activos. Crear respaldo antes de migrar una instalación con datos.
+
+La [guía de pruebas con sus claves](docs/pruebas-manuales-asistente.md) explica cómo verificar Gemini y Qwen desde Registro de IA sin compartir credenciales. La [preparación gratuita de Oracle y Cloudflare](deploy/README.md) requiere cuentas y VM propias; conservar la instalación local.
+
+Pruebas, rúbricas y materiales consultan el corpus curricular por asignatura y nivel. El tutor conserva su propio índice. Cada borrador muestra las fuentes realmente recuperadas; recuperar una referencia no acredita por sí solo la alineación con un OA. Un objetivo introducido libremente queda identificado como personalizado.
+
+Los materiales nuevos separan explicación (incluidos ejemplos resueltos), ejercicios y solucionario. El docente revisa esa separación antes de aprobar. Las versiones del estudiante se construyen en el servidor, excluyendo los campos de pauta antes de renderizar; la descarga PDF usa WeasyPrint y las mismas plantillas que la vista de impresión. Un material antiguo aprobado se conserva y requiere una copia editable revisada antes de habilitar su exportación estudiantil.
+
+Los trabajos duran como máximo cinco minutos de ejecución; Qwen utiliza streaming interno con límite total de tres minutos, tiempos de conexión y lectura separados y diagnóstico seguro. Una respuesta parcial no crea un documento y no se repite automáticamente. Se conserva el proveedor y modelo elegidos. Los archivos de entrada se cifran temporalmente; los PDF privados caducan tras 24 horas y pueden volver a exportarse. Redis recibe solo UUID.
+
 ## Inicio en Windows
 
 Instala Git y Docker Desktop. Con Docker encendido, desde PowerShell:
@@ -56,7 +68,7 @@ QWEN_EMBEDDING_MODEL=text-embedding-v4
 
 La clave Qwen debe pertenecer a Singapur para ese endpoint. Puedes configurar el dominio de workspace de Singapur que muestre Model Studio. Tras cambiar `.env`, recrea el servicio web (`docker compose up -d --force-recreate web`, conservando tu override si corresponde); un simple reinicio no actualiza las variables del contenedor.
 
-El selector inferior del panel lateral de docentes/alumnos permite elegir Gemini o Qwen. Gemini es el valor inicial cuando está configurado. La preferencia queda en la sesión y cada formulario captura el proveedor de su operación. No hay cambio automático de Qwen a Gemini ni a modo simulado si una petición falla.
+El selector inferior del panel lateral de docentes/alumnos permite elegir Gemini o Qwen. Gemini es el valor inicial cuando está configurado. La preferencia queda en la sesión y cada formulario captura el proveedor de su operación. Cada trabajo captura también el modelo y la huella de la conexión; una conexión cambiada o caducada detiene el trabajo para evitar consumir otra cuenta. No hay cambio automático de Qwen a Gemini ni a modo simulado si una petición falla.
 
 `IA_PROVEEDOR=simulado` es un modo explícito de desarrollo/pruebas que no llama a APIs. No acredita la calidad de una respuesta real.
 
@@ -72,7 +84,7 @@ En una base nueva, indexa primero al menos un PDF curricular con el comando de l
 docker compose exec web python manage.py reindexar_qwen
 ```
 
-El comando guarda avances por lotes y puede reanudarse. Repetirlo no vuelve a pedir embeddings ya completos con el mismo modelo y texto. Requiere clave Qwen y PostgreSQL. El RAG de Qwen queda bloqueado hasta completar tanto el corpus curricular activo como el del tutor. El registro muestra la cobertura actual. Cambiar el modelo de embeddings invalida esa cobertura y requiere reindexar.
+El comando guarda avances por lotes y puede reanudarse. Repetirlo no vuelve a pedir embeddings ya completos con el mismo modelo y texto. Requiere clave Qwen y PostgreSQL. El RAG curricular de Qwen exige completar los fragmentos de la asignatura y nivel consultados. El tutor comprueba su corpus por separado. El registro muestra la cobertura actual. Cambiar el modelo de embeddings invalida esa cobertura y requiere reindexar.
 
 Para incorporar un PDF nuevo:
 
@@ -80,7 +92,7 @@ Para incorporar un PDF nuevo:
 docker compose exec web python manage.py indexar_documento_curricular /app/knowledge/programa-matematica-1-basico.pdf --titulo "Programa Matemática 1 básico" --asignatura "Matemática" --ciclo BASICA --nivel 1
 ```
 
-Por defecto crea ambos vectores. `--solo-gemini` permite excluir Qwen explícitamente y deja su cobertura pendiente. El corpus del tutor y el curricular son distintos; el registro permite ver las fuentes realmente recuperadas, no asumir que todos los asistentes usan RAG.
+Por defecto crea ambos vectores. `--solo-gemini` permite excluir Qwen explícitamente y deja su cobertura pendiente. El corpus del tutor y el curricular son distintos; el registro muestra las fuentes realmente recuperadas. El asistente docente comprueba la cobertura del curso y asignatura seleccionados.
 
 ## Registro de operaciones
 
@@ -91,7 +103,7 @@ La IA transcribe respuestas. El docente confirma o ajusta las marcas y el backen
 ## Pruebas
 
 ```powershell
-docker compose exec web python manage.py test colegio.tests_catalogo_modelos colegio.tests_conexiones colegio.tests_proveedores colegio.tests --noinput
+docker compose exec web python manage.py test colegio --noinput
 ```
 
 Las pruebas usan respuestas simuladas y mocks. Las llamadas reales de generación, imágenes/PDF, tutoría e indexación requieren claves y validación adicional.

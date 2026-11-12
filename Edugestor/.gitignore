@@ -9,7 +9,15 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 backups/
+private/
+staticfiles/
+deploy/.env.production
+deploy/.env.backup
+!deploy/.env.production.example
 *.dump
 
 knowledge/procesados/*.qwen.json
 knowledge/procesados/*.qwen.tmp
+knowledge/biblioteca/
+deploy/.env.tunnel
+!deploy/.env.tunnel.example

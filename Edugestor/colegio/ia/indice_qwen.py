@@ -63,9 +63,12 @@ def exigir_indice_completo():
         raise ErrorIA('El índice RAG de Qwen está incompleto. Solicita al administrador completar la indexación. No se cambió a Gemini.')
 
 def documentos_tutor_qwen():
-    exigir_indice_completo()
-    documentos, _ = corpus_tutor()
-    vectores = cargar_indice()['vectores']
+    # El tutor legado valida su propio corpus; una nueva biblioteca textual no lo invalida.
+    documentos, sha = corpus_tutor()
+    indice = cargar_indice()
+    vectores = indice.get('vectores', {})
+    if indice.get('base_sha256') != sha or any(not vector_valido(vectores.get(huella(d['texto']))) for d in documentos):
+        raise ErrorIA('El índice RAG de Qwen del tutor está incompleto. Completa su indexación.')
     return [{**d, 'embedding': vectores[huella(d['texto'])]} for d in documentos]
 
 def reindexar_qwen(informar=lambda texto: None):

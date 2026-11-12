@@ -82,9 +82,9 @@
                                 <ul class="ia-fuentes-lista">
                                     {% for fuente in mensaje.fuentes %}
                                     <li>
-                                        <span class="ia-fuente" title="Fragmento recuperado del documento de Matemática">
-                                            Libro de Matemática · pág. {{ fuente.pagina }}
-                                        </span>
+                                        {% if fuente.url %}<a class="ia-fuente" href="{{ fuente.url }}#page={{ fuente.pagina }}" target="_blank" rel="noopener">{% else %}<span class="ia-fuente">{% endif %}
+                                            {{ fuente.titulo|default:'Libro de Matemática' }} · pág. {{ fuente.pagina }}{% if fuente.metodo == 'textual_biblioteca' %} · búsqueda textual{% endif %}
+                                        {% if fuente.url %}</a>{% else %}</span>{% endif %}
                                     </li>
                                     {% endfor %}
                                 </ul>

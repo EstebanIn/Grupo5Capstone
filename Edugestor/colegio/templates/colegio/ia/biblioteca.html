@@ -1,0 +1,38 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% block titulo %}Biblioteca curricular{% endblock %}
+{% block extra_css %}<style>
+.biblioteca-panel {line-height:1.55}
+.biblioteca-panel p {margin:10px 0}
+.biblioteca-resultados article {margin-top:20px;padding-top:16px;border-top:1px solid #dbe3ee}
+.biblioteca-resultados h3 {font-size:17px;line-height:1.4}
+.biblioteca-resultados summary {cursor:pointer;color:#166534;font-weight:600}
+.biblioteca-consulta {display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.biblioteca-consulta select,.biblioteca-consulta input {width:100%;max-width:700px}
+</style>{% endblock %}
+{% block contenido %}
+<div class="ia-encabezado"><h1>Biblioteca curricular</h1>
+<p>Fuentes públicas que comparten pruebas, rúbricas, materiales y tutor. Cada resultado conserva su referencia y página del PDF.</p></div>
+<div class="ia-panel biblioteca-panel"><h2>Fuentes aprobadas</h2>
+<p>Método configurado: {% if metodo == 'textual' %}<strong>búsqueda textual local, sin consumo de embeddings</strong>{% else %}<strong>búsqueda vectorial del proveedor seleccionado</strong>{% endif %}.
+{% if automatica %}Se comprueban cambios cada siete días mientras el servidor y el planificador estén activos.{% else %}Actualización automática desactivada por el administrador.{% endif %}</p>
+{% for fila in fuentes %}{% with fuente=fila.fuente %}
+<article class="ia-panel"><h3>{{ fuente.titulo }}</h3>
+<p>{{ fuente.asignatura }} · {{ fuente.nivel }}° {{ fuente.ciclo|title }} · {{ fila.fragmentos }} fragmentos indexados · {{ fila.buscables }} habilitados para recuperar.</p>
+{% if fila.buscables < fila.fragmentos %}<p>Las tablas que mezclan otros niveles se conservan en el original y se excluyen de la recuperación para este curso.</p>{% endif %}
+<p><a href="{{ fuente.ficha_url }}" target="_blank" rel="noopener">Ficha oficial del Ministerio de Educación ↗</a></p>
+<p>{{ fuente.licencia }}</p>
+<p><strong>{{ fuente.estado|capfirst }}</strong> · {{ fuente.mensaje|default:'Pendiente de la primera descarga.' }}{% if fuente.comprobada %}<br>Última comprobación: {{ fuente.comprobada|date:'d/m/Y H:i' }}{% endif %}</p>
+{% for documento in fila.documentos %}<p>Versión: {{ documento.version }}<br><small style="overflow-wrap:anywhere">SHA-256: {{ documento.sha256 }}</small></p>{% endfor %}
+{% if fuente.estado != 'actualizando' %}<form method="post" action="{% url 'ia_biblioteca_actualizar' fuente.pk %}" data-generando="Actualizando biblioteca">
+{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ fila.token }}">
+<button type="submit" class="ia-boton">Comprobar e indexar fuente</button></form>{% else %}<p>Actualización en curso. Puedes volver a esta pantalla cuando termine.</p>{% endif %}
+</article>{% endwith %}{% empty %}<p>No hay fuentes aprobadas. Solicita al administrador revisar el catálogo.</p>{% endfor %}
+</div>
+<div class="ia-panel biblioteca-panel biblioteca-resultados"><h2>Consultar contenido</h2>
+<form method="get" class="ia-form biblioteca-consulta"><label for="carga">Curso y asignatura</label><select name="carga" id="carga">{% for c in cargas %}<option value="{{ c.pk }}" {% if carga.pk == c.pk %}selected{% endif %}>{{ c.curso }} · {{ c.asignatura.nombre_asignatura }}</option>{% endfor %}</select>
+<label for="consulta">Tema o pregunta</label><input id="consulta" name="q" maxlength="500" value="{{ consulta }}" placeholder="Por ejemplo, multiplicación y división"><button class="ia-boton" type="submit">Buscar en el texto</button></form>
+{% for f in resultados %}<article><h3>{{ f.titulo }} · página PDF {{ f.pagina }}</h3><p>{{ f.texto|truncatechars:350 }}</p><details><summary>Leer fragmento completo</summary><p>{{ f.texto }}</p></details><p><a href="{{ f.url }}#page={{ f.pagina }}" target="_blank" rel="noopener">Ver fuente original ↗</a> · Búsqueda textual local</p></article>{% empty %}{% if consulta %}<p>No se encontraron coincidencias para este curso. Comprueba las fuentes y usa términos del contenido.</p>{% endif %}{% endfor %}
+</div>
+<div class="ia-panel biblioteca-panel"><h2>Usar la biblioteca en otro equipo</h2><p>Descarga un paquete versionado con los originales públicos y sus índices compatibles. El administrador podrá importarlo en otra instalación de EduGestor. No incluye API keys, cuentas, sesiones, pautas ni documentos del docente.</p>
+{% if exportable %}<form method="post" action="{% url 'ia_biblioteca_exportar' %}" data-generando="Preparando paquete">{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ idempotencia }}"><button class="ia-boton" type="submit">Preparar descarga de la biblioteca</button></form>{% else %}<p>Primero comprueba e indexa una fuente aprobada.</p>{% endif %}</div>
+{% endblock %}

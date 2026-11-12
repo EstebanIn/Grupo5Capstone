@@ -1,0 +1,31 @@
+{% load l10n %}{% localize off %}
+<figure class="material-figura" data-recurso-id="{{ f.id }}" contenteditable="false">
+<figcaption>{{ f.titulo }}</figcaption>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 {{ f.alto }}" role="img" aria-label="{{ f.titulo }}" style="display:block;width:100%;height:auto;color:#172c25;font-family:'DejaVu Sans',sans-serif">
+<title>{{ f.titulo }}</title>
+{% if f.tipo == 'ajuste' or f.tipo == 'posicional' %}
+{% for t in f.tarjetas %}<rect x="{{ t.x }}" y="12" width="180" height="{% if f.tipo == 'posicional' %}112{% else %}85{% endif %}" rx="10" fill="#f1f7f3" stroke="#166534" stroke-width="2"/>
+<text x="{{ t.x|add:90 }}" y="42" text-anchor="middle" font-size="19" font-weight="bold">{{ t.titulo }}</text>
+<text x="{{ t.x|add:90 }}" y="67" text-anchor="middle" font-size="{% if f.tipo == 'ajuste' %}11{% else %}19{% endif %}">{{ t.detalle }}</text>
+{% if t.resultado %}<text x="{{ t.x|add:90 }}" y="103" text-anchor="middle" font-size="25" font-weight="bold" fill="#166534">{{ t.resultado }}</text>{% endif %}{% endfor %}
+<path d="M 194 48 L 201 53 L 194 58 Z M 387 48 L 394 53 L 387 58 Z" fill="#166534"/>
+{% if f.reagrupacion and f.resuelto %}<text x="295" y="149" text-anchor="middle" font-size="15">{{ f.reagrupacion }}</text>{% endif %}
+{% elif f.tipo == 'recta' %}
+<line x1="25" y1="105" x2="570" y2="105" stroke="#172c25" stroke-width="2"/>
+<path d="{{ f.camino1 }}" fill="none" stroke="#166534" stroke-width="3"/>
+{% if f.resto %}<path d="{{ f.camino2 }}" fill="none" stroke="#475569" stroke-width="3"/>{% endif %}
+<text x="{{ f.etiqueta_x1 }}" y="45" text-anchor="middle" font-size="19" fill="#166534">+{{ f.gap }}</text>
+{% if f.resto %}<text x="{{ f.etiqueta_x2 }}" y="45" text-anchor="middle" font-size="19">+{{ f.resto }}</text>{% endif %}
+<circle cx="{{ f.x0 }}" cy="105" r="5" fill="#166534"/><circle cx="{{ f.xm }}" cy="105" r="5" fill="#166534"/><circle cx="{{ f.x2 }}" cy="105" r="5" fill="#172c25"/>
+<text x="{{ f.x0 }}" y="132" text-anchor="middle" font-size="18">{{ f.a }}</text><text x="{{ f.xm }}" y="157" text-anchor="middle" font-size="18">{{ f.medio }}</text>{% if f.resto %}<text x="{{ f.x2 }}" y="132" text-anchor="middle" font-size="18">{{ f.etiqueta_fin }}</text>{% endif %}
+{% elif f.tipo == 'grupos' %}
+{% for p in f.puntos %}<circle cx="{{ p.x }}" cy="{{ p.y }}" r="9" fill="#dcefe2" stroke="#166534" stroke-width="2"/>{% endfor %}
+<text x="295" y="22" text-anchor="middle" font-size="17">{{ f.leyenda }}</text>
+{% elif f.tipo == 'reparto' %}
+{% for c in f.cajas %}<rect x="{{ c.x }}" y="{{ c.y }}" width="180" height="98" rx="15" fill="#f1f7f3" stroke="#166534" stroke-width="2"/><text x="{{ c.label_x }}" y="{{ c.label_y }}" text-anchor="middle" font-size="15">Grupo {{ c.numero }}</text>{% endfor %}
+{% for p in f.puntos %}<circle cx="{{ p.x }}" cy="{{ p.y }}" r="8" fill="#dcefe2" stroke="#166534" stroke-width="2"/>{% endfor %}
+{% elif f.tipo == 'fraccion' %}
+{% for p in f.partes %}<rect x="{{ p.x }}" y="20" width="{{ p.ancho }}" height="55" fill="{% if p.llena %}#b5dac1{% else %}white{% endif %}" stroke="#166534" stroke-width="2"/>{% endfor %}
+{% endif %}
+<text x="295" y="{{ f.alto|add:-12 }}" text-anchor="middle" font-size="20" font-weight="bold" fill="#166534">{{ f.formula }}</text>
+</svg></figure>{% endlocalize %}

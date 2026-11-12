@@ -6,7 +6,7 @@
 {% block contenido %}
 <a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
 <div class="ia-encabezado">
-    <h1>🔍 Revisar calidad de una prueba</h1>
+    <h1>{% include 'colegio/ia/_icono.html' with icono='revision' %} Revisar calidad de una prueba</h1>
     <p>Antes de aplicarla: la IA revisa tu prueba como lo haría un colega (claridad, alternativas, nivel y alineación al OA). Para corregir las respuestas de un alumno usa <a href="{% url 'ia_corregir' %}">Corregir prueba</a>.</p>
 </div>
 
@@ -18,8 +18,9 @@
 {% endif %}
 
 <div class="ia-panel">
-    <form method="post" class="ia-form" data-generando="Revisando… (puede tardar un minuto)">
+    <form method="post" class="ia-form" data-generando="Revisando… (se mostrará el progreso)">
         {% csrf_token %}
+<input type="hidden" name="idempotencia" value="{{ idempotencia }}">
 <input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
         {% include 'colegio/ia/_campos.html' %}
         <button type="submit" class="ia-boton">{% if revision %}Revisar de nuevo{% else %}Revisar prueba{% endif %}</button>

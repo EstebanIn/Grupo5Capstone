@@ -1,0 +1,22 @@
+[
+  {
+    "imagen": "python:3.12-slim",
+    "digest": "sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+    "linux_arm64": true
+  },
+  {
+    "imagen": "pgvector/pgvector:0.8.7-pg17-trixie",
+    "digest": "sha256:01215e09bd4bd582d20230e025b6c971deeeffee49ceef1aae167e839cb62a7e",
+    "linux_arm64": true
+  },
+  {
+    "imagen": "redis:7-alpine",
+    "digest": "sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe",
+    "linux_arm64": true
+  },
+  {
+    "imagen": "caddy:2-alpine",
+    "digest": "sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9",
+    "linux_arm64": true
+  }
+]

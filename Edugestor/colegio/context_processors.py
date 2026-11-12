@@ -20,4 +20,6 @@ def docente_jefatura(request):
 
 def proveedor_ia(request):
     from django.conf import settings
-    return {'ia_proveedor': getattr(request, 'ia_proveedor', request.session.get('ia_proveedor', settings.IA_PROVEEDOR))}
+    from .ia.configuracion import valor
+    nombre = getattr(request, 'ia_proveedor', request.session.get('ia_proveedor', settings.IA_PROVEEDOR))
+    return {'ia_proveedor': nombre, 'ia_modelo': valor(nombre, 'model') or nombre}

@@ -13,3 +13,8 @@ pypdf==6.19.0
 
 httpx==0.28.1
 cryptography==50.0.2
+celery[redis]==5.7.0
+WeasyPrint==68.1
+bleach==6.4.0
+gunicorn==23.0.0
+whitenoise==6.12.0

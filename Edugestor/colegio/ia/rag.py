@@ -111,8 +111,12 @@ def buscar_fragmentos(*, consulta, asignatura, ciclo, nivel, limite=5):
     base = base.filter(Q(documento__nivel=nivel) | Q(documento__nivel__isnull=True))
     from .proveedor import proveedor_activo
     if proveedor_activo() == 'qwen':
-        from .indice_qwen import exigir_indice_completo
-        exigir_indice_completo()
+        from .indice_qwen import huella
+        if not base.exists():
+            raise ErrorIA('El índice Qwen está incompleto: no hay fuentes para esta asignatura y nivel.')
+        if any(f.embedding_qwen is None or f.modelo_embedding_qwen != settings.QWEN_EMBEDDING_MODEL
+               or f.huella_texto_qwen != huella(f.texto) for f in base):
+            raise ErrorIA('El índice Qwen está incompleto para esta asignatura y nivel. Completa su indexación.')
     if not base.exists():
         return []
 

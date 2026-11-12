@@ -1,0 +1,70 @@
+/* Editor de material: hoja visual, con respaldo de texto si JavaScript no carga. */
+.ia-material-panel { max-width: 1200px; }
+.ia-material-intro { margin-bottom: 24px; }
+.ia-material-intro h2 { margin-bottom: 6px; }
+.ia-material-intro p { color: #6b7280; font-size: 14px; line-height: 1.6; }
+.ia-editor { margin-top: 24px; border: 1px solid #dce4df; border-radius: 12px; background: #f4f7f5; }
+.ia-editor-navegacion { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 0 18px; background: #fff; border-radius: 12px 12px 0 0; border-bottom: 1px solid #dce4df; }
+.ia-editor-pestanas { display: flex; align-self: stretch; gap: 14px; }
+.ia-editor button { font: inherit; cursor: pointer; }
+.ia-editor-pestanas button { padding: 18px 2px 15px; border: 0; border-bottom: 3px solid transparent; background: none; color: #647267; font-size: 13px; font-weight: bold; }
+.ia-editor-pestanas button[aria-selected=true] { border-bottom-color: #166534; color: #166534; }
+.ia-editor-preview-boton { padding: 9px 12px; background: #f0fdf4; border: 1px solid #bbdfc7; border-radius: 7px; color: #166534; font-size: 13px !important; white-space: nowrap; }
+.ia-editor-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; position: sticky; top: 12px; z-index: 5; padding: 10px 18px; background: #f9fbfa; border-bottom: 1px solid #dce4df; box-shadow: 0 2px 3px rgba(0,0,0,.02); }
+.ia-editor-toolbar .ia-editor-formato-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.ia-material-form .ia-editor-toolbar select { width: auto; max-width: 170px; margin: 0; padding: 7px 10px; font-size: 13px; }
+.ia-editor-toolbar button { min-width: 34px; min-height: 34px; padding: 5px 9px; color: #374a3d; background: transparent; border: 1px solid transparent; border-radius: 6px; font-size: 14px; }
+.ia-editor-toolbar button:hover { background: #e9f1eb; }
+.ia-editor-toolbar button[aria-pressed=true] { color: #166534; background: #dcfce7; border-color: #a5cbb2; }
+.ia-editor-toolbar-separador { width: 1px; height: 22px; background: #dce4df; margin: 0 6px; }
+.ia-editor-seccion-cabecera { padding: 20px 24px 0; }
+.ia-editor-seccion-cabecera h3 { font-size: 15px; color: #166534; margin-bottom: 5px; }
+.ia-editor-seccion-cabecera p { color: #68776d; font-size: 13px; line-height: 1.6; }
+.ia-editor-papel { width: calc(100% - 48px); max-width: 850px; min-height: 430px; margin: 20px auto; padding: 40px 48px; background: white; border: 1px solid #e2e7e4; box-shadow: 0 3px 12px rgba(32,58,42,.04); border-radius: 3px; overflow-wrap: anywhere; color: #253c2d; font-size: 16px; line-height: 1.8; }
+.ia-editor-papel[contenteditable=true]:focus { outline: 2px solid #a5cbb2; outline-offset: -1px; }
+.ia-editor-papel h1 { font-size: 27px; }
+.ia-editor-papel h2 { font-size: 22px; }
+.ia-editor-papel h3 { font-size: 18px; }
+.ia-editor-papel h1, .ia-editor-papel h2, .ia-editor-papel h3 { color: #166534; line-height: 1.4; margin: 24px 0 12px; }
+.ia-editor-papel > :first-child { margin-top: 0; }
+.ia-editor-papel p, .ia-editor-papel ul, .ia-editor-papel ol, .ia-editor-papel blockquote { margin-bottom: 16px; }
+.ia-editor-papel li { margin-bottom: 5px; }
+.ia-editor-papel blockquote { padding-left: 16px; border-left: 3px solid #bbdfc7; color: #53685a; }
+.ia-editor-papel table { display: block; width: 100%; overflow-x: auto; font-size: 14px; }
+.ia-editor-papel th, .ia-editor-papel td { min-width: 80px; padding: 9px 12px; }
+.ia-editor-papel a { color: #166534; }
+.ia-editor-papel pre { overflow-x: auto; white-space: pre-wrap; }
+.ia-editor-pie { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 14px 24px; border-top: 1px solid #dce4df; color: #6b7280; font-size: 12px; }
+.ia-editor-error { margin: 16px 24px 0; padding: 12px; color: #991b1b; background: #fef2f2; border-radius: 8px; font-size: 14px; }
+.ia-material-revision { padding: 18px; background: #f0f7f2; border: 1px solid #dce9e0; border-radius: 10px; margin: 24px 0 !important; }
+.ia-material-revision small { display: block; margin-top: 5px; font-size: 13px; font-weight: normal; color: #5c6e62; }
+.ia-material-acciones { position: sticky; bottom: 0; z-index: 6; background: #fff; border-top: 1px solid #e5e7eb; padding: 16px 0; }
+.ia-material-estado { margin-right: auto; color: #6b7280; font-size: 13px; }
+.ia-material-estado[data-pendiente=true] { color: #92400e; }
+.ia-editor-preview { width: min(1050px, calc(100% - 32px)); max-height: calc(100vh - 48px); padding: 0; margin: auto; border: 0; border-radius: 14px; background: #f4f7f5; color: #1f2937; }
+.ia-editor-preview::backdrop { background: rgba(15,35,24,.55); }
+.ia-editor-preview-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; background: white; border-bottom: 1px solid #dce4df; }
+.ia-editor-preview-cabecera h2 { margin-bottom: 5px; }
+.ia-editor-preview-cabecera p { font-size: 13px; color: #6b7280; line-height: 1.5; }
+.ia-editor-preview-cabecera button { flex-shrink: 0; }
+.ia-editor-preview .ia-editor-papel { min-height: 300px; }
+@media (max-width: 1100px) {
+    .ia-editor-navegacion { flex-direction: column; align-items: stretch; gap: 12px; padding-bottom: 14px; }
+    .ia-editor-pestanas { justify-content: space-between; gap: 10px; }
+    .ia-editor-preview-boton { align-self: flex-start; }
+}
+@media (max-width: 768px) {
+    .ia-material-panel { padding: 16px; }
+    .ia-editor-pestanas { flex-wrap: wrap; justify-content: flex-start; }
+    .ia-editor-pestanas button { padding-top: 12px; padding-bottom: 10px; }
+    .ia-editor-navegacion, .ia-editor-toolbar { padding-left: 12px; padding-right: 12px; }
+    .ia-editor-toolbar { top: 0; }
+    .ia-editor-toolbar-separador { margin: 0 2px; }
+    .ia-editor-seccion-cabecera { padding: 16px 14px 0; }
+    .ia-editor-papel { width: calc(100% - 20px); margin: 14px auto; padding: 24px 18px; min-height: 320px; }
+    .ia-editor-papel h1 { font-size: 23px; }
+    .ia-editor-papel h2 { font-size: 20px; }
+    .ia-editor-pie { padding: 12px 14px; }
+    .ia-material-estado { flex-basis: 100%; }
+    .ia-editor-preview-cabecera { flex-direction: column; align-items: flex-start; }
+}

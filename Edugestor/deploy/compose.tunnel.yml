@@ -1,0 +1,23 @@
+# Complemento de docker-compose.yml. Requiere Docker Compose >= 2.24.4.
+x-tunel: &tunel
+  DJANGO_SETTINGS_MODULE: config.tunnel
+  DJANGO_SECRET_KEY: ${TUNEL_DJANGO_SECRET:?Genera una clave privada en deploy/.env.tunnel}
+  TUNEL_PUBLIC_HOST: ${TUNEL_PUBLIC_HOST:?Configura el host del túnel}
+  IA_PROVEEDOR: ${IA_PROVEEDOR:-qwen}
+services:
+  web:
+    environment: *tunel
+    ports: !override
+      - '127.0.0.1:8000:8000'
+    command: >-
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000
+      --workers 2 --threads 2 --timeout 70 --log-level warning
+      --access-logfile /dev/null --error-logfile -
+  worker:
+    environment: *tunel
+  beat:
+    environment: *tunel
+  tunnel:
+    image: cloudflare/cloudflared@sha256:b94b96edf2c9c4360f8879c8580cfaa99077f19c849ec595ca2f711b27d4f344
+    command: tunnel --no-autoupdate --protocol http2 --url http://web:8000
+    restart: 'no'

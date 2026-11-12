@@ -1,0 +1,206 @@
+/* El asistente comparte la paleta, tipografía y tarjetas del panel docente. */
+.ia-docente {
+    --ia-acento: #166534;
+    --ia-acento-suave: #dcfce7;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f7fb;
+    color: #1f2937;
+}
+
+.ia-docente .sidebar {
+    display: block;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 20;
+}
+
+.ia-docente .main {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    max-width: none;
+    min-width: 0;
+    padding: 30px;
+}
+
+.ia-marca {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+.ia-marca strong { display: block; margin-top: 4px; color: #166534; }
+.ia-eyebrow { font-size: 12px; color: #6b7280; }
+.ia-proveedor {
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #166534;
+    font-size: 13px;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.ia-orientacion { margin-bottom: 30px; }
+.ia-pasos { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; color: #6b7280; font-size: 13px; }
+.ia-pasos span { display: flex; align-items: center; gap: 8px; }
+.ia-pasos b { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #e5eee8; color: #166534; font-size: 12px; }
+.ia-orientacion .ia-aviso { margin: 14px 0 0; padding: 10px 14px; line-height: 1.5; }
+.ia-encabezado {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+    margin-bottom: 30px;
+}
+.ia-encabezado h1 { display: flex; align-items: center; gap: 10px; color: #166534; font-size: 32px; margin: 0 0 5px; }
+.ia-encabezado p { color: #6b7280; font-size: 16px; line-height: 1.5; max-width: 850px; }
+.ia-inicio-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.ia-contexto { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; min-width: 0; }
+.ia-contexto > span { color: #6b7280; font-size: 13px; text-align: right; overflow-wrap: anywhere; }
+.ia-contexto .ia-proveedor { display: flex; gap: 12px; align-items: center; background: #f0fdf4; border-color: #bbdfc7; }
+.ia-docente .registro-cabecera { background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0, 0, 0, .08); }
+.ia-docente .registro-cabecera h1 { color: #166534; font-size: 28px; }
+.ia-icono { width: 26px; height: 26px; flex-shrink: 0; color: #166534; }
+
+.ia-herramientas-cabecera h2 { color: #166534; font-size: 22px; }
+.ia-herramientas-cabecera p { color: #6b7280; font-size: 14px; }
+.ia-herramientas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-bottom: 30px; }
+.ia-herramienta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 25px;
+    border: 0;
+    border-left: 4px solid #166534;
+    border-radius: 15px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+}
+.ia-herramienta:hover { box-shadow: 0 5px 15px rgba(0, 0, 0, .14); }
+.ia-herramienta-icono { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: #f0fdf4; border-radius: 10px; margin-bottom: 16px; }
+.ia-herramienta h3 { color: #166534; font-size: 18px; margin: 0 0 8px; }
+.ia-herramienta p { color: #6b7280; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+.ia-herramienta > span { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; margin-top: auto; padding: 11px 14px; background: #166534; border-radius: 8px; color: #fff; font-size: 14px; font-weight: bold; }
+.ia-herramienta i { font-style: normal; }
+.ia-herramienta:hover > span { background: #15803d; }
+
+.ia-panel {
+    background: #fff;
+    border: 0;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+    margin-bottom: 25px;
+    min-width: 0;
+}
+.ia-panel h2 { color: #166534; font-size: 20px; }
+.ia-panel-form { max-width: 920px; }
+.ia-metricas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 30px; }
+.ia-metricas > div { background: #fff; padding: 25px; border-left: 4px solid #166534; border-radius: 15px; box-shadow: 0 5px 15px rgba(0, 0, 0, .08); min-width: 0; }
+.ia-metricas strong { display: block; font-size: 32px; color: #166534; margin: 6px 0 4px; }
+.ia-metricas span, .ia-metricas small { display: block; font-size: 13px; color: #6b7280; line-height: 1.5; }
+.ia-metricas span { text-transform: uppercase; letter-spacing: .5px; font-size: 12px; }
+.ia-metricas small { font-size: 12px; }
+.ia-seccion { display: flex; justify-content: space-between; gap: 15px; align-items: baseline; margin-bottom: 12px; }
+.ia-seccion a { color: #166534; }
+.ia-tabla-scroll, .ia-rubrica-scroll { overflow-x: auto; }
+.ia-tabla { min-width: 560px; }
+.ia-tabla th { background: #166534; color: #fff; padding: 12px; }
+.ia-tabla td { padding: 14px 12px; }
+.ia-tabla small { display: block; color: #6b7280; margin-top: 5px; }
+.ia-paginacion { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 24px; font-size: 13px; color: #6b7280; }
+.ia-vacio { color: #6b7280; font-size: 14px; line-height: 1.6; }
+.ia-cobertura summary { color: #166534; font-size: 16px; font-weight: bold; cursor: pointer; }
+.ia-cobertura p, .ia-cobertura ul { color: #6b7280; font-size: 14px; line-height: 1.7; margin-top: 16px; }
+.ia-cobertura ul { padding-left: 20px; }
+
+.ia-form input:not([type=radio]):not([type=checkbox]), .ia-form select, .ia-form textarea {
+    color: #1f2937;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px 12px;
+    max-width: 100%;
+}
+.ia-form .campo { margin-bottom: 20px; }
+.ia-form label { color: #374151; }
+.ia-form .ayuda { line-height: 1.5; }
+.ia-boton { background: #166534; color: #fff; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: bold; }
+.ia-boton.secundario { color: #166534; background: #fff; border-color: #166534; }
+.ia-acciones { gap: 12px; flex-wrap: wrap; }
+.ia-acciones form { margin: 0; }
+.ia-revision { display: flex !important; gap: 10px; align-items: flex-start; margin: 15px 0; line-height: 1.5; }
+.ia-revision input { flex-shrink: 0; margin-top: 3px; }
+.ia-trabajos-lista { list-style: none; padding: 0; }
+.ia-trabajos-lista li { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding: 16px 0; border-top: 1px solid #e5e7eb; }
+.ia-trabajos-lista li:last-child { padding-bottom: 0; }
+.ia-trabajos-lista a { color: #166534; text-decoration: none; line-height: 1.5; }
+.ia-trabajos-lista a:hover strong { text-decoration: underline; }
+.ia-trabajos-lista small { display: block; color: #6b7280; font-size: 12px; margin-top: 4px; }
+.ia-trabajos-lista .ia-estado { flex-shrink: 0; }
+.ia-estado.completado { background: #dcfce7; color: #166534; }
+.ia-estado.error { background: #fef2f2; color: #991b1b; }
+.ia-estado.pendiente { background: #fef3c7; color: #92400e; }
+.ia-estado.preparando, .ia-estado.generando, .ia-estado.validando { background: #eff6ff; color: #1e40af; }
+
+.ia-etapas { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }
+.ia-etapas li { padding: 8px 12px; border-bottom: 3px solid #e5e7eb; color: #6b7280; }
+.ia-etapas li[aria-current=true] { border-color: #166534; color: #166534; font-weight: bold; }
+.ia-estado-trabajo { display: inline-block; margin-bottom: 15px; font-weight: bold; color: #166534; }
+[data-trabajo][data-etapa=error] .ia-estado-trabajo { color: #991b1b; }
+.ia-espera { height: 4px; background: linear-gradient(90deg, #e5e7eb 20%, #166534 50%, #e5e7eb 80%); background-size: 200% 100%; animation: ia-espera 1.8s linear infinite; margin: 18px 0; }
+[data-trabajo][data-etapa=completado] .ia-espera { animation: none; background: #166534; }
+[data-trabajo][data-etapa=error] .ia-espera { display: none; }
+#trabajo-mensaje, #trabajo-conexion { line-height: 1.5; margin-bottom: 8px; }
+#trabajo-actividad { color: #6b7280; padding-left: 20px; margin: 15px 0; line-height: 1.6; }
+[hidden] { display: none !important; }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #86b89a; outline-offset: 3px; }
+@keyframes ia-espera { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .ia-espera { animation: none; } }
+
+@media (max-width: 1450px) {
+    .ia-herramientas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1279px) {
+    .ia-inicio-cabecera { align-items: flex-start; }
+    .ia-contexto { max-width: 230px; }
+}
+@media (max-width: 1100px) {
+    .ia-inicio-cabecera { flex-direction: column; gap: 16px; }
+    .ia-contexto { flex-direction: row; align-items: center; flex-wrap: wrap; max-width: none; }
+    .ia-contexto > span { text-align: left; }
+}
+@media (max-width: 1000px) {
+    .ia-docente .main { padding: 24px; }
+    .ia-metricas { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .ia-docente .sidebar { position: relative; top: auto; bottom: auto; width: 100%; height: auto; padding: 16px; overflow: visible; }
+    .ia-docente .sidebar .logo { margin-bottom: 14px; font-size: 25px; }
+    .ia-docente .sidebar .menu { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ia-docente .sidebar .menu li { margin: 0; }
+    .ia-docente .sidebar .menu a { padding: 9px 10px; font-size: 13px; }
+    .ia-docente .sidebar .ia-proveedor-lateral { position: static; margin-top: 15px; }
+    .ia-docente .main { margin-left: 0; width: 100%; max-width: none; padding: 20px 15px; }
+    .ia-marca { align-items: flex-start; flex-wrap: wrap; }
+    .ia-pasos { gap: 12px; font-size: 12px; }
+    .ia-encabezado, .ia-panel { padding: 20px; }
+    .ia-encabezado h1 { font-size: 25px; }
+    .ia-herramientas { grid-template-columns: 1fr; }
+    .ia-herramientas-cabecera { gap: 6px; }
+    .ia-seccion { flex-direction: column; align-items: flex-start; }
+    .ia-trabajos-lista li { gap: 8px; }
+}
+@media print {
+    .ia-docente .main { width: 100%; max-width: none; }
+    .ia-panel, .ia-encabezado { box-shadow: none; }
+}
