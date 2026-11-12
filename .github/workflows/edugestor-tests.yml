@@ -70,3 +70,5 @@ jobs:
           python manage.py makemigrations --check --dry-run
       - name: Ejecutar pruebas sin proveedores externos
         run: python manage.py test colegio --noinput
+      - name: Comprobar Worker de Cloudflare
+        run: node --test deploy/cloudflare/worker.test.mjs

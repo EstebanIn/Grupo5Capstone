@@ -1,0 +1,10 @@
+[Unit]
+Description=Respaldo cifrado de EduGestor fuera de la VM
+After=docker.service network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/edugestor-backup.env
+ExecStart=/bin/bash /opt/edugestor/Edugestor/deploy/backup.sh
+UMask=0077
+Nice=10

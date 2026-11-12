@@ -13,6 +13,7 @@ private/
 staticfiles/
 deploy/.env.production
 deploy/.env.backup
+!deploy/.env.production.example
 *.dump
 
 knowledge/procesados/*.qwen.json

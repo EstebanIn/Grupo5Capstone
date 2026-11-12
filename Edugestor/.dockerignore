@@ -2,6 +2,7 @@
 .env.*
 deploy/.env.production
 deploy/.env.backup
+!deploy/.env.production.example
 !.env.example
 .ia-credentials.*
 .ia-credentials.key

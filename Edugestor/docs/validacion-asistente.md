@@ -1,6 +1,6 @@
 # Evidencia del asistente docente
 
-Rama basada en `origin/main` actualizado a `2dfa267`. Implementación y QA ejecutadas en el checkout de seguimiento, con PostgreSQL y Redis exclusivos del proyecto Compose `edugestor-asistente-qa`, puerto `127.0.0.1:8002`. La base, archivos, credenciales y documentos de la instalación habitual no se migraron ni reemplazaron.
+Rama iniciada desde `origin/main` en `2dfa267` y actualizada antes del push a `91ec381`, que solo incorpora la limpieza de un archivo ajeno a la aplicación. Implementación y QA ejecutadas en el checkout de seguimiento, con PostgreSQL y Redis exclusivos del proyecto Compose `edugestor-asistente-qa`, puerto `127.0.0.1:8002`. La base, archivos, credenciales y documentos de la instalación habitual no se migraron ni reemplazaron.
 
 ## Verificación local observada
 
@@ -15,6 +15,8 @@ Rama basada en `origin/main` actualizado a `2dfa267`. Implementación y QA ejecu
 | PDF | Siete muestras sintéticas: materiales largos estudiante/docente, pruebas de 3, 12 y 20 preguntas y rúbrica de 4° básico. Render a PNG y revisión visual; A4, cabeceras y páginas, sin localhost. La versión estudiantil excluye los campos de pauta antes de renderizar; se verificó también ausencia de marcadores reservados en el texto del PDF. |
 | ARM | Manifiestos de Python, PostgreSQL/pgvector, Redis y Caddy incluyen `linux/arm64`; digest registrados en `deploy/imagenes-arm-verificadas.json`. Todavía no se ejecutaron en una VM ARM Oracle. |
 | Producción | Compose valida sin resolver archivos de secretos. `check --deploy` con valores sintéticos conserva dos avisos de política HSTS (subdominios y preload), que deben decidirse para el host definitivo. |
+| Estáticos y Caddy | `collectstatic`: 150 archivos copiados y 710 procesados, sin error. La imagen Caddy fijada valida su configuración con valores sintéticos; el host público se fija explícitamente en el salto a Django. |
+| Ajuste final de copias | Las tres pruebas de vistas de documentos volvieron a pasar tras añadir idempotencia a la creación de copias; un reenvío conserva una sola copia. |
 
 La captura de progreso corresponde a una respuesta simulada que atravesó un worker real; no acredita una respuesta de Gemini o Qwen. Las pruebas reales quedan a cargo del docente desde Registro de IA, según [la guía manual](pruebas-manuales-asistente.md). No se extrajeron conexiones personales ni se ejecutaron llamadas reales en esta validación.
 
