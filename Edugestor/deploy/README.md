@@ -54,4 +54,8 @@ En otra carpeta privada, usar `restic restore latest --tag edugestor --target /R
 
 ## Evidencia pendiente de infraestructura
 
+Para el acceso temporal desde el computador propio, utilizar el [perfil de túnel HTTPS](TUNNEL.md). Ese perfil mantiene la dependencia del equipo y es independiente del Worker/Oracle preparados aquí.
+
+La [biblioteca curricular](../docs/biblioteca-curricular.md) añade el volumen persistente `biblioteca`. El respaldo `indices.tar` incluye `procesados/` y `biblioteca/`; restaurar ambos junto a la base PostgreSQL. El catálogo público se actualiza con worker y un solo beat activos. La búsqueda textual inicial no consume embeddings; la generación sigue sujeta a las cuentas Gemini/Qwen elegidas.
+
 Comprobar desde un celular con datos móviles: login, POST con CSRF, adjuntos y descarga de ambas versiones. Verificar que entrar directamente por DuckDNS devuelve 403, que no se cachean sesiones/documentos y que la dirección pública funciona con el computador local apagado. Reiniciar la VM y comprobar documentos e índices. Registrar los resultados y la restauración; un build o un push no sustituyen estas pruebas.

@@ -17,6 +17,8 @@ Abre <http://127.0.0.1:8000/>. En una base nueva, sigue la guía para generar da
 
 Las claves API, la clave de cifrado de sesiones y los datos locales se mantienen fuera del cambio. El flujo de GitHub Actions comprueba migraciones y pruebas con PostgreSQL/pgvector, sin claves de proveedores.
 
+La ampliación incluye una [biblioteca curricular portable](Edugestor/docs/biblioteca-curricular.md), [edición de materiales y apoyos visuales](Edugestor/docs/materiales-visuales.md) y [acceso temporal mediante el computador propio](Edugestor/deploy/TUNNEL.md). Consulte la [evidencia de validación](Edugestor/docs/validacion-publicacion.md) para distinguir pruebas automatizadas, revisión visual y pruebas reales de proveedores.
+
 ## GitHub Actions
 
 Los flujos se conservan en `.github/workflows/`, en la raíz del repositorio: GitHub solo los descubre allí. `edugestor-tests.yml` se ejecuta al publicar cambios de la aplicación en `main` o `codex/**`, al abrir un PR y manualmente desde **Actions → EduGestor · pruebas → Run workflow**.

@@ -1,5 +1,7 @@
 # Evidencia del asistente docente
 
+Esta página conserva la evidencia inicial de los cinco commits de implementación. La ampliación y sus comprobaciones más recientes están en [validacion-publicacion.md](validacion-publicacion.md).
+
 Rama iniciada desde `origin/main` en `2dfa267` y actualizada antes del push a `91ec381`, que solo incorpora la limpieza de un archivo ajeno a la aplicación. Implementación y QA ejecutadas en el checkout de seguimiento, con PostgreSQL y Redis exclusivos del proyecto Compose `edugestor-asistente-qa`, puerto `127.0.0.1:8002`. La base, archivos, credenciales y documentos de la instalación habitual no se migraron ni reemplazaron.
 
 ## Verificación local observada
