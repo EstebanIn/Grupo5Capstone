@@ -23,6 +23,14 @@ def anotar(**datos):
     if actual is not None:
         actual.update(datos)
 
+
+def anotar_error(error):
+    actual = _operacion.get()
+    if actual is not None:
+        diagnostico = actual.get('diagnostico')
+        if diagnostico and diagnostico.get('categoria') == 'ok':
+            diagnostico['categoria'] = error.categoria
+
 def anotar_fuentes(fragmentos):
     # Solo referencias del corpus público, nunca mensajes del usuario.
     anotar(fuentes=[{
@@ -45,9 +53,10 @@ def registrar_operacion(usuario, proveedor, operacion):
     inicio = monotonic()
     try:
         yield
-    except Exception:
+    except Exception as error:
+        from .proveedor import ErrorIA
         datos['estado'] = 'ERROR'
-        datos.setdefault('detalle', 'No fue posible completar la operación.')
+        datos.setdefault('detalle', str(error) if isinstance(error, ErrorIA) else 'No fue posible completar la operación.')
         raise
     finally:
         _operacion.reset(token)
@@ -62,4 +71,5 @@ def registrar_operacion(usuario, proveedor, operacion):
                 huella_entrada=datos.get('huella_entrada', ''),
                 archivos=datos['archivos'], fuentes=datos['fuentes'], lectura=datos['lectura'],
                 detalle=datos.get('detalle', '')[:400],
+                diagnostico=datos.get('diagnostico', {}),
             )

@@ -60,10 +60,13 @@ jobs:
           cache: pip
           cache-dependency-path: Edugestor/requirements.txt
       - name: Instalar dependencias
-        run: python -m pip install -r requirements.txt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu-core
+          python -m pip install -r requirements.txt
       - name: Comprobar Django y migraciones
         run: |
           python manage.py check
           python manage.py makemigrations --check --dry-run
       - name: Ejecutar pruebas sin proveedores externos
-        run: python manage.py test colegio.tests_catalogo_modelos colegio.tests_conexiones colegio.tests_proveedores colegio.tests --noinput
+        run: python manage.py test colegio --noinput

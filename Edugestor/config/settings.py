@@ -156,8 +156,28 @@ USE_L10N = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    *([BASE_DIR / 'static'] if (BASE_DIR / 'static').is_dir() else []),
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Redis solo transporta UUID de trabajo; sesiones y claves permanecen en PostgreSQL.
+CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SOFT_TIME_LIMIT = 285
+CELERY_TASK_TIME_LIMIT = 300
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = False
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 360}
+CELERY_BEAT_SCHEDULE = {'recuperar-trabajos': {'task': 'colegio.tasks.limpiar_trabajos', 'schedule': 60.0}}
+IA_ARCHIVOS_PRIVADOS = Path(os.environ.get('IA_ARCHIVOS_PRIVADOS', str(BASE_DIR / 'private' / 'ia')))
+QWEN_CONNECT_TIMEOUT = 10
+QWEN_READ_TIMEOUT = 30
+QWEN_TOTAL_TIMEOUT = 180
+QWEN_MODELOS_SIN_RAZONAMIENTO = ('qwen3.8-flash', 'qwen-plus', 'qwen-turbo', 'qwen3-235b-a22b', 'qwen3-32b')
 AUTH_USER_MODEL = 'colegio.Usuario'
 
 # Asistentes de IA (Gemini). Sin GEMINI_API_KEY se usa el proveedor simulado,

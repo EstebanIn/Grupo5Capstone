@@ -97,13 +97,14 @@ class ConexionVistaTests(TestCase):
         from types import SimpleNamespace
         propias = leer_conexiones(SimpleNamespace(user=self.docente, session=self.client.session))
         respuesta = mock.Mock(status_code=200)
-        respuesta.json.return_value = {'choices':[{'message':{'content':'{"estado":"ok"}'}}]}
-        cliente_http = mock.MagicMock(); cliente_http.__enter__.return_value.post.return_value = respuesta
+        respuesta.headers = {}
+        respuesta.iter_lines.return_value = ['data: '+json.dumps({'choices':[{'delta':{'content':'{"estado":"ok"}'}, 'finish_reason':'stop'}]}), 'data: [DONE]']
+        cliente_http = mock.MagicMock(); cliente_http.stream.return_value.__enter__.return_value = respuesta
         from .ia.proveedor import generar
         from .ia.ejecucion import usar_proveedor
         with usar_configuraciones(propias), usar_proveedor('qwen'), mock.patch('colegio.ia.qwen.httpx.Client', return_value=cliente_http):
             generar('JSON', [], ejemplo={}, formato_json=True)
-        llamada = cliente_http.__enter__.return_value.post.call_args
+        llamada = cliente_http.stream.call_args
         self.assertEqual(llamada.kwargs['headers']['Authorization'], 'Bearer ' + CLAVE)
         self.assertEqual(llamada.kwargs['json']['model'], 'qwen-personal')
         otro = Client(); otro.force_login(self.otro)
