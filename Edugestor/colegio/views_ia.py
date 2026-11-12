@@ -17,6 +17,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
 from django.db.models import Avg, Count
+from django.db import transaction
+from .ia.pedagogia import revisar_rubrica
 
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -87,6 +89,10 @@ def _contexto_base(request, **extra):
 @solo_rol("DOCENTE")
 
 def asistente_docente(request):
+    from .ia.trabajos import limpiar
+    from .models import TrabajoIA
+    limpiar()
+
 
     docente = get_object_or_404(Docente, usuario=request.user)
 
@@ -103,6 +109,8 @@ def asistente_docente(request):
 
         instrumentos=instrumentos[:30],
 
+        trabajos=TrabajoIA.objects.filter(usuario=request.user, institucion=request.institucion)[:10],
+        cobertura=_cobertura_docente(docente),
         total_generados=instrumentos.count(),
 
         total_aprobados=aprobados.count(),
@@ -239,49 +247,34 @@ def ia_revisar_prueba(request):
         request, docente=docente, form=formulario, revision=None, **extra))
 
 
+def _fragmentos_docentes(contexto, d):
+    fragmentos = []
+    if proveedor_activo() in ('gemini', 'qwen'):
+        fragmentos = rag.buscar_fragmentos(consulta='\n'.join((contexto['asignatura'], contexto['nivel'], d.get('objetivo', ''), d.get('actividad', d.get('tema', '')))),
+            asignatura=contexto['asignatura'], ciclo=d['carga'].curso.ciclo, nivel=d['carga'].curso.nivel)
+    anotar_fuentes(fragmentos)
+    return fragmentos
+
+
 def _generar_rubrica_con_rag(contexto, d):
     return asistentes.crear_rubrica(contexto, d['objetivo'], d['actividad'], d['criterios'], d['niveles'])
 
 
 def _generar_material_con_rag(contexto, d):
-    return asistentes.crear_material(contexto, d['objetivo'], d['tema'], d['tipo'])
+    return asistentes.crear_material(contexto, d['objetivo'], d['tema'], d['tipo'], fragmentos=_fragmentos_docentes(contexto, d))
 
 
-def _contenido_desde_post(tipo, post):
-
-    """Reconstruye el contenido editado por el docente a partir del formulario."""
-
-    if tipo == InstrumentoIA.TIPO_PRUEBA:
-
-        indices = sorted({int(clave[1:].split("_")[0]) for clave in post if clave.endswith("_enunciado")})
-
-        preguntas = [
-
-            {
-
-                "enunciado": post.get(f"p{i}_enunciado", ""),
-
-                "alternativas": [post.get(f"p{i}_alt{j}", "") for j in range(4)],
-
-                "correcta": post.get(f"p{i}_correcta", "0"),
-
-                "explicacion": post.get(f"p{i}_explicacion", ""),
-
-            }
-
-            for i in indices if not post.get(f"p{i}_eliminar")
-
-        ]
-
-        return asistentes.validar_prueba({
-
-            "titulo": post.get("titulo", ""), "instrucciones": post.get("instrucciones", ""),
-
-            "preguntas": preguntas,
-
-        })
-
-
+def _contenido_desde_post(tipo, post, *, validar=True):
+    import re
+    base = {'titulo': post.get('titulo', '').strip()[:200]}
+    if tipo == 'PRUEBA':
+        indices = sorted({int(m[1]) for k in post if (m := re.fullmatch(r'p(\d{1,2})_enunciado', k))})[:20]
+        base.update(instrucciones=post.get('instrucciones', ''), preguntas=[{
+            'enunciado': post.get(f'p{i}_enunciado', ''),
+            'alternativas': [post.get(f'p{i}_alt{j}', '') for j in range(4)],
+            'correcta': int(post.get(f'p{i}_correcta', '0')) if post.get(f'p{i}_correcta', '0') in ('0','1','2','3') else None, 'explicacion': post.get(f'p{i}_explicacion', '')}
+            for i in indices if not post.get(f'p{i}_eliminar')])
+        return asistentes.validar_prueba(base) if validar else base
     if tipo == InstrumentoIA.TIPO_RUBRICA:
 
         niveles = [post[clave] for clave in sorted(
@@ -315,43 +308,67 @@ def _contenido_desde_post(tipo, post):
         })
 
 
-    texto = post.get("texto", "").strip()
+    base.update({k: post.get(k, '') for k in ('contenido', 'ejercicios', 'solucionario', 'separacion_revisada')})
+    return asistentes.validar_material(base) if validar else base
 
-    if not texto:
 
-        raise ErrorIA("El material no puede quedar vacío.")
-
-    return {"titulo": post.get("titulo", "").strip()[:200] or "Material de estudio", "texto": texto}
+def _cobertura_docente(docente):
+    from .models import FragmentoCurricular
+    from django.db.models import Q
+    from .ia.indice_qwen import huella
+    filas = []
+    for carga in dominio.cargas_docente(docente).select_related('curso', 'asignatura'):
+        base = FragmentoCurricular.objects.filter(documento__activo=True,
+            documento__asignatura__iexact=carga.asignatura.nombre_asignatura,
+            documento__ciclo__in=(carga.curso.ciclo, '')).filter(
+            Q(documento__nivel=carga.curso.nivel) | Q(documento__nivel__isnull=True))
+        total = base.count()
+        disponibles = total if proveedor_activo() != 'qwen' else sum(
+            1 for f in base if f.embedding_qwen is not None and
+            f.modelo_embedding_qwen == valor('qwen', 'embedding_model') and f.huella_texto_qwen == huella(f.texto))
+        filas.append({'carga': carga, 'total': total, 'disponibles': disponibles})
+    return filas
 
 
 @solo_rol("DOCENTE")
 
+@transaction.atomic
 def ia_instrumento(request, pk):
 
     docente = get_object_or_404(Docente, usuario=request.user)
 
     instrumento = get_object_or_404(
 
-        InstrumentoIA.objects.select_related("carga__curso", "carga__asignatura"), pk=pk, docente=docente)
+        InstrumentoIA.objects.select_for_update().select_related("carga__curso", "carga__asignatura"), pk=pk, docente=docente)
 
 
+    contenido_pantalla = instrumento.contenido
     if request.method == "POST" and instrumento.estado == InstrumentoIA.ESTADO_BORRADOR:
 
         try:
 
             contenido = _contenido_desde_post(instrumento.tipo, request.POST)
 
-        except ErrorIA as error:
+        except (ErrorIA, ValueError) as error:
+            contenido_pantalla = _contenido_desde_post(instrumento.tipo, request.POST, validar=False)
 
             messages.error(request, f"No se guardó: {error} Revisa que no queden campos vacíos.")
 
         else:
-
+            for clave in ('fuentes', 'rag_aplicado', 'objetivo_personalizado'):
+                if clave in instrumento.contenido_ia:
+                    contenido[clave] = instrumento.contenido_ia[clave]
+            if request.POST.get('accion') == 'aprobar':
+                if instrumento.tipo == 'MATERIAL' and not contenido.get('separacion_revisada'):
+                    messages.error(request, 'Revisa la separación de ejercicios y solucionario antes de aprobar.')
+                    return render(request, 'colegio/ia/instrumento.html', _contexto_base(request, docente=docente,
+                        instrumento=instrumento, contenido=contenido, editable=True))
             if "fuentes" in instrumento.contenido_ia:
 
                 contenido["fuentes"] = instrumento.contenido_ia["fuentes"]
 
                 contenido["rag_aplicado"] = instrumento.contenido_ia.get("rag_aplicado", False)
+                contenido["objetivo_personalizado"] = instrumento.contenido_ia.get("objetivo_personalizado", True)
 
             instrumento.contenido = contenido
 
@@ -382,9 +399,10 @@ def ia_instrumento(request, pk):
 
     return render(request, "colegio/ia/instrumento.html", _contexto_base(
 
-        request, docente=docente, instrumento=instrumento, contenido=instrumento.contenido,
+        request, docente=docente, instrumento=instrumento, contenido=contenido_pantalla,
 
-        editable=instrumento.estado == InstrumentoIA.ESTADO_BORRADOR))
+        editable=instrumento.estado == InstrumentoIA.ESTADO_BORRADOR,
+        revision_rubrica=revisar_rubrica(contenido_pantalla, instrumento.objetivo) if instrumento.tipo == 'RUBRICA' else []))
 
 
 @solo_rol("DOCENTE")

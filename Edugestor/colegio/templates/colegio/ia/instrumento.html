@@ -4,6 +4,7 @@
 {% block titulo %}{{ instrumento.titulo }}{% endblock %}
 
 {% block contenido %}
+{% firstof contenido.contenido contenido.texto as texto_material %}
 <a class="ia-volver ia-no-imprimir" href="{% url 'asistente_docente' %}">← Asistente IA</a>
 
 <div class="ia-encabezado">
@@ -18,8 +19,8 @@
     {% if instrumento.objetivo %}<p><strong>OA:</strong> {{ instrumento.objetivo }}</p>{% endif %}
 </div>
 
-{% if instrumento.tipo == 'PRUEBA' %}
 <div class="ia-panel ia-no-imprimir">
+    <p><strong>Objetivo personalizado:</strong> contrástalo con el OA y la actividad antes de aprobar.</p>
     {% if contenido.rag_aplicado %}
     <strong>Fuentes curriculares consultadas</strong>
     <ul>
@@ -29,7 +30,6 @@
     </ul>
     {% else %}<p>No se aplicó RAG: el modo está simulado o aún no hay documentos oficiales indexados para este curso.</p>{% endif %}
 </div>
-{% endif %}
 
 {% if editable %}
 {# ======================= EDICIÓN DEL BORRADOR ======================= #}
@@ -111,12 +111,17 @@
         </div>
 
         {% else %}
-        <div class="campo">
-            <label for="texto">Contenido (Markdown: # títulos, **negrita**, - listas)</label>
-            <textarea id="texto" name="texto" rows="24" required>{{ contenido.texto }}</textarea>
-        </div>
+        <div class="campo"><label for="contenido">Explicación y ejemplos resueltos (Markdown)</label>
+<textarea id="contenido" name="contenido" rows="16" required>{{ texto_material }}</textarea></div>
+<div class="campo"><label for="ejercicios">Ejercicios propuestos sin respuestas</label><textarea id="ejercicios" name="ejercicios" rows="8">{{ contenido.ejercicios }}</textarea></div>
+<div class="campo"><label for="solucionario">Solucionario docente</label><textarea id="solucionario" name="solucionario" rows="8">{{ contenido.solucionario }}</textarea></div>
+<label><input type="checkbox" name="separacion_revisada" {% if contenido.separacion_revisada %}checked{% endif %}> Revisé que las respuestas de los ejercicios están en el solucionario. Los ejemplos resueltos explicativos se conservan.</label>
         {% endif %}
 
+        {% if instrumento.tipo == 'RUBRICA' %}
+        <h2>Revisión previa docente</h2><p>El sistema comprueba la estructura. La aprobación pedagógica te corresponde.</p>
+        {% for item in revision_rubrica %}<label class="ia-revision"><input type="checkbox" name="revision_{{ forloop.counter0 }}"> <span><strong>{{ item.eje }}</strong> · {{ item.detalle }}</span></label>{% endfor %}
+        {% endif %}
         <div class="ia-acciones">
             {% if instrumento.tipo == 'PRUEBA' %}
             <a class="ia-boton secundario" href="{% url 'ia_revisar_prueba' %}?instrumento={{ instrumento.pk }}"
@@ -126,25 +131,23 @@
             <button type="submit" name="accion" value="aprobar" class="ia-boton"
                     onclick="return confirm('¿Aprobar este documento? Después no podrás editarlo.')">Aprobar</button>
         </div>
-        <p class="ayuda" style="margin-top:10px">Al aprobar se registra qué porcentaje del borrador corregiste. Es la medida que usamos para evaluar la calidad del asistente.</p>
+        <p class="ayuda" style="margin-top:10px">Al aprobar se registra qué porcentaje del borrador corregiste. Describe la edición del texto y no acredita calidad pedagógica.</p>
     </div>
 </form>
 
 {% else %}
 {# ======================= DOCUMENTO APROBADO ======================= #}
-<div class="ia-acciones ia-no-imprimir" style="margin-bottom:16px">
-    {% if instrumento.tipo == 'PRUEBA' %}
-    <a class="ia-boton" href="{% url 'ia_corregir_prueba' instrumento.pk %}">✅ Corregir pruebas de alumnos</a>
-    <button type="button" class="ia-boton secundario" id="exportar-prueba-pdf">📄 Exportar prueba para alumnos (PDF)</button>
-    {% endif %}
-    <button type="button" class="ia-boton secundario" onclick="window.print()">Imprimir</button>
-    {% if instrumento.tipo == 'PRUEBA' %}
-    <label style="display:flex; gap:6px; align-items:center; font-size:14px">
-        <input type="checkbox" id="con-pauta" checked> Mostrar respuestas y explicaciones (pauta)
-    </label>
-    <span class="ayuda">Al exportar, se ocultan las respuestas. En el diálogo del navegador elige «Guardar como PDF».</span>
-    {% endif %}
-</div>
+<div class="ia-panel ia-no-imprimir"><h2>Documento aprobado · Exportar</h2>
+<div class="ia-acciones">
+{% if instrumento.tipo == 'PRUEBA' %}<a class="ia-boton" href="{% url 'ia_corregir_prueba' instrumento.pk %}">Corregir respuestas</a>{% endif %}
+{% if instrumento.tipo != 'MATERIAL' or contenido.separacion_revisada %}
+<form method="post" action="{% url 'ia_exportar' instrumento.pk %}">{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ idempotencia }}"><input type="hidden" name="version" value="estudiante"><button class="ia-boton" type="submit">Descargar PDF estudiante</button></form>
+<a class="ia-boton secundario" href="{% url 'ia_imprimir' instrumento.pk 'estudiante' %}" target="_blank" rel="noopener">Imprimir estudiante</a>
+{% endif %}
+<form method="post" action="{% url 'ia_exportar' instrumento.pk %}">{% csrf_token %}<input type="hidden" name="version" value="docente"><button class="ia-boton secundario" type="submit">PDF pauta docente</button></form>
+<a class="ia-boton secundario" href="{% url 'ia_imprimir' instrumento.pk 'docente' %}" target="_blank" rel="noopener">Imprimir pauta docente</a>
+<form method="post" action="{% url 'ia_copiar' instrumento.pk %}">{% csrf_token %}<button class="ia-boton secundario" type="submit">Crear copia editable</button></form>
+</div>{% if instrumento.tipo == 'MATERIAL' and not contenido.separacion_revisada %}<p>Este material conserva su versión original. Crea una copia editable, separa el solucionario y revísala para habilitar la exportación estudiantil.</p>{% endif %}</div>
 
 <div class="ia-panel ia-lectura" id="documento">
     {% if instrumento.tipo == 'PRUEBA' %}
@@ -183,7 +186,7 @@
     </div>
 
     {% else %}
-    <div class="ia-markdown">{{ contenido.texto|markdown_seguro }}</div>
+    <div class="ia-markdown">{{ texto_material|markdown_seguro }}{% if contenido.ejercicios %}<h2>Ejercicios propuestos</h2>{{ contenido.ejercicios|markdown_seguro }}{% endif %}{% if contenido.solucionario %}<h2>Solucionario docente</h2>{{ contenido.solucionario|markdown_seguro }}{% endif %}</div>
     {% endif %}
 </div>
 {% endif %}
@@ -194,42 +197,4 @@
     <button type="submit" class="ia-boton peligro">Eliminar</button>
 </form>
 
-<script>
-    (function () {
-        var casilla = document.getElementById("con-pauta");
-        var documento = document.getElementById("documento");
-        if (casilla && documento) {
-            function aplicar() { documento.classList.toggle("sin-pauta", !casilla.checked); }
-            casilla.addEventListener("change", aplicar);
-            aplicar();
-
-            var botonExportar = document.getElementById("exportar-prueba-pdf");
-            if (botonExportar) {
-                var pautaOriginal;
-                botonExportar.addEventListener("click", function () {
-                    pautaOriginal = casilla.checked;
-                    casilla.checked = false;
-                    aplicar();
-                    window.addEventListener("afterprint", function restaurarPauta() {
-                        casilla.checked = pautaOriginal;
-                        aplicar();
-                        window.removeEventListener("afterprint", restaurarPauta);
-                    });
-                    window.print();
-                });
-            }
-        }
-    })();
-</script>
-<style>
-    .ia-lectura .pauta-correcta { color: var(--ia-acento); font-weight: bold; }
-    .ia-lectura.sin-pauta .pauta-correcta { color: inherit; font-weight: normal; }
-    .ia-lectura.sin-pauta .pauta { display: none; }
-    @media print {
-        @page { size: A4; margin: 18mm; }
-        body { color: #111827; background: #fff; }
-        .ia-lectura { color: #111827; font-size: 12pt; }
-        .ia-lectura li { break-inside: avoid; }
-    }
-</style>
 {% endblock %}

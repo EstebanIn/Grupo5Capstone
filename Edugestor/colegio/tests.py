@@ -1424,7 +1424,7 @@ class AsistenteDocenteTests(AsistenteIATestBase):
         })
         instrumento = InstrumentoIA.objects.get(tipo=InstrumentoIA.TIPO_MATERIAL)
         self.client.post(reverse("ia_instrumento", args=[instrumento.pk]), {
-            "accion": "aprobar", "titulo": instrumento.titulo, "texto": instrumento.contenido["texto"],
+            "accion": "aprobar", **instrumento.contenido, "separacion_revisada": "on",
         })
 
         response = self.client.get(reverse("ia_instrumento", args=[instrumento.pk]))

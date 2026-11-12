@@ -1,0 +1,46 @@
+{% load ia_extras %}<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>{{ documento.titulo }}</title>
+<style>
+@page { size: A4 {% if horizontal %}landscape{% else %}portrait{% endif %}; margin: 23mm 15mm 20mm;
+  @top-left { content: element(encabezado); }
+  @bottom-right { content: 'Página ' counter(page) ' de ' counter(pages); font-size: 9pt; color: #475569; }
+}
+* { box-sizing: border-box; } body { font-family: 'DejaVu Sans', sans-serif; color: #172c25; font-size: 11pt; line-height: 1.45; }
+header { position: running(encabezado); color: #166044; font-size: 10pt; border-bottom: 1px solid #166044; padding-bottom: 3mm; }
+h1 { font-size: 18pt; line-height: 1.2; color: #145c40; margin: 0 0 5mm; }
+h2 { font-size: 13pt; margin-top: 6mm; break-after: avoid; } h3 { font-size: 11pt; break-after: avoid; }
+.metadatos { padding: 3mm; background: #f1f7f3; margin-bottom: 4mm; } .metadatos p { margin: 1mm 0; }
+.estudiante { border-bottom: 1px solid #71847a; padding: 3mm 0; margin-bottom: 5mm; }
+thead { display: table-header-group; } table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th, td { border: 1px solid #81988b; padding: 2.5mm; vertical-align: top; overflow-wrap: anywhere; }
+th { background: #e4f0e8; } tr { break-inside: avoid; } .rubrica { font-size: 10pt; line-height: 1.35; }
+.pregunta { break-inside: avoid; margin: 0 0 5mm; } .alternativas { list-style-type: upper-alpha; }
+.pauta { border-left: 3px solid #166044; padding-left: 3mm; margin-top: 2mm; }
+p, li { orphans: 3; widows: 3; } a { color: #166044; overflow-wrap: anywhere; }
+.no-imprimir { margin-bottom: 15px; } @media print { .no-imprimir { display: none; } }
+</style></head><body>
+<header>{{ institucion.nombre }} · {{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }}</header>
+{% if vista_impresion %}<nav class="no-imprimir"><button onclick="window.print()">Imprimir esta versión</button><p>Desactiva «Encabezados y pies de página» del navegador para evitar fecha y dirección web.</p></nav>{% endif %}
+<h1>{{ documento.titulo }}</h1>
+<div class="metadatos"><p><strong>{{ institucion.nombre }}</strong></p>
+<p>{{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }} · {% if version == 'docente' %}Pauta docente{% else %}Versión del estudiante{% endif %}</p>
+{% if instrumento.objetivo %}<p><strong>Objetivo:</strong> {{ instrumento.objetivo }}</p>{% endif %}
+<p><strong>Instrucciones:</strong> {{ documento.instrucciones }}</p></div>
+{% if version == 'estudiante' and instrumento.tipo != 'RUBRICA' %}<div class="estudiante">Nombre: ____________________________________ Fecha: ______________</div>{% endif %}
+{% if instrumento.tipo == 'PRUEBA' %}
+<ol>{% for p in documento.preguntas %}<li class="pregunta">{{ p.enunciado|linebreaksbr }}
+<ol class="alternativas">{% for a in p.alternativas %}<li>{{ a }}</li>{% endfor %}</ol>
+{% if version == 'docente' %}<div class="pauta"><strong>Respuesta {{ p.correcta|letra }}</strong>: {{ p.explicacion }}</div>{% endif %}
+</li>{% endfor %}</ol>
+{% elif instrumento.tipo == 'RUBRICA' %}
+<p>{{ documento.descripcion }}</p>
+<p><strong>Total máximo: {{ documento.puntaje_total }} puntos.</strong> Sin evidencia: 0 puntos, registrado por separado.</p>
+<table class="rubrica"><thead><tr><th>Criterio y evidencia</th>{% for n in documento.niveles %}<th>{{ n }}<br>{{ documento.puntajes|index:forloop.counter0 }} puntos</th>{% endfor %}</tr></thead>
+<tbody>{% for c in documento.criterios %}<tr><td><strong>{{ c.criterio }}</strong><br>Máximo: {{ c.puntaje_maximo }}<br>{{ c.aprendizaje }}<br>{{ c.evidencia }}<br>{{ c.actividad }}</td>{% for d in c.descriptores %}<td>{{ d }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+{% else %}
+<article>{{ documento.contenido|markdown_seguro }}</article>
+{% if documento.ejercicios %}<h2>Ejercicios propuestos</h2>{{ documento.ejercicios|markdown_seguro }}{% endif %}
+{% if version == 'docente' and documento.solucionario %}<section><h2>Solucionario docente</h2>{{ documento.solucionario|markdown_seguro }}</section>{% endif %}
+{% endif %}
+{% if documento.fuentes %}<section><h2>Fuentes recuperadas</h2><ul>{% for f in documento.fuentes %}<li>{{ f.titulo }}{% if f.pagina %}, p. {{ f.pagina }}{% endif %}{% if f.url %} · {{ f.url }}{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+</body></html>

@@ -56,6 +56,10 @@ urlpatterns = [
     # Asistentes de IA
     path("panel/docente/asistente/trabajos/<uuid:pk>/", views_trabajos.trabajo, name="ia_trabajo"),
     path("panel/docente/asistente/trabajos/<uuid:pk>/estado/", views_trabajos.estado, name="ia_trabajo_estado"),
+    path("panel/docente/asistente/trabajos/<uuid:pk>/descargar/", views_trabajos.descargar, name="ia_trabajo_descargar"),
+    path("panel/docente/asistente/<int:pk>/exportar/", views_trabajos.exportar, name="ia_exportar"),
+    path("panel/docente/asistente/<int:pk>/copiar/", views_trabajos.copiar, name="ia_copiar"),
+    path("panel/docente/asistente/<int:pk>/imprimir/<str:version>/", views_trabajos.imprimir, name="ia_imprimir"),
     path("panel/docente/asistente/", views_ia.asistente_docente, name="asistente_docente"),
     path("panel/docente/asistente/prueba/", views_ia.ia_crear_prueba, name="ia_crear_prueba"),
     path("panel/docente/asistente/rubrica/", views_ia.ia_crear_rubrica, name="ia_crear_rubrica"),

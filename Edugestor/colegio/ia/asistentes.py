@@ -13,6 +13,7 @@ Cada función arma el prompt con los datos de la interfaz de dominio
 import difflib
 
 from .proveedor import ErrorIA, generar
+from .pedagogia import validar_rubrica, validar_material, agregar_fuentes, contexto_fuentes
 
 CONTEXTO_COMUN = (
     "Trabajas para EduGestor, una plataforma de gestión escolar para establecimientos "
@@ -87,6 +88,8 @@ def crear_prueba(contexto, objetivo, tema, cantidad, dificultad, *, fragmentos=N
     datos = generar(SISTEMA_PRUEBA, [{"rol": "usuario", "texto": solicitud}],
                     ejemplo=ejemplo, formato_json=True, temperatura=0.6)
     resultado = validar_prueba(datos)
+    if len(resultado['preguntas']) != cantidad:
+        raise ErrorIA('La prueba no tiene la cantidad de preguntas solicitada.')
     fuentes = []
     for fragmento in fragmentos:
         fuente = {"titulo": fragmento["titulo"], "url": fragmento["url"], "pagina": fragmento["pagina"]}
@@ -101,7 +104,7 @@ def validar_prueba(datos):
     try:
         preguntas = []
         for pregunta in datos["preguntas"]:
-            alternativas = [str(a).strip() for a in pregunta["alternativas"]][:4]
+            alternativas = [str(a).strip() for a in pregunta["alternativas"]]
             if len(alternativas) != 4 or not all(alternativas) or not str(pregunta["enunciado"]).strip():
                 raise ValueError
             correcta = int(pregunta["correcta"])
@@ -210,23 +213,21 @@ TIPOS_MATERIAL = {
 }
 
 
-def crear_material(contexto, objetivo, tema, tipo):
-    solicitud = (
-        f"{_encabezado(contexto, objetivo)}\n"
-        f"Tema: {tema}\n"
-        f"Tipo de material: {TIPOS_MATERIAL[tipo]}"
-    )
-    ejemplo = (
-        f"# {TIPOS_MATERIAL[tipo].split(' con')[0]}: {tema}\n\n"
-        f"**{contexto['asignatura']} · {contexto['curso']}**\n\n"
-        "Este es un material de ejemplo generado en modo simulado (sin IA real).\n\n"
-        "## Conceptos clave\n\n- Concepto 1\n- Concepto 2\n\n"
-        "## Ejercicios\n\n1. Ejercicio de ejemplo.\n"
-    )
-    texto = generar(SISTEMA_MATERIAL, [{"rol": "usuario", "texto": solicitud}],
-                    ejemplo=ejemplo, temperatura=0.7)
-    titulo = next((linea.lstrip("# ").strip() for linea in texto.splitlines() if linea.startswith("#")), tema)
-    return {"titulo": titulo[:200], "texto": texto}
+def crear_material(contexto, objetivo, tema, tipo, *, fragmentos=None):
+    solicitud = (f"{_encabezado(contexto, objetivo)}\nTema: {tema}\nTipo: {TIPOS_MATERIAL[tipo]}"
+                 + contexto_fuentes(fragmentos or []))
+    ejemplo = {'titulo': f'Material: {tema}',
+               'contenido': '## Conceptos clave\n\nMaterial simulado. Ejemplo resuelto: 12 × 3 = 36.',
+               'ejercicios': '1. Calcula 24 × 3 y explica tu estrategia.',
+               'solucionario': '1. 72; por ejemplo, (20 × 3) + (4 × 3).'}
+    datos = generar(SISTEMA_MATERIAL + \
+        '\nDevuelve SOLO JSON: {"titulo": str, "contenido": str, "ejercicios": str, "solucionario": str}. '
+        'Contenido conserva explicaciones y ejemplos resueltos. Los ejercicios propuestos no incluyen respuestas. '
+        'Sus respuestas van exclusivamente en solucionario. No mezcles estas secciones.',
+        [{'rol': 'usuario', 'texto': solicitud}], ejemplo=ejemplo, formato_json=True, temperatura=0.7)
+    if isinstance(datos, dict):
+        datos['separacion_revisada'] = False
+    return agregar_fuentes(validar_material(datos), fragmentos or [], objetivo)
 
 
 # ============================================================
@@ -314,7 +315,7 @@ def textos_de(tipo, contenido):
         for criterio in contenido.get("criterios", []):
             textos += [criterio["criterio"], str(criterio.get("puntaje_maximo", "")), *criterio["descriptores"]]
         return textos
-    return [contenido.get("titulo", ""), contenido.get("texto", "")]
+    return [contenido.get(k, "") for k in ("titulo", "texto", "contenido", "ejercicios", "solucionario")]
 
 
 def porcentaje_corregido(tipo, original, editado):

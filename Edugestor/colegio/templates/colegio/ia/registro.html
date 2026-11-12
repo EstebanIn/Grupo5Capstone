@@ -4,8 +4,9 @@
 <title>Registro de IA | EduGestor</title>
 {% if user.tipo_usuario == 'ALUMNO' %}<link rel="stylesheet" href="{% static 'css/alumno.css' %}">{% else %}<link rel="stylesheet" href="{% static 'css/docente.css' %}">{% endif %}
 <link rel="stylesheet" href="{% static 'css/ia.css' %}?v=modelos-1">
+{% if user.tipo_usuario == 'DOCENTE' %}<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}">{% endif %}
 <style>.registro-cabecera{max-width:980px;margin-bottom:28px;}.registro-cabecera p{margin-top:9px;color:#5c6875;line-height:1.6;}.registro-resumen{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:24px;}.registro-resumen h2{font-size:17px;margin-bottom:8px;}.registro-resumen p{font-size:14px;line-height:1.7;}.registro-scroll{overflow-x:auto;}.registro-detalle dt{font-size:13px;color:#596779;margin-top:14px;}.registro-detalle dd{margin:5px 0;overflow-wrap:anywhere;}.registro-fuente{padding:15px 0;border-bottom:1px solid #e5e7eb;line-height:1.6;}.registro-fuente p{margin-top:7px;color:#4b5563;}.registro-estado{font-weight:700;}.registro-error{color:#a32525;}.registro-vacio{padding:35px 0;line-height:1.8;color:#52606f;}.registro-huella{font-family:monospace;font-size:12px;}</style>
-</head><body {% if user.tipo_usuario == 'ALUMNO' %}class="ia-alumno"{% endif %}>
+</head><body {% if user.tipo_usuario == 'ALUMNO' %}class="ia-alumno"{% else %}class="ia-docente"{% endif %}>
 <aside class="sidebar"><div class="logo">EduGestor</div>
 {% if user.tipo_usuario == 'ALUMNO' %}{% include 'colegio/alumno_menu.html' %}{% else %}{% include 'colegio/docente_menu.html' %}{% endif %}
 </aside><main class="main">
@@ -20,6 +21,7 @@
 <section class="ia-panel"><a class="ia-volver" href="{% url 'registro_ia' %}">← Todas mis operaciones</a><h2>Operación #{{ registro.pk }}</h2>
 <dl class="registro-detalle"><dt>Proveedor y modelo</dt><dd>{{ registro.proveedor|title }} · {{ registro.modelo|default:'Sin llamada al modelo' }}</dd>
 <dt>Estado y duración</dt><dd>{{ registro.estado }} · {{ registro.duracion_ms }} ms{% if registro.detalle %}<br>{{ registro.detalle }}{% endif %}</dd>
+{% if registro.diagnostico %}<dt>Diagnóstico seguro</dt><dd>{{ registro.diagnostico.categoria }} · HTTP {{ registro.diagnostico.http|default_if_none:'sin respuesta' }} · {{ registro.diagnostico.identificador|default:'sin identificador' }} · {{ registro.diagnostico.duracion_ms }} ms</dd>{% endif %}
 <dt>Entrada preparada para el proveedor</dt><dd>{{ registro.caracteres_entrada }} caracteres de contexto y mensajes. Respuesta: {{ registro.caracteres_salida }} caracteres.</dd>
 <dt>Huella de la entrada</dt><dd class="registro-huella">{{ registro.huella_entrada|default:'La solicitud no llegó al proveedor' }}</dd></dl>
 <h2 style="margin-top:28px">Archivos procesados</h2>{% for archivo in registro.archivos %}<p>{{ archivo.tipo }} · {{ archivo.bytes }} bytes</p><p class="registro-huella">SHA-256: {{ archivo.sha256 }}</p>{% empty %}<p>Sin imágenes ni PDF adjuntos.</p>{% endfor %}
