@@ -29,15 +29,27 @@ class TrabajoTests(AsistenteIATestBase):
         ajuste = override_settings(IA_ARCHIVOS_PRIVADOS=Path(self.temp.name)/'files',
                                    IA_CREDENCIALES_ARCHIVO=str(Path(self.temp.name)/'key'))
         ajuste.enable(); self.addCleanup(ajuste.disable)
+        # Ninguna prueba unitaria debe publicar en el Redis del equipo.
+        # Los casos que comprueban apply_async lo reemplazan explícitamente.
+        broker = mock.patch('colegio.tasks.ejecutar_trabajo.apply_async',
+                            side_effect=RuntimeError('La cola real no participa en estas pruebas.'))
+        self.cola_real = broker.start()
+        self.addCleanup(broker.stop)
+        self.addCleanup(self.cola_real.assert_not_called)
 
     def enviar(self, **cambios):
         datos = {'carga': self.carga.pk, 'tema': 'Multiplicación', 'cantidad': 3, 'dificultad': 'media',
                  'idempotencia': str(uuid.uuid4())}
         datos.update(cambios)
-        with self.captureOnCommitCallbacks(execute=True), mock.patch('colegio.ia.trabajos.encolar') as cola:
+        # Los contextos se cierran en orden inverso: el mock debe seguir activo
+        # cuando captureOnCommitCallbacks ejecute los callbacks al salir.
+        with mock.patch('colegio.ia.trabajos.encolar') as cola, self.captureOnCommitCallbacks(execute=True):
             respuesta = self.client.post(reverse('ia_crear_prueba'), datos, HTTP_ACCEPT='application/json')
         self.assertEqual(respuesta.status_code, 202)
-        return TrabajoIA.objects.get(pk=respuesta.json()['id']), datos, cola
+        trabajo = TrabajoIA.objects.get(pk=respuesta.json()['id'])
+        cola.assert_called_once_with(trabajo.pk)
+        self.assertEqual(trabajo.estado, 'pendiente', trabajo.mensaje)
+        return trabajo, datos, cola
 
     def test_cola_recibe_solo_identificador_y_doble_envio_no_duplica(self):
         trabajo, datos, _ = self.enviar()

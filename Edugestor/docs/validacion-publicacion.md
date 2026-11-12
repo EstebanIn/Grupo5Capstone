@@ -16,7 +16,7 @@ Fecha: 12 de noviembre de 2026. Rama `codex/asistente-docente-cloudflare`, sobre
 
 | Comprobación | Resultado |
 |---|---|
-| Suite completa Django/PostgreSQL | **201 pruebas correctas**, 167,999 segundos; base temporal creada y eliminada. Incluye aislamiento de trabajos/archivos, biblioteca, editor, visuales, horarios y perfil del túnel. |
+| Suite completa Django/PostgreSQL | **201 pruebas correctas**, 173,787 segundos tras corregir el aislamiento de la cola; base temporal creada y eliminada. Incluye aislamiento de trabajos/archivos, biblioteca, editor, visuales, horarios y perfil del túnel. |
 | Cloudflare Worker | **4 pruebas Node correctas**. Conservación de POST, cabeceras confiables, redirecciones y diagnóstico de caída. |
 | Django | `manage.py check` sin incidencias; sin advertencia de directorio `static`. |
 | Migraciones | `makemigrations --check --dry-run`: sin cambios. `migrate --plan`: sin operaciones pendientes en QA. La suite crea una base nueva hasta `0024_biblioteca`. |
@@ -28,6 +28,12 @@ Fecha: 12 de noviembre de 2026. Rama `codex/asistente-docente-cloudflare`, sobre
 | Hora de Chile | Casos de verano, invierno y cambio de fecha correctos; comprobación HTTPS del Registro de IA sin modificar el instante original. |
 
 La evidencia detallada anterior permanece en [validación inicial](validacion-asistente.md), [biblioteca](validacion-biblioteca.md) y [materiales visuales](materiales-visuales.md).
+
+### Corrección detectada en GitHub Actions
+
+La [primera ejecución publicada](https://github.com/EstebanIn/Grupo5Capstone/actions/runs/43315466734) pasó instalación, Django y migraciones, pero falló en dos de las 201 pruebas: idempotencia de trabajos y eliminación de adjuntos tras un error. Ambas compartían un auxiliar cuyo mock de `encolar` se cerraba antes de ejecutar los callbacks de commit. Esto intentaba contactar la cola real; el Redis local ocultaba la dependencia, mientras que CI no dispone de ese servicio para las pruebas unitarias.
+
+Se corrigió el orden de los contextos para mantener el mock activo hasta terminar los callbacks. El auxiliar comprueba ahora que se simuló un único envío y que el trabajo sigue pendiente. Además, todas esas pruebas rechazan cualquier intento de llamar a `apply_async` sin reemplazarlo explícitamente. No se deshabilitaron pruebas, no se añadió Redis a CI para ocultar el fallo y no se modificó la cola de la aplicación.
 
 ## Publicación, despliegue y límites de aceptación
 
