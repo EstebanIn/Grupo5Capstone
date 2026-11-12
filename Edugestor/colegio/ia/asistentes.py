@@ -93,6 +93,8 @@ def crear_prueba(contexto, objetivo, tema, cantidad, dificultad, *, fragmentos=N
     fuentes = []
     for fragmento in fragmentos:
         fuente = {"titulo": fragmento["titulo"], "url": fragmento["url"], "pagina": fragmento["pagina"]}
+        if fragmento.get('metodo_recuperacion'):
+            fuente['metodo'] = fragmento['metodo_recuperacion']
         if fuente not in fuentes:
             fuentes.append(fuente)
     resultado["fuentes"] = fuentes
@@ -206,10 +208,23 @@ def crear_material(contexto, objetivo, tema, tipo, *, fragmentos=None):
     datos = generar(SISTEMA_MATERIAL + \
         '\nDevuelve SOLO JSON: {"titulo": str, "contenido": str, "ejercicios": str, "solucionario": str}. '
         'Contenido conserva explicaciones y ejemplos resueltos. Los ejercicios propuestos no incluyen respuestas. '
-        'Sus respuestas van exclusivamente en solucionario. No mezcles estas secciones.',
+        'Sus respuestas van exclusivamente en solucionario. No mezcles estas secciones. '
+        'Para Matemática incluye de 1 a 3 recursos_visuales ligados a los números de los ejemplos, cuando aporten a la comprensión. '
+        'recursos_visuales es una lista de objetos {id: entero 1..6, tipo: ajuste|posicional|recta|grupos|reparto|fraccion, '
+        'a: entero, b: entero, operacion: +|-|×, ubicacion: contenido|ejercicios|solucionario, titulo: texto breve}. '
+        'Inserta [[visual:1]] (con su id) como párrafo en la sección correspondiente. '
+        'ajuste: redondear una suma/resta; posicional: descomponer una suma/resta o multiplicación de hasta tres dígitos por un dígito; '
+        'recta: suma a+b alcanzando la siguiente decena con b entre 1 y 30, o resta a-b por complemento desde b hasta a con diferencia hasta 100; '
+        'grupos: a filas 1..6 y b puntos 1..10; reparto: a elementos hasta 60 divididos en b grupos 1..6 sin resto y hasta 10 por grupo; '
+        'fraccion: a partes coloreadas de b partes iguales, 2..12. '
+        'No incluyas HTML, SVG ni enlaces de imágenes. El servidor dibuja y calcula los gráficos. '
+        'Los visuales de ejercicios dejan el resultado en blanco. No introduzcas respuestas en su título.',
         [{'rol': 'usuario', 'texto': solicitud}], ejemplo=ejemplo, formato_json=True, temperatura=0.7)
     if isinstance(datos, dict):
         datos['separacion_revisada'] = False
+        if contexto.get('asignatura', '').lower().startswith('matem') and not datos.get('recursos_visuales'):
+            from .visuales import proponer_visuales
+            datos = proponer_visuales(datos)
     return agregar_fuentes(validar_material(datos), fragmentos or [], objetivo)
 
 

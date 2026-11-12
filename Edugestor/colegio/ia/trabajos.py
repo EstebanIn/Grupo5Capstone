@@ -2,6 +2,7 @@
 import hashlib
 import json
 import uuid
+from contextlib import nullcontext
 from datetime import timedelta
 from importlib import import_module
 from pathlib import Path
@@ -21,6 +22,7 @@ from .ejecucion import usar_proveedor, registrar_operacion
 from .proveedor import ErrorIA
 
 ACTIVOS = ('pendiente', 'preparando', 'generando', 'validando')
+LOCALES = ('biblioteca_sync', 'biblioteca_export')
 FORMULARIOS = {'prueba': 'ia_crear_prueba', 'rubrica': 'ia_crear_rubrica',
                'material': 'ia_crear_material', 'revision': 'ia_revisar_prueba'}
 
@@ -48,7 +50,7 @@ def crear_trabajo(request, operacion, parametros, *, instrumento=None, archivos=
     if not request.session.session_key:
         request.session.save()
     nombre = request.ia_proveedor
-    modelo = str(valor(nombre, 'model') or nombre)
+    modelo = 'Biblioteca pública · proceso local' if operacion in LOCALES else str(valor(nombre, 'model') or nombre)
     manifiesto = [{'tipo': mime, 'sha256': hashlib.sha256(datos).hexdigest()} for datos, mime in archivos]
     canon = json.dumps([operacion, nombre, modelo, parametros, manifiesto, instrumento.pk if instrumento else None], sort_keys=True)
     huella = hashlib.sha256(canon.encode()).hexdigest()
@@ -60,7 +62,7 @@ def crear_trabajo(request, operacion, parametros, *, instrumento=None, archivos=
         trabajo, nuevo = TrabajoIA.objects.get_or_create(
             usuario=request.user, institucion=request.institucion, idempotencia=token,
             defaults={'sesion': request.session.session_key, 'huella': huella,
-                      'conexion_huella': huella_conexion(nombre), 'operacion': operacion,
+                      'conexion_huella': '' if operacion in LOCALES else huella_conexion(nombre), 'operacion': operacion,
                       'proveedor': nombre, 'modelo': modelo, 'parametros': parametros,
                       'instrumento': instrumento})
         if not nuevo:
@@ -142,13 +144,14 @@ def ejecutar(pk):
                     or usuario.tipo_usuario != 'DOCENTE'):
                 raise ErrorIA('La sesión o el acceso ya no están vigentes. Vuelve a iniciar sesión.')
             peticion.user = usuario
-            with usar_configuraciones(leer_conexiones(peticion)), usar_proveedor(trabajo.proveedor):
-                if trabajo.proveedor not in ('gemini', 'qwen', 'simulado') or (
-                    trabajo.proveedor == 'simulado' and settings.IA_PROVEEDOR != 'simulado'):
+            local = trabajo.operacion in LOCALES
+            with usar_configuraciones({} if local else leer_conexiones(peticion)), usar_proveedor(trabajo.proveedor):
+                if not local and (trabajo.proveedor not in ('gemini', 'qwen', 'simulado') or (
+                    trabajo.proveedor == 'simulado' and settings.IA_PROVEEDOR != 'simulado')):
                     raise ErrorIA('El proveedor ya no está habilitado.')
-                if huella_conexion(trabajo.proveedor) != trabajo.conexion_huella:
+                if not local and huella_conexion(trabajo.proveedor) != trabajo.conexion_huella:
                     raise ErrorIA('La conexión seleccionada cambió o caducó. Reconéctala y vuelve a intentar.')
-                with registrar_operacion(usuario, trabajo.proveedor, trabajo.operacion):
+                with (nullcontext() if local else registrar_operacion(usuario, trabajo.proveedor, trabajo.operacion)):
                     resultado, contenido, carga = _procesar(trabajo, usuario)
                 cambiar_etapa(trabajo, 'validando', 'Validando el resultado completo antes de guardarlo.')
                 with transaction.atomic():
@@ -179,6 +182,16 @@ def _procesar(trabajo, usuario):
     from colegio import views_ia
     cambiar_etapa(trabajo, 'preparando', 'Comprobando permisos y preparando el contexto.')
     datos = dict(trabajo.parametros)
+    if trabajo.operacion in LOCALES:
+        from . import biblioteca, biblioteca_paquetes
+        cambiar_etapa(trabajo, 'generando', 'Preparando la biblioteca pública sin llamadas a la IA.')
+        if trabajo.operacion == 'biblioteca_sync':
+            return biblioteca.sincronizar(datos['fuente'], informar=lambda m: cambiar_etapa(trabajo, 'generando', m)), None, None
+        trabajo.archivo = f'{trabajo.pk}.zip'
+        ruta = ruta_privada(trabajo.archivo)
+        ruta.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        ruta.write_bytes(biblioteca_paquetes.exportar())
+        return {'biblioteca': True}, None, None
     if trabajo.operacion in ('exportar', 'lectura'):
         instrumento = InstrumentoIA.objects.get(pk=trabajo.instrumento_id, docente__usuario=usuario,
                                                institucion_id=trabajo.institucion_id, estado='APROBADO')
@@ -200,7 +213,10 @@ def _procesar(trabajo, usuario):
         pk=datos['carga'], docente__usuario=usuario, institucion_id=trabajo.institucion_id)
     datos['carga'] = carga
     contexto = dominio.contexto_carga(carga)
-    cambiar_etapa(trabajo, 'generando', 'Recuperando fuentes y esperando la respuesta del proveedor.')
+    mensaje = ('Esperando la respuesta del proveedor para el objetivo personalizado.'
+               if trabajo.operacion == 'material' and datos.get('contexto_curricular') == 'personalizado'
+               else 'Recuperando fuentes y esperando la respuesta del proveedor.')
+    cambiar_etapa(trabajo, 'generando', mensaje)
     if trabajo.operacion == 'revision':
         return {'revision': asistentes.revisar_prueba(contexto, datos.get('objetivo', ''), datos['texto'])}, None, None
     generadores = {'prueba': views_ia._generar_prueba_con_rag, 'rubrica': views_ia._generar_rubrica_con_rag,
@@ -209,6 +225,8 @@ def _procesar(trabajo, usuario):
 
 
 def limpiar():
+    from .biblioteca import limpiar_interrumpidas
+    limpiar_interrumpidas()
     # También se ejecuta desde la consulta de estado: la UI no depende de beat para recuperarse.
     limite = timezone.now() - timedelta(minutes=5)
     for trabajo in TrabajoIA.objects.filter(estado__in=ACTIVOS, creado__lt=limite):
@@ -223,7 +241,7 @@ def limpiar():
     base = Path(settings.IA_ARCHIVOS_PRIVADOS)
     if base.exists():
         for ruta in base.iterdir():
-            if ruta.suffix not in ('.bin', '.pdf') or ruta.is_symlink() or not ruta.is_file():
+            if ruta.suffix not in ('.bin', '.pdf', '.zip') or ruta.is_symlink() or not ruta.is_file():
                 continue
             if timezone.now().timestamp() - ruta.stat().st_mtime > 86400:
                 ruta_privada(ruta.name).unlink(missing_ok=True)

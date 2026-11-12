@@ -30,6 +30,9 @@ def contenido_version(instrumento, version):
             raise ErrorIA('Este material requiere una copia editable y revisión de la separación de respuestas antes de exportarlo para estudiantes.')
         if separado:
             base.update(contenido=original.get('contenido', ''), ejercicios=original.get('ejercicios', ''))
+            from .visuales import validar_visuales
+            recursos = validar_visuales(original.get('recursos_visuales', []))
+            base['recursos_visuales'] = [r for r in recursos if version == 'docente' or r['ubicacion'] != 'solucionario']
             if version == 'docente':
                 base['solucionario'] = original.get('solucionario', '')
         elif version == 'docente':
@@ -38,7 +41,14 @@ def contenido_version(instrumento, version):
 
 
 def contexto_documento(instrumento, version):
-    return {'documento': contenido_version(instrumento, version), 'instrumento': instrumento,
+    documento=contenido_version(instrumento, version)
+    referencias={}
+    for f in documento.get('fuentes',[]):
+        clave=(f.get('titulo',''),f.get('url',''))
+        r=referencias.setdefault(clave,{'titulo':clave[0],'url':clave[1],'paginas':[]})
+        if f.get('pagina') is not None and f['pagina'] not in r['paginas']:r['paginas'].append(f['pagina'])
+    for r in referencias.values():r['paginas'].sort(key=lambda p:int(p) if str(p).isdigit() else 10**9)
+    return {'documento': documento, 'instrumento': instrumento, 'referencias':list(referencias.values()),
             'institucion': instrumento.institucion, 'version': version,
             'horizontal': instrumento.tipo == 'RUBRICA'}
 
@@ -58,4 +68,4 @@ def recurso_local(url, timeout=10, ssl_context=None):
 def generar_pdf(instrumento, version):
     from weasyprint import HTML
     html = render_to_string('colegio/ia/documento.html', contexto_documento(instrumento, version))
-    return HTML(string=html, url_fetcher=recurso_local).write_pdf()
+    return HTML(string=html, url_fetcher=recurso_local).write_pdf(presentational_hints=True)

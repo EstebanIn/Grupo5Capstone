@@ -1,0 +1,32 @@
+<div class="ia-editor" data-editor-material>
+    <div class="ia-editor-navegacion" hidden>
+        <div class="ia-editor-pestanas" role="tablist" aria-label="Secciones del material">
+            <button type="button" id="tab-contenido" role="tab" aria-selected="true" aria-controls="panel-contenido" data-seccion="contenido">Explicación y ejemplos</button>
+            <button type="button" id="tab-ejercicios" role="tab" aria-selected="false" aria-controls="panel-ejercicios" tabindex="-1" data-seccion="ejercicios">Ejercicios</button>
+            <button type="button" id="tab-solucionario" role="tab" aria-selected="false" aria-controls="panel-solucionario" tabindex="-1" data-seccion="solucionario">Solucionario docente</button>
+        </div>
+        <button type="button" class="ia-editor-preview-boton" data-editor-preview>Vista del estudiante <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="ia-editor-toolbar" role="group" aria-label="Formato del texto" hidden>
+        <label class="ia-editor-formato-label" for="editor-formato">Estilo</label>
+        <select id="editor-formato" aria-label="Estilo del párrafo"><option value="p">Texto normal</option><option value="h2">Título de sección</option><option value="h3">Subtítulo</option></select>
+        <span class="ia-editor-toolbar-separador" aria-hidden="true"></span>
+        <button type="button" data-comando="bold" aria-label="Negrita" aria-pressed="false" title="Negrita (Ctrl+B)"><strong>N</strong></button>
+        <button type="button" data-comando="italic" aria-label="Cursiva" aria-pressed="false" title="Cursiva (Ctrl+I)"><em>C</em></button>
+        <button type="button" data-comando="insertUnorderedList" aria-label="Lista con viñetas" aria-pressed="false" title="Lista con viñetas">• Lista</button>
+        <button type="button" data-comando="insertOrderedList" aria-label="Lista numerada" aria-pressed="false" title="Lista numerada">1. Lista</button>
+        <span class="ia-editor-toolbar-separador" aria-hidden="true"></span>
+        <button type="button" data-comando="undo" aria-label="Deshacer" title="Deshacer (Ctrl+Z)">↶</button>
+        <button type="button" data-comando="redo" aria-label="Rehacer" title="Rehacer (Ctrl+Y)">↷</button>
+    </div>
+    <p class="ia-editor-error" role="alert" data-editor-error hidden></p>
+    {% include 'colegio/ia/_editor_seccion_material.html' with campo='contenido' texto=texto_material titulo='Explicación y ejemplos' ayuda='Contenido para tus estudiantes. Conserva aquí las explicaciones y los ejemplos resueltos.' %}
+    {% include 'colegio/ia/_editor_seccion_material.html' with campo='ejercicios' texto=contenido.ejercicios titulo='Ejercicios' ayuda='Actividades para tus estudiantes. Deja las respuestas en el solucionario docente.' %}
+    {% include 'colegio/ia/_editor_seccion_material.html' with campo='solucionario' texto=contenido.solucionario titulo='Solucionario docente' ayuda='Solo para ti. Esta sección no se incluye en la versión para estudiantes.' %}
+    <div class="ia-editor-pie" hidden><span>Puedes escribir y dar formato directamente en la hoja.</span><span data-editor-palabras></span></div>
+    <dialog class="ia-editor-preview" aria-labelledby="preview-titulo">
+        <div class="ia-editor-preview-cabecera"><div><h2 id="preview-titulo">Vista del estudiante</h2><p>Incluye explicación y ejercicios. El solucionario queda reservado para ti.</p></div><button type="button" class="ia-boton secundario" data-editor-cerrar-preview>Cerrar vista previa</button></div>
+        <article class="ia-editor-papel ia-markdown" data-editor-preview-documento></article>
+    </dialog>
+</div>
+{% include 'colegio/ia/_editor_visuales.html' %}

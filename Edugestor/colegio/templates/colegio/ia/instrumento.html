@@ -1,10 +1,17 @@
 {% extends 'colegio/ia/base_docente.html' %}
-{% load ia_extras %}
+{% load static ia_extras ia_visuales %}
 
 {% block titulo %}{{ instrumento.titulo }}{% endblock %}
+{% block extra_css %}{% if editable and instrumento.tipo == 'MATERIAL' %}<link rel="stylesheet" href="{% static 'css/ia_editor_material.css' %}?v=1">{% endif %}{% endblock %}
+{% block extra_js %}{% if editable and instrumento.tipo == 'MATERIAL' %}
+<script src="{% static 'vendor/turndown-7.2.0.js' %}" defer></script>
+<script src="{% static 'vendor/turndown-plugin-gfm-1.0.2.js' %}" defer></script>
+<script src="{% static 'js/ia_editor_material.js' %}?v=visuales-2" defer></script>
+{% endif %}{% endblock %}
 
 {% block contenido %}
-{% firstof contenido.contenido contenido.texto as texto_material %}
+{# Select the source without pre-escaping it; each output escapes or sanitizes it. #}
+{% autoescape off %}{% firstof contenido.contenido contenido.texto as texto_material %}{% endautoescape %}
 <a class="ia-volver ia-no-imprimir" href="{% url 'asistente_docente' %}">← Asistente IA</a>
 
 <div class="ia-encabezado">
@@ -25,7 +32,7 @@
     <strong>Fuentes curriculares consultadas</strong>
     <ul>
         {% for fuente in contenido.fuentes %}
-        <li>{% if fuente.url %}<a href="{{ fuente.url }}" target="_blank" rel="noopener">{{ fuente.titulo }}</a>{% else %}{{ fuente.titulo }}{% endif %}{% if fuente.pagina %}, página {{ fuente.pagina }}{% endif %}</li>
+        <li>{% if fuente.url %}<a href="{{ fuente.url }}" target="_blank" rel="noopener">{{ fuente.titulo }}</a>{% else %}{{ fuente.titulo }}{% endif %}{% if fuente.pagina %}, página {{ fuente.pagina }}{% endif %}{% if fuente.metodo == 'textual_biblioteca' %} · búsqueda textual local{% endif %}</li>
         {% endfor %}
     </ul>
     {% else %}<p>No se aplicó RAG: el modo está simulado o aún no hay documentos oficiales indexados para este curso.</p>{% endif %}
@@ -33,11 +40,12 @@
 
 {% if editable %}
 {# ======================= EDICIÓN DEL BORRADOR ======================= #}
-<form method="post" class="ia-form" data-generando="Guardando…">
+<form method="post" class="ia-form{% if instrumento.tipo == 'MATERIAL' %} ia-material-form{% endif %}" data-generando="Guardando…">
     {% csrf_token %}
-    <div class="ia-panel">
+    <div class="ia-panel{% if instrumento.tipo == 'MATERIAL' %} ia-material-panel{% endif %}">
+        {% if instrumento.tipo == 'MATERIAL' %}<div class="ia-material-intro"><h2>Prepara tu material para la clase</h2><p>Edita el texto directamente, como en un documento. Puedes guardar el borrador y continuar después.</p></div>{% endif %}
         <div class="campo">
-            <label for="titulo">Título</label>
+            <label for="titulo">{% if instrumento.tipo == 'MATERIAL' %}Título del material{% else %}Título{% endif %}</label>
             <input type="text" id="titulo" name="titulo" value="{{ contenido.titulo }}" required maxlength="200">
         </div>
 
@@ -114,25 +122,23 @@
         </div>
 
         {% else %}
-        <div class="campo"><label for="contenido">Explicación y ejemplos resueltos (Markdown)</label>
-<textarea id="contenido" name="contenido" rows="16" required>{{ texto_material }}</textarea></div>
-<div class="campo"><label for="ejercicios">Ejercicios propuestos sin respuestas</label><textarea id="ejercicios" name="ejercicios" rows="8">{{ contenido.ejercicios }}</textarea></div>
-<div class="campo"><label for="solucionario">Solucionario docente</label><textarea id="solucionario" name="solucionario" rows="8">{{ contenido.solucionario }}</textarea></div>
-<label><input type="checkbox" name="separacion_revisada" {% if contenido.separacion_revisada %}checked{% endif %}> Revisé que las respuestas de los ejercicios están en el solucionario. Los ejemplos resueltos explicativos se conservan.</label>
+        {% include 'colegio/ia/_editor_material.html' %}
+        <label class="ia-revision ia-material-revision"><input type="checkbox" name="separacion_revisada" {% if contenido.separacion_revisada %}checked{% endif %}><span><strong>Revisé los ejercicios y sus respuestas.</strong><small>Las respuestas de los ejercicios están en el solucionario docente. Los ejemplos resueltos de la explicación se mantienen para los estudiantes.</small></span></label>
         {% endif %}
 
         {% if instrumento.tipo == 'RUBRICA' %}
         <h2>Revisión previa docente</h2><p>El sistema comprueba la estructura. La aprobación pedagógica te corresponde.</p>
         {% for item in revision_rubrica %}<label class="ia-revision"><input type="checkbox" name="revision_{{ forloop.counter0 }}"> <span><strong>{{ item.eje }}</strong> · {{ item.detalle }}</span></label>{% endfor %}
         {% endif %}
-        <div class="ia-acciones">
+        <div class="ia-acciones{% if instrumento.tipo == 'MATERIAL' %} ia-material-acciones{% endif %}">
+            {% if instrumento.tipo == 'MATERIAL' %}<span class="ia-material-estado" role="status" data-editor-estado>Sin cambios pendientes</span>{% endif %}
             {% if instrumento.tipo == 'PRUEBA' %}
             <a class="ia-boton secundario" href="{% url 'ia_revisar_prueba' %}?instrumento={{ instrumento.pk }}"
                title="Guarda tus cambios antes: se revisa la versión guardada">🔍 Revisar calidad con IA</a>
             {% endif %}
             <button type="submit" name="accion" value="guardar" class="ia-boton secundario">Guardar cambios</button>
             <button type="submit" name="accion" value="aprobar" class="ia-boton"
-                    onclick="return confirm('¿Aprobar este documento? Después no podrás editarlo.')">Aprobar</button>
+                    onclick="return confirm('¿Aprobar este documento? Después no podrás editarlo.')">{% if instrumento.tipo == 'MATERIAL' %}Aprobar material{% else %}Aprobar{% endif %}</button>
         </div>
         <p class="ayuda" style="margin-top:10px">Al aprobar se registra qué porcentaje del borrador corregiste. Describe la edición del texto y no acredita calidad pedagógica.</p>
     </div>
@@ -189,7 +195,7 @@
     </div>
 
     {% else %}
-    <div class="ia-markdown">{{ texto_material|markdown_seguro }}{% if contenido.ejercicios %}<h2>Ejercicios propuestos</h2>{{ contenido.ejercicios|markdown_seguro }}{% endif %}{% if contenido.solucionario %}<h2>Solucionario docente</h2>{{ contenido.solucionario|markdown_seguro }}{% endif %}</div>
+    <div class="ia-markdown">{% material_visual texto_material contenido.recursos_visuales 'contenido' %}{% if contenido.ejercicios %}<h2>Ejercicios propuestos</h2>{% material_visual contenido.ejercicios contenido.recursos_visuales 'ejercicios' %}{% endif %}{% if contenido.solucionario %}<h2>Solucionario docente</h2>{% material_visual contenido.solucionario contenido.recursos_visuales 'solucionario' %}{% endif %}</div>
     {% endif %}
 </div>
 {% endif %}

@@ -1117,7 +1117,8 @@ class AislamientoInstitucionesTests(DjangoTestCase):
         return [
             modelo for modelo in apps.get_app_config("colegio").get_models()
             # El corpus curricular es público y compartido; no contiene datos de alumnos.
-            if modelo not in (Institucion, apps.get_model('colegio','DocumentoCurricular'), apps.get_model('colegio','FragmentoCurricular')) and not modelo._meta.auto_created
+            if modelo not in (Institucion, apps.get_model('colegio','DocumentoCurricular'),
+                apps.get_model('colegio','FragmentoCurricular'), apps.get_model('colegio','FuenteBiblioteca')) and not modelo._meta.auto_created
         ]
 
     def test_todos_los_modelos_declaran_su_institucion(self):

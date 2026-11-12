@@ -14,7 +14,7 @@ trap cleanup EXIT
 compose=(docker compose --env-file deploy/.env.production -f deploy/compose.production.yml)
 "${compose[@]}" exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$stage/database.dump"
 "${compose[@]}" exec -T web tar -C /state -cf - credentials > "$stage/credentials.tar"
-"${compose[@]}" exec -T web tar -C /app/knowledge -cf - procesados > "$stage/indices.tar"
+"${compose[@]}" exec -T web tar -C /app/knowledge -cf - procesados biblioteca > "$stage/indices.tar"
 cp deploy/.env.production "$stage/environment.env"
 git rev-parse HEAD > "$stage/commit.txt"
 # Margen conservador frente al cupo de 20 GB compartido de OCI. Comprobar

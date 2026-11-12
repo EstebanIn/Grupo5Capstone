@@ -20,8 +20,10 @@ def propio(request, pk):
 def enlace_resultado(trabajo):
     if trabajo.estado != 'completado':
         return ''
-    if trabajo.operacion == 'exportar':
+    if trabajo.operacion in ('exportar', 'biblioteca_export'):
         return reverse('ia_trabajo_descargar', args=[trabajo.pk]) if trabajo.archivo else ''
+    if trabajo.operacion == 'biblioteca_sync':
+        return reverse('ia_biblioteca')
     if trabajo.operacion == 'lectura' and trabajo.instrumento_id:
         return reverse('ia_corregir_prueba', args=[trabajo.instrumento_id]) + '?trabajo=' + str(trabajo.pk)
     if trabajo.instrumento_id:
@@ -35,7 +37,9 @@ def trabajo(request, pk):
     limpiar()
     actual = propio(request, pk)
     reintentar = ''
-    if actual.operacion in FORMULARIOS:
+    if actual.operacion in ('biblioteca_sync', 'biblioteca_export'):
+        reintentar = reverse('ia_biblioteca')
+    elif actual.operacion in FORMULARIOS:
         reintentar = reverse(FORMULARIOS[actual.operacion]) + '?trabajo=' + str(actual.pk)
     elif actual.instrumento_id:
         ruta = 'ia_corregir_prueba' if actual.operacion == 'lectura' else 'ia_instrumento'
@@ -81,7 +85,10 @@ def descargar(request, pk):
     ruta = ruta_privada(actual.archivo)
     if not ruta.is_file():
         return HttpResponse('Archivo no disponible.', status=404)
-    respuesta = FileResponse(ruta.open('rb'), as_attachment=True, filename=f'documento-{actual.pk}.pdf', content_type='application/pdf')
+    biblioteca = actual.operacion == 'biblioteca_export'
+    respuesta = FileResponse(ruta.open('rb'), as_attachment=True,
+        filename=f'biblioteca-{actual.pk}.zip' if biblioteca else f'documento-{actual.pk}.pdf',
+        content_type='application/zip' if biblioteca else 'application/pdf')
     respuesta['Cache-Control'] = 'private, no-store'
     respuesta['X-Content-Type-Options'] = 'nosniff'
     return respuesta
@@ -120,6 +127,7 @@ def copiar(request, pk):
         contenido = {'titulo': original.titulo, 'contenido': contenido.get('contenido', contenido.get('texto', '')),
                      'ejercicios': contenido.get('ejercicios', ''), 'solucionario': contenido.get('solucionario', ''),
                      'version_estructura': 2, 'separacion_revisada': False,
+                     'recursos_visuales': deepcopy(contenido.get('recursos_visuales', [])),
                      'fuentes': contenido.get('fuentes', []), 'rag_aplicado': contenido.get('rag_aplicado', False)}
     if original.tipo == 'RUBRICA':
         contenido.setdefault('puntajes', list(range(len(contenido['niveles']), 0, -1)))

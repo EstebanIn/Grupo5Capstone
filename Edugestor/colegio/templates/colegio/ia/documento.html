@@ -1,4 +1,4 @@
-{% load ia_extras %}<!doctype html>
+{% load ia_extras ia_visuales %}<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><title>{{ documento.titulo }}</title>
 <style>
 @page { size: A4 {% if horizontal %}landscape{% else %}portrait{% endif %}; margin: 23mm 15mm 20mm;
@@ -18,10 +18,19 @@ th { background: #e4f0e8; } tr { break-inside: avoid; } .rubrica { font-size: 10
 .pauta { border-left: 3px solid #166044; padding-left: 3mm; margin-top: 2mm; }
 p, li { orphans: 3; widows: 3; } a { color: #166044; overflow-wrap: anywhere; }
 .no-imprimir { margin-bottom: 15px; } @media print { .no-imprimir { display: none; } }
+</style>{% include 'colegio/ia/_visuales_css.html' %}<style>
+body {line-height:1.55} h1 {font-size:20pt} article h1 {font-size:16pt;margin-top:5mm}
+article h2,.ejercicios h2,.solucionario h2 {color:#166534;border-bottom:1px solid #b5cdbd;padding-bottom:2mm;margin-top:7mm}
+.metadatos {border-left:3px solid #166534;padding:3mm 4mm;font-size:10pt}
+.material-figura {padding:3mm;margin:4mm 0;border-radius:2mm}
+.material-figura figcaption {font-size:10.5pt;margin-bottom:2mm}
+.ejercicios {margin-top:7mm} .ejercicios ol>li {margin-bottom:6mm}
+.solucionario {break-before:page} .fuentes {font-size:8.5pt;margin-top:6mm} .fuentes li {break-inside:avoid}
 </style></head><body>
 <header>{{ institucion.nombre }} · {{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }}</header>
 {% if vista_impresion %}<nav class="no-imprimir"><button onclick="window.print()">Imprimir esta versión</button><p>Desactiva «Encabezados y pies de página» del navegador para evitar fecha y dirección web.</p></nav>{% endif %}
 <h1>{{ documento.titulo }}</h1>
+{% if instrumento.estado == 'BORRADOR' %}<p style="padding:2mm 3mm;border:1px solid #9aaa9c;font-size:9pt">Borrador para revisión docente. Aún no aprobado para entregar.</p>{% endif %}
 <div class="metadatos"><p><strong>{{ institucion.nombre }}</strong></p>
 <p>{{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }} · {% if version == 'docente' %}Pauta docente{% else %}Versión del estudiante{% endif %}</p>
 {% if instrumento.objetivo %}<p><strong>Objetivo:</strong> {{ instrumento.objetivo }}</p>{% endif %}
@@ -38,9 +47,9 @@ p, li { orphans: 3; widows: 3; } a { color: #166044; overflow-wrap: anywhere; }
 <table class="rubrica"><thead><tr><th>Criterio y evidencia</th>{% for n in documento.niveles %}<th>{{ n }}<br>{{ documento.puntajes|index:forloop.counter0 }} puntos</th>{% endfor %}</tr></thead>
 <tbody>{% for c in documento.criterios %}<tr><td><strong>{{ c.criterio }}</strong><br>Máximo: {{ c.puntaje_maximo }}<br>{{ c.aprendizaje }}<br>{{ c.evidencia }}<br>{{ c.actividad }}</td>{% for d in c.descriptores %}<td>{{ d }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
 {% else %}
-<article>{{ documento.contenido|markdown_seguro }}</article>
-{% if documento.ejercicios %}<h2>Ejercicios propuestos</h2>{{ documento.ejercicios|markdown_seguro }}{% endif %}
-{% if version == 'docente' and documento.solucionario %}<section><h2>Solucionario docente</h2>{{ documento.solucionario|markdown_seguro }}</section>{% endif %}
+<article>{% material_visual documento.contenido documento.recursos_visuales 'contenido' %}</article>
+{% if documento.ejercicios %}<section class="ejercicios"><h2>Ejercicios propuestos</h2>{% material_visual documento.ejercicios documento.recursos_visuales 'ejercicios' %}</section>{% endif %}
+{% if version == 'docente' and documento.solucionario %}<section class="solucionario"><h2>Solucionario docente</h2>{% material_visual documento.solucionario documento.recursos_visuales 'solucionario' %}</section>{% endif %}
 {% endif %}
-{% if documento.fuentes %}<section><h2>Fuentes recuperadas</h2><ul>{% for f in documento.fuentes %}<li>{{ f.titulo }}{% if f.pagina %}, p. {{ f.pagina }}{% endif %}{% if f.url %} · {{ f.url }}{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+{% if documento.fuentes %}<section class="fuentes"><h2>Fuentes recuperadas</h2><ul>{% for f in referencias %}<li>{{ f.titulo }}{% if f.paginas %}. Páginas {{ f.paginas|join:', ' }}{% endif %}{% if f.url %} · {{ f.url }}{% endif %}</li>{% endfor %}</ul></section>{% endif %}
 </body></html>

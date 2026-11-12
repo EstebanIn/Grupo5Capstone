@@ -173,12 +173,19 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 360}
 CELERY_BEAT_SCHEDULE = {'recuperar-trabajos': {'task': 'colegio.tasks.limpiar_trabajos', 'schedule': 60.0}}
+BIBLIOTECA_RAIZ = Path(os.environ.get('BIBLIOTECA_RAIZ', str(BASE_DIR / 'knowledge' / 'biblioteca')))
+BIBLIOTECA_AUTOMATICA = os.environ.get('BIBLIOTECA_AUTOMATICA', 'true').lower() == 'true'
+BIBLIOTECA_BUSQUEDA = os.environ.get('BIBLIOTECA_BUSQUEDA', 'textual')
+CELERY_BEAT_SCHEDULE['biblioteca-publica'] = {
+    'task': 'colegio.tasks.actualizar_biblioteca', 'schedule': 3600.0,
+}
 IA_ARCHIVOS_PRIVADOS = Path(os.environ.get('IA_ARCHIVOS_PRIVADOS', str(BASE_DIR / 'private' / 'ia')))
 QWEN_CONNECT_TIMEOUT = 10
 QWEN_READ_TIMEOUT = 30
 QWEN_TOTAL_TIMEOUT = 180
 QWEN_MODELOS_SIN_RAZONAMIENTO = ('qwen3.8-flash', 'qwen-plus', 'qwen-turbo', 'qwen3-235b-a22b', 'qwen3-32b')
 AUTH_USER_MODEL = 'colegio.Usuario'
+LOGIN_URL = 'login'
 
 # Asistentes de IA (Gemini). Sin GEMINI_API_KEY se usa el proveedor simulado,
 # que responde con ejemplos fijos: sirve para desarrollar y para las pruebas.

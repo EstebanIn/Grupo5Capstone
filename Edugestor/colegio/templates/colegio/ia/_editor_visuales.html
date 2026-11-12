@@ -1,0 +1,23 @@
+<details class="material-visuales-panel" id="apoyos-visuales">
+<summary>Apoyos visuales del material{% if contenido.recursos_visuales %} · {{ contenido.recursos_visuales|length }}{% endif %}</summary>
+<p>Los diagramas aparecen en la explicación, los ejercicios o el solucionario. Revisa y ajusta sus cantidades y sección antes de aprobar. Para eliminarlos, marca «Quitar» y guarda los cambios.</p>
+<button class="ia-boton secundario" type="submit" name="accion" value="proponer_visuales">Proponer a partir de mis ejemplos</button>
+<p class="ayuda">Busca ejemplos numéricos de redondeo, valor posicional y completar decenas en tu explicación. No utiliza tu API ni cambia materiales aprobados.</p>
+{% for v in contenido.recursos_visuales %}<fieldset class="material-visual-edicion"><legend>Apoyo {{ v.id }} · {{ v.titulo }}</legend>
+<input type="hidden" name="visual_{{ v.id }}_tipo" value="{{ v.tipo }}">
+<div class="material-visual-campos">
+<label>Título<input name="visual_{{ v.id }}_titulo" value="{{ v.titulo }}" maxlength="100"></label>
+<label>Sección<select name="visual_{{ v.id }}_ubicacion"><option value="contenido" {% if v.ubicacion == 'contenido' %}selected{% endif %}>Explicación y ejemplos</option><option value="ejercicios" {% if v.ubicacion == 'ejercicios' %}selected{% endif %}>Ejercicios (sin resultado)</option><option value="solucionario" {% if v.ubicacion == 'solucionario' %}selected{% endif %}>Solucionario docente</option></select></label>
+<label>{% if v.tipo == 'grupos' %}Filas{% elif v.tipo == 'reparto' %}Total de elementos{% elif v.tipo == 'fraccion' %}Partes coloreadas{% else %}Primer número{% endif %}<input name="visual_{{ v.id }}_a" type="number" value="{{ v.a }}" min="0" max="999" required></label>
+<label>{% if v.tipo == 'grupos' %}Elementos por fila{% elif v.tipo == 'reparto' %}Número de grupos{% elif v.tipo == 'fraccion' %}Total de partes{% else %}Segundo número{% endif %}<input name="visual_{{ v.id }}_b" type="number" value="{{ v.b }}" min="1" max="999" required></label>
+{% if v.tipo == 'ajuste' or v.tipo == 'posicional' or v.tipo == 'recta' %}<label>Operación<select name="visual_{{ v.id }}_operacion"><option value="+" {% if v.operacion == '+' %}selected{% endif %}>Suma</option><option value="-" {% if v.operacion == '-' %}selected{% endif %}>Resta</option>{% if v.tipo == 'posicional' %}<option value="×" {% if v.operacion == '×' %}selected{% endif %}>Multiplicación</option>{% endif %}</select></label>{% endif %}
+</div><label class="material-visual-eliminar"><input type="checkbox" name="visual_{{ v.id }}_eliminar"> Quitar este apoyo al guardar</label></fieldset>{% endfor %}
+<h3>Añadir un diagrama</h3>
+<div class="material-visual-campos" data-nuevo-visual>
+<label>Representación<select name="nuevo_visual_tipo"><option value="ajuste">Redondear y ajustar</option><option value="posicional">Valor posicional</option><option value="recta">Saltos hasta la decena</option><option value="grupos">Arreglo de puntos</option><option value="reparto">Reparto en grupos iguales</option><option value="fraccion">Barra de fracción</option></select></label>
+<label>Sección<select name="nuevo_visual_ubicacion"><option value="contenido">Explicación y ejemplos</option><option value="ejercicios">Ejercicios (sin resultado)</option><option value="solucionario">Solucionario docente</option></select></label>
+<label><span data-etiqueta-a>Primer número</span><input name="nuevo_visual_a" type="number" min="0" max="999" value="48"></label>
+<label><span data-etiqueta-b>Segundo número</span><input name="nuevo_visual_b" type="number" min="1" max="999" value="35"></label>
+<label data-nueva-operacion>Operación<select name="nuevo_visual_operacion"><option value="+">Suma</option><option value="-">Resta</option><option value="×" data-operacion-multiplicar hidden>Multiplicación</option></select></label>
+</div><button class="ia-boton secundario" type="submit" name="accion" value="agregar_visual">Añadir diagrama al borrador</button>
+</details>

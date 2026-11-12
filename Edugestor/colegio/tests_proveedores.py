@@ -78,7 +78,7 @@ class ProveedoresVistaTests(AsistenteIATestBase):
 
     def test_formulario_qwen_registra_sin_guardar_prompt(self):
         with mock.patch('colegio.ia.rag.buscar_fragmentos', return_value=[]), mock.patch('colegio.ia.qwen.generar',return_value=json.dumps({'titulo':'Material', 'contenido':'Texto educativo','ejercicios':'','solucionario':''})):
-            respuesta=self.client.post(reverse('ia_crear_material'),{'proveedor':'qwen','carga':self.carga.pk,'tema':'Contenido privado no persistir','tipo':'guia','objetivo':'OA'})
+            respuesta=self.client.post(reverse('ia_crear_material'),{'proveedor':'qwen','carga':self.carga.pk,'tema':'Contenido privado no persistir','tipo':'guia','objetivo':'OA','contexto_curricular':'personalizado'})
         self.assertEqual(respuesta.status_code,302)
         registro=RegistroIA.objects.get(usuario=self.usuario_docente)
         self.assertEqual((registro.proveedor,registro.estado),('qwen','OK'))

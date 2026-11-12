@@ -1,13 +1,52 @@
 {% extends 'colegio/ia/base_docente.html' %}
-{% block titulo %}Asistente docente{% endblock %}{% block contenido %}
-<div class="ia-encabezado"><span class="ia-eyebrow">PLANIFICA · REVISA · ENSEÑA</span><h1>Más tiempo para enseñar</h1><p>Prepara tus documentos con apoyo de IA. Tú revisas el contenido y decides cuándo está listo.</p></div>
-<div class="ia-herramientas">
-<a class="ia-herramienta" href="{% url 'ia_crear_prueba' %}">{% include 'colegio/ia/_icono.html' %}<h2>Crear prueba</h2><p>Preguntas, alternativas y pauta docente separada.</p><span>Configurar prueba →</span></a>
-<a class="ia-herramienta" href="{% url 'ia_crear_rubrica' %}">{% include 'colegio/ia/_icono.html' with icono='rubrica' %}<h2>Crear rúbrica</h2><p>Criterios observables, niveles y puntuación explícita.</p><span>Configurar rúbrica →</span></a>
-<a class="ia-herramienta" href="{% url 'ia_crear_material' %}">{% include 'colegio/ia/_icono.html' with icono='material' %}<h2>Crear material</h2><p>Explicación, ejercicios y solucionario docente.</p><span>Configurar material →</span></a>
-<a class="ia-herramienta" href="{% url 'ia_revisar_prueba' %}">{% include 'colegio/ia/_icono.html' with icono='revision' %}<h2>Revisar prueba</h2><p>Comprueba la alineación y claridad de tus preguntas.</p><span>Revisar prueba →</span></a></div>
-<div class="ia-metricas"><div><strong>{{ total_generados }}</strong><span>Documentos generados</span></div><div><strong>{{ total_aprobados }}</strong><span>Aprobados por ti</span></div><div><strong>{% if promedio_corregido is not None %}{{ promedio_corregido|floatformat:1 }}%{% else %}—{% endif %}</strong><span>Edición promedio del borrador</span><small>Describe cambios de texto; no mide calidad pedagógica.</small></div></div>
-{% if trabajos %}<section class="ia-panel"><h2>Operaciones recientes</h2><ul class="ia-trabajos-lista">{% for t in trabajos %}<li><a href="{% url 'ia_trabajo' t.pk %}">{{ t.operacion|title }} · {{ t.proveedor|title }} · {{ t.creado|date:'d/m H:i' }}</a><span class="ia-estado">{{ t.get_estado_display }}</span></li>{% endfor %}</ul></section>{% endif %}
-<section class="ia-panel"><div class="ia-seccion"><h2>Tus documentos</h2><a href="{% url 'ia_corregir' %}">Corregir respuestas →</a></div><div class="ia-tabla-scroll"><table class="ia-tabla"><thead><tr><th>Documento</th><th>Curso y asignatura</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>
-{% for i in instrumentos %}<tr><td><a href="{% url 'ia_instrumento' i.pk %}">{{ i.titulo }}</a><small>{{ i.get_tipo_display }}</small></td><td>{{ i.carga.curso }}<small>{{ i.carga.asignatura.nombre_asignatura }}</small></td><td><span class="ia-estado {{ i.estado }}">{{ i.get_estado_display }}</span></td><td>{{ i.fecha_creacion|date:'d/m/Y' }}</td></tr>{% empty %}<tr><td colspan="4">Tu primer borrador aparecerá aquí. Elige una herramienta para comenzar.</td></tr>{% endfor %}</tbody></table></div></section>
-<section class="ia-panel"><h2>Cobertura curricular disponible</h2><p>Fragmentos indexados por curso y asignatura para {{ ia_proveedor|title }}. Cada borrador muestra las fuentes recuperadas.</p><ul>{% for fila in cobertura %}<li>{{ fila.carga.curso }} · {{ fila.carga.asignatura.nombre_asignatura }}: {{ fila.disponibles }} de {{ fila.total }} fragmentos disponibles.</li>{% empty %}<li>No hay cargas académicas asignadas.</li>{% endfor %}</ul></section>{% endblock %}
+{% block titulo %}Asistente docente{% endblock %}
+
+{% block cabecera %}
+<header class="ia-encabezado ia-inicio-cabecera">
+    <div>
+        <h1>Asistente docente</h1>
+        <p>Crea y revisa pruebas, rúbricas y material de estudio para tus cursos.</p>
+    </div>
+    <div class="ia-contexto">
+        <span>{{ request.institucion.nombre }}</span>
+        <a href="{% url 'registro_ia' %}" class="ia-proveedor">{{ ia_proveedor|title }}{% if ia_modelo and ia_modelo != ia_proveedor %} · {{ ia_modelo }}{% endif %} <span aria-hidden="true">↗</span></a>
+    </div>
+</header>
+{% endblock %}
+
+{% block contenido %}
+<section class="ia-metricas" aria-label="Resumen de tus documentos">
+    <div><span>Documentos generados</span><strong>{{ total_generados }}</strong><small>Pruebas, rúbricas y material de estudio</small></div>
+    <div><span>Aprobados por ti</span><strong>{{ total_aprobados }}</strong><small>Documentos que ya revisaste y aprobaste</small></div>
+    <div><span>Edición promedio del borrador</span><strong>{% if promedio_corregido is not None %}{{ promedio_corregido|floatformat:1 }}%{% else %}—{% endif %}</strong><small>Cambios de texto; no mide calidad pedagógica.</small></div>
+</section>
+
+<section aria-labelledby="ia-herramientas-titulo">
+    <div class="ia-seccion ia-herramientas-cabecera"><h2 id="ia-herramientas-titulo">¿Qué necesitas preparar?</h2><p>Elige una herramienta para comenzar.</p></div>
+    <div class="ia-herramientas">
+        <a class="ia-herramienta" href="{% url 'ia_crear_prueba' %}">
+            <div class="ia-herramienta-icono">{% include 'colegio/ia/_icono.html' %}</div>
+            <h3>Crear prueba</h3><p>Preguntas, alternativas y pauta docente separada.</p><span>Configurar prueba <i aria-hidden="true">→</i></span>
+        </a>
+        <a class="ia-herramienta" href="{% url 'ia_crear_rubrica' %}">
+            <div class="ia-herramienta-icono">{% include 'colegio/ia/_icono.html' with icono='rubrica' %}</div>
+            <h3>Crear rúbrica</h3><p>Criterios observables, niveles y puntuación explícita.</p><span>Configurar rúbrica <i aria-hidden="true">→</i></span>
+        </a>
+        <a class="ia-herramienta" href="{% url 'ia_crear_material' %}">
+            <div class="ia-herramienta-icono">{% include 'colegio/ia/_icono.html' with icono='material' %}</div>
+            <h3>Crear material</h3><p>Explicación, ejercicios y solucionario docente.</p><span>Configurar material <i aria-hidden="true">→</i></span>
+        </a>
+        <a class="ia-herramienta" href="{% url 'ia_revisar_prueba' %}">
+            <div class="ia-herramienta-icono">{% include 'colegio/ia/_icono.html' with icono='revision' %}</div>
+            <h3>Revisar prueba</h3><p>Comprueba la alineación y claridad de tus preguntas.</p><span>Revisar prueba <i aria-hidden="true">→</i></span>
+        </a>
+    </div>
+</section>
+
+<details class="ia-panel ia-cobertura">
+    <summary>Cobertura curricular disponible</summary>
+    <p>Fragmentos indexados por curso y asignatura para {{ ia_proveedor|title }}. Cada borrador muestra las fuentes recuperadas.</p>
+    <ul>{% for fila in cobertura %}<li>{{ fila.carga.curso }} · {{ fila.carga.asignatura.nombre_asignatura }}: {{ fila.disponibles }} de {{ fila.total }} fragmentos disponibles. {{ fila.metodo }}.</li>{% empty %}<li>No hay cargas académicas asignadas.</li>{% endfor %}</ul>
+    <a href="{% url 'ia_biblioteca' %}">Consultar y actualizar biblioteca curricular →</a>
+</details>
+{% endblock %}

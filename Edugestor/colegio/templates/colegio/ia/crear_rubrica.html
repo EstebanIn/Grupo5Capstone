@@ -9,7 +9,7 @@
     <p>Describe la actividad y la IA propone criterios y descriptores por nivel. Podrás editar toda la tabla antes de aprobarla.</p>
 </div>
 
-<div class="ia-panel">
+<div class="ia-panel ia-panel-form">
     <form method="post" class="ia-form" data-generando="Generando rúbrica… (se mostrará el progreso)">
         {% csrf_token %}
 <input type="hidden" name="idempotencia" value="{{ idempotencia }}">

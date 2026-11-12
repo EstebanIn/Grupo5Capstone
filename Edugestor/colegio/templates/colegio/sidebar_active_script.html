@@ -25,6 +25,11 @@
 
         if (bestMatch) {
             bestMatch.classList.add("active");
+            var submenu = bestMatch.closest(".ia-menu-desplegable");
+            if (submenu) {
+                submenu.classList.add("active");
+                submenu.open = true;
+            }
         }
     });
 </script>

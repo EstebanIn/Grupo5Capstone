@@ -9,7 +9,7 @@
     <p>La IA redacta una guía, un resumen o un set de ejercicios para tus estudiantes. Podrás editar el texto antes de aprobarlo e imprimirlo.</p>
 </div>
 
-<div class="ia-panel">
+<div class="ia-panel ia-panel-form">
     <form method="post" class="ia-form" data-generando="Generando material… (se mostrará el progreso)">
         {% csrf_token %}
 <input type="hidden" name="idempotencia" value="{{ idempotencia }}">

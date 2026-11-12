@@ -15,6 +15,7 @@ from .ia.configuracion import valor
 from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 from django.db.models import Avg, Count
 from django.db import transaction
@@ -27,7 +28,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 
-from .ia import asistentes, dominio, rag
+from .ia import asistentes, dominio, rag, biblioteca
 
 from .ia.formularios import (
 
@@ -90,7 +91,6 @@ def _contexto_base(request, **extra):
 
 def asistente_docente(request):
     from .ia.trabajos import limpiar
-    from .models import TrabajoIA
     limpiar()
 
 
@@ -107,9 +107,6 @@ def asistente_docente(request):
 
         docente=docente,
 
-        instrumentos=instrumentos[:30],
-
-        trabajos=TrabajoIA.objects.filter(usuario=request.user, institucion=request.institucion)[:10],
         cobertura=_cobertura_docente(docente),
         total_generados=instrumentos.count(),
 
@@ -118,6 +115,26 @@ def asistente_docente(request):
         promedio_corregido=aprobados.aggregate(promedio=Avg("porcentaje_corregido"))["promedio"],
 
     ))
+
+
+@solo_rol("DOCENTE")
+def ia_documentos(request):
+    docente = get_object_or_404(Docente, usuario=request.user)
+    documentos = InstrumentoIA.objects.filter(docente=docente, institucion=request.institucion).select_related(
+        "carga__curso", "carga__asignatura").order_by('-fecha_creacion', '-pk')
+    pagina = Paginator(documentos, 15).get_page(request.GET.get('pagina'))
+    return render(request, 'colegio/ia/documentos_docente.html', _contexto_base(
+        request, docente=docente, pagina=pagina))
+
+
+@solo_rol("DOCENTE")
+def ia_operaciones(request):
+    from .models import TrabajoIA
+    docente = get_object_or_404(Docente, usuario=request.user)
+    trabajos = TrabajoIA.objects.filter(usuario=request.user, institucion=request.institucion).order_by('-creado', '-pk')
+    pagina = Paginator(trabajos, 20).get_page(request.GET.get('pagina'))
+    return render(request, 'colegio/ia/operaciones_docente.html', _contexto_base(
+        request, docente=docente, pagina=pagina))
 
 
 def _crear_instrumento(request, *, formulario_clase, tipo, plantilla, generar):
@@ -165,7 +182,7 @@ def _generar_prueba_con_rag(contexto, datos):
 
         consulta = "\n".join((contexto["asignatura"], contexto["nivel"], datos["objetivo"], datos["tema"]))
 
-        fragmentos = rag.buscar_fragmentos(
+        fragmentos = biblioteca.recuperar(
 
             consulta=consulta,
 
@@ -250,7 +267,7 @@ def ia_revisar_prueba(request):
 def _fragmentos_docentes(contexto, d):
     fragmentos = []
     if proveedor_activo() in ('gemini', 'qwen'):
-        fragmentos = rag.buscar_fragmentos(consulta='\n'.join((contexto['asignatura'], contexto['nivel'], d.get('objetivo', ''), d.get('actividad', d.get('tema', '')))),
+        fragmentos = biblioteca.recuperar(consulta='\n'.join((contexto['asignatura'], contexto['nivel'], d.get('objetivo', ''), d.get('actividad', d.get('tema', '')))),
             asignatura=contexto['asignatura'], ciclo=d['carga'].curso.ciclo, nivel=d['carga'].curso.nivel)
     anotar_fuentes(fragmentos)
     return fragmentos
@@ -262,7 +279,17 @@ def _generar_rubrica_con_rag(contexto, d):
 
 
 def _generar_material_con_rag(contexto, d):
-    return asistentes.crear_material(contexto, d['objetivo'], d['tema'], d['tipo'], fragmentos=_fragmentos_docentes(contexto, d))
+    modo = d.get('contexto_curricular', 'curricular')
+    if modo not in ('curricular', 'personalizado'):
+        raise ErrorIA('Selecciona una opción válida para las fuentes del material.')
+    if modo == 'personalizado':
+        fragmentos = []
+        anotar_fuentes(fragmentos)
+    else:
+        fragmentos = _fragmentos_docentes(contexto, d)
+        if proveedor_activo() in ('gemini', 'qwen') and not fragmentos:
+            raise ErrorIA('No se recuperaron fuentes para esta asignatura y nivel. Indexa las fuentes o elige objetivo personalizado para continuar sin ellas.')
+    return asistentes.crear_material(contexto, d['objetivo'], d['tema'], d['tipo'], fragmentos=fragmentos)
 
 
 def _contenido_desde_post(tipo, post, *, validar=True):
@@ -293,6 +320,10 @@ def _contenido_desde_post(tipo, post, *, validar=True):
                 for i in indices if not post.get(f'c{i}_eliminar')])
         return asistentes.validar_rubrica(base) if validar else base
     base.update({k: post.get(k, '') for k in ('contenido', 'ejercicios', 'solucionario', 'separacion_revisada')})
+    from .ia.visuales import visuales_desde_post
+    recursos = visuales_desde_post(post, validar=validar)
+    if recursos or any(k.startswith('visual_') for k in post):
+        base['recursos_visuales'] = recursos
     return asistentes.validar_material(base) if validar else base
 
 
@@ -307,10 +338,14 @@ def _cobertura_docente(docente):
             documento__ciclo__in=(carga.curso.ciclo, '')).filter(
             Q(documento__nivel=carga.curso.nivel) | Q(documento__nivel__isnull=True))
         total = base.count()
-        disponibles = total if proveedor_activo() != 'qwen' else sum(
+        textual = (len(biblioteca.filas_buscables(biblioteca.fragmentos_scope(asignatura=carga.asignatura.nombre_asignatura,
+            ciclo=carga.curso.ciclo, nivel=carga.curso.nivel)))
+            if biblioteca.settings.BIBLIOTECA_BUSQUEDA == 'textual' else 0)
+        disponibles = textual or (total if proveedor_activo() != 'qwen' else sum(
             1 for f in base if f.embedding_qwen is not None and
-            f.modelo_embedding_qwen == valor('qwen', 'embedding_model') and f.huella_texto_qwen == huella(f.texto))
-        filas.append({'carga': carga, 'total': total, 'disponibles': disponibles})
+            f.modelo_embedding_qwen == valor('qwen', 'embedding_model') and f.huella_texto_qwen == huella(f.texto)))
+        filas.append({'carga': carga, 'total': total, 'disponibles': disponibles,
+                      'metodo': 'Búsqueda textual local' if textual else 'Índice vectorial'})
     return filas
 
 
@@ -332,6 +367,32 @@ def ia_instrumento(request, pk):
         try:
 
             contenido = _contenido_desde_post(instrumento.tipo, request.POST)
+            if instrumento.tipo == 'MATERIAL':
+                from .ia.visuales import proponer_visuales, validar_visuales
+                if not any(k.startswith('visual_') for k in request.POST):
+                    contenido['recursos_visuales'] = validar_visuales(instrumento.contenido.get('recursos_visuales', []))
+                if request.POST.get('accion') == 'proponer_visuales':
+                    if instrumento.carga.asignatura.nombre_asignatura.lower().startswith('matem'):
+                        anteriores = len(contenido.get('recursos_visuales', []))
+                        contenido = proponer_visuales(contenido)
+                        nuevos = len(contenido['recursos_visuales'])-anteriores
+                        messages.info(request, f'Se añadieron {nuevos} apoyos visuales a partir de los ejemplos. Revísalos antes de aprobar.' if nuevos else 'No se encontraron nuevos ejemplos compatibles. Puedes añadir un apoyo visual con sus cantidades.')
+                if request.POST.get('accion') == 'agregar_visual':
+                    recursos = list(contenido.get('recursos_visuales', []))
+                    if len(recursos)>=6:
+                        raise ErrorIA('El material admite hasta seis apoyos visuales.')
+                    rid = next(n for n in range(1,7) if n not in {r['id'] for r in recursos})
+                    try:
+                        nuevo = {'id':rid, 'tipo':request.POST.get('nuevo_visual_tipo'),
+                            'a':int(request.POST.get('nuevo_visual_a','')), 'b':int(request.POST.get('nuevo_visual_b','')),
+                            'operacion':request.POST.get('nuevo_visual_operacion','+'),
+                            'ubicacion':request.POST.get('nuevo_visual_ubicacion','contenido')}
+                    except ValueError:
+                        raise ErrorIA('Introduce las dos cantidades del apoyo visual.') from None
+                    nuevo = validar_visuales([nuevo])[0]
+                    recursos.append(nuevo);contenido['recursos_visuales'] = recursos
+                    campo = nuevo['ubicacion']; contenido[campo] = contenido.get(campo,'').rstrip()+f'\n\n[[visual:{rid}]]'
+                    messages.info(request, 'Apoyo visual añadido. Revisa sus cantidades y ubicación antes de aprobar.')
 
         except (ErrorIA, ValueError) as error:
             contenido_pantalla = _contenido_desde_post(instrumento.tipo, request.POST, validar=False)

@@ -9,7 +9,7 @@
     <p>La IA redacta un borrador de preguntas de selección múltiple. Después podrás editar cada pregunta antes de aprobarla.</p>
 </div>
 
-<div class="ia-panel">
+<div class="ia-panel ia-panel-form">
     <form method="post" class="ia-form" data-generando="Generando prueba… (se mostrará el progreso)">
         {% csrf_token %}
 <input type="hidden" name="idempotencia" value="{{ idempotencia }}">

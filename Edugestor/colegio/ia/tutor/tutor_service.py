@@ -28,7 +28,7 @@ def responder_con_rag(contexto, historial, pregunta):
         from colegio.ia import asistentes
         return {'respuesta': asistentes.responder_tutor(contexto, historial, pregunta), 'fuentes': []}
     try:
-        fragmentos = recuperar_contexto(pregunta, top_k=4)
+        fragmentos = recuperar_contexto(pregunta, top_k=4, contexto=contexto)
     except Exception as error:
         from colegio.ia.proveedor import ErrorIA
         if isinstance(error, ErrorIA):
@@ -87,6 +87,8 @@ indícalo claramente.
             "pagina": item["pagina"],
             "similitud": round(item["similitud"], 4) if item.get("similitud") is not None else None,
             "metodo": item.get("metodo_recuperacion", "vectorial"),
+            "titulo": item.get('titulo', 'Libro de Matemática'),
+            "url": item.get('url', ''),
         }
         for item in fragmentos
     ]

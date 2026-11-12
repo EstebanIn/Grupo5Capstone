@@ -1,10 +1,10 @@
-{% load static %}
+{% load static tz %}
 <!doctype html><html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Registro de IA | EduGestor</title>
 {% if user.tipo_usuario == 'ALUMNO' %}<link rel="stylesheet" href="{% static 'css/alumno.css' %}">{% else %}<link rel="stylesheet" href="{% static 'css/docente.css' %}">{% endif %}
 <link rel="stylesheet" href="{% static 'css/ia.css' %}?v=modelos-1">
-{% if user.tipo_usuario == 'DOCENTE' %}<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}">{% endif %}
+{% if user.tipo_usuario == 'DOCENTE' %}<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}?v=panel-docente-4">{% endif %}
 <style>.registro-cabecera{max-width:980px;margin-bottom:28px;}.registro-cabecera p{margin-top:9px;color:#5c6875;line-height:1.6;}.registro-resumen{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:24px;}.registro-resumen h2{font-size:17px;margin-bottom:8px;}.registro-resumen p{font-size:14px;line-height:1.7;}.registro-scroll{overflow-x:auto;}.registro-detalle dt{font-size:13px;color:#596779;margin-top:14px;}.registro-detalle dd{margin:5px 0;overflow-wrap:anywhere;}.registro-fuente{padding:15px 0;border-bottom:1px solid #e5e7eb;line-height:1.6;}.registro-fuente p{margin-top:7px;color:#4b5563;}.registro-estado{font-weight:700;}.registro-error{color:#a32525;}.registro-vacio{padding:35px 0;line-height:1.8;color:#52606f;}.registro-huella{font-family:monospace;font-size:12px;}</style>
 </head><body {% if user.tipo_usuario == 'ALUMNO' %}class="ia-alumno"{% else %}class="ia-docente"{% endif %}>
 <aside class="sidebar"><div class="logo">EduGestor</div>
@@ -30,7 +30,7 @@
 </section>
 {% else %}
 {% include 'colegio/ia/_conexiones.html' %}
-<section class="ia-panel"><h2>Mis últimas operaciones</h2>{% if registros %}<div class="registro-scroll"><table class="ia-tabla"><thead><tr><th>Fecha (UTC)</th><th>Operación</th><th>Proveedor</th><th>Estado</th><th>Tiempo</th><th></th></tr></thead><tbody>{% for item in registros %}<tr><td>{{ item.fecha|date:'d/m/Y H:i' }}</td><td>{{ item.operacion }}</td><td>{{ item.proveedor|title }}</td><td class="registro-estado {% if item.estado == 'ERROR' %}registro-error{% endif %}">{{ item.estado }}</td><td>{{ item.duracion_ms }} ms</td><td><a href="{% url 'detalle_registro_ia' item.pk %}">Ver detalle</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="registro-vacio">Todavía no tienes operaciones registradas.<br>Genera un instrumento, consulta al tutor o envía una hoja para corregir. Su registro aparecerá aquí.</div>{% endif %}</section>
+<section class="ia-panel"><h2>Mis últimas operaciones</h2>{% if registros %}<div class="registro-scroll"><table class="ia-tabla"><thead><tr><th>Fecha y hora (Chile)</th><th>Operación</th><th>Proveedor</th><th>Estado</th><th>Tiempo</th><th></th></tr></thead><tbody>{% for item in registros %}<tr><td>{{ item.fecha|timezone:'America/Santiago'|date:'d/m/Y H:i' }}</td><td>{{ item.operacion }}</td><td>{{ item.proveedor|title }}</td><td class="registro-estado {% if item.estado == 'ERROR' %}registro-error{% endif %}">{{ item.estado }}</td><td>{{ item.duracion_ms }} ms</td><td><a href="{% url 'detalle_registro_ia' item.pk %}">Ver detalle</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="registro-vacio">Todavía no tienes operaciones registradas.<br>Genera un instrumento, consulta al tutor o envía una hoja para corregir. Su registro aparecerá aquí.</div>{% endif %}</section>
 {% endif %}
 <p style="font-size:13px;color:#596779;line-height:1.6">Un error de configuración puede impedir el envío. Por privacidad, no guardamos prompts completos, claves API ni copias de los archivos en este registro. Cada persona ve solo sus propias operaciones.</p>
 </main>{% include 'colegio/sidebar_active_script.html' %}</body></html>

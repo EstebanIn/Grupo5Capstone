@@ -65,19 +65,23 @@ def revisar_rubrica(contenido, objetivo):
 
 
 def validar_material(datos):
+    from .visuales import validar_visuales
     if not isinstance(datos, dict) or not str(datos.get('contenido', '')).strip():
         raise ErrorIA('El material necesita contenido, ejercicios y solucionario en campos separados.')
     if any(not isinstance(datos.get(k, ''), str) for k in ('titulo', 'contenido', 'ejercicios', 'solucionario')):
         raise ErrorIA('El material tiene una estructura inválida.')
     return {'titulo': datos.get('titulo', 'Material de estudio').strip()[:200],
             **{k: datos.get(k, '').strip() for k in ('contenido', 'ejercicios', 'solucionario')},
-            'version_estructura': 2, 'separacion_revisada': bool(datos.get('separacion_revisada', False))}
+            'version_estructura': 2, 'separacion_revisada': bool(datos.get('separacion_revisada', False)),
+            **({'recursos_visuales': validar_visuales(datos['recursos_visuales'])} if 'recursos_visuales' in datos else {})}
 
 
 def agregar_fuentes(resultado, fragmentos, objetivo):
     resultado['fuentes'] = []
     for f in fragmentos:
         fuente = {k: f.get(k, '') for k in ('titulo', 'url', 'pagina')}
+        if f.get('metodo_recuperacion'):
+            fuente['metodo'] = f['metodo_recuperacion']
         if fuente not in resultado['fuentes']:
             resultado['fuentes'].append(fuente)
     resultado['rag_aplicado'] = bool(fragmentos)

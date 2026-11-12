@@ -13,6 +13,9 @@
       if (!respuesta.ok) throw new Error('estado');
       const datos = await respuesta.json();
       panel.dataset.etapa = datos.etapa;
+      const etiqueta = document.getElementById('trabajo-etapa');
+      const etapas = {pendiente: 'Pendiente', preparando: 'Preparando', generando: 'Generando', validando: 'Validando', completado: 'Completado', error: 'Error'};
+      if (etiqueta) etiqueta.textContent = etapas[datos.etapa] || datos.etapa;
       document.getElementById('trabajo-mensaje').textContent = datos.mensaje;
       document.getElementById('trabajo-duracion').textContent = datos.duracion;
       document.getElementById('trabajo-conexion').textContent = '';

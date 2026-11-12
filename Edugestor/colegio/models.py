@@ -678,6 +678,33 @@ class CorreccionPrueba(ModeloInstitucional):
         return f"{self.instrumento} — {self.alumno or 'sin alumno'}: {self.nota}"
 
 
+class FuenteBiblioteca(models.Model):
+    """Catálogo público aprobado por el operador; nunca contiene pautas privadas."""
+    slug = models.SlugField(unique=True)
+    titulo = models.CharField(max_length=250)
+    ficha_url = models.URLField(max_length=1000)
+    descarga_url = models.URLField(max_length=1000)
+    asignatura = models.CharField(max_length=120)
+    ciclo = models.CharField(max_length=20)
+    nivel = models.PositiveSmallIntegerField()
+    licencia = models.CharField(max_length=250, blank=True)
+    version = models.CharField(max_length=80, blank=True)
+    aprobada = models.BooleanField(default=False)
+    automatica = models.BooleanField(default=False)
+    estado = models.CharField(max_length=20, default='pendiente')
+    mensaje = models.CharField(max_length=400, blank=True)
+    comprobada = models.DateTimeField(null=True, blank=True)
+    proxima_revision = models.DateTimeField(null=True, blank=True)
+    bloqueo = models.UUIDField(null=True, blank=True)
+    bloqueo_hasta = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['asignatura', 'ciclo', 'nivel', 'titulo']
+
+    def __str__(self):
+        return self.titulo
+
+
 class DocumentoCurricular(models.Model):
     """Fuente oficial pública del Mineduc que forma parte del corpus RAG."""
 
@@ -690,6 +717,8 @@ class DocumentoCurricular(models.Model):
     sha256 = models.CharField(max_length=64, unique=True)
     activo = models.BooleanField(default=True, db_index=True)
     fecha_indexacion = models.DateTimeField(auto_now_add=True)
+    fuente_biblioteca = models.ForeignKey(FuenteBiblioteca, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='documentos')
 
     class Meta:
         ordering = ["asignatura", "ciclo", "nivel", "titulo"]
@@ -707,7 +736,9 @@ class FragmentoCurricular(models.Model):
     numero = models.PositiveIntegerField()
     pagina = models.PositiveIntegerField(null=True, blank=True)
     texto = models.TextField()
-    embedding = VectorField(dimensions=768)
+    embedding = VectorField(dimensions=768, null=True, blank=True)
+    modelo_embedding_gemini = models.CharField(max_length=160, blank=True, default='')
+    huella_texto_gemini = models.CharField(max_length=64, blank=True, default='')
     embedding_qwen = VectorField(dimensions=768, null=True, blank=True)
     modelo_embedding_qwen = models.CharField(max_length=160, blank=True, default='')
     huella_texto_qwen = models.CharField(max_length=64, blank=True, default='')

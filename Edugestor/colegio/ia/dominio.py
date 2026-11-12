@@ -50,6 +50,8 @@ def contexto_tutor(asignatura):
     return {
         "nivel": _describir_nivel(asignatura.curso),
         "asignatura": asignatura.nombre_asignatura,
+        "ciclo": asignatura.curso.ciclo,
+        "grado": asignatura.curso.nivel,
     }
 
 

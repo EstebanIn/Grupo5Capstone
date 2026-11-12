@@ -47,9 +47,45 @@ class FormularioRubrica(FormularioBaseDocente):
 
 
 class FormularioMaterial(FormularioBaseDocente):
+    contexto_curricular = forms.ChoiceField(
+        label="Fuentes del material", required=False, initial="curricular",
+        choices=[
+            ("curricular", "Usar documentos curriculares indexados"),
+            ("personalizado", "Objetivo personalizado (sin fuentes)"),
+        ],
+        help_text="El modo personalizado permite generar el borrador sin un índice curricular; no acredita alineación con un OA oficial.",
+    )
     tema = forms.CharField(label="Tema", max_length=200,
                            widget=forms.TextInput(attrs={"placeholder": "Ej: los estados del agua"}))
     tipo = forms.ChoiceField(label="Tipo de material", choices=list(TIPOS_MATERIAL.items()))
+
+    def __init__(self, *args, docente, **kwargs):
+        super().__init__(*args, docente=docente, **kwargs)
+        self.fields['objetivo'].label = 'Objetivo de aprendizaje del material'
+        self.fields['objetivo'].help_text = 'Puede indicar un OA verificado o describir un objetivo personalizado.'
+        if not self.is_bound and 'contexto_curricular' not in self.initial:
+            from django.db.models import Q
+            from colegio.models import FragmentoCurricular
+            cargas = self.fields['carga'].queryset
+            seleccion = self.initial.get('carga')
+            if seleccion:
+                cargas = cargas.filter(pk=getattr(seleccion, 'pk', seleccion))
+            hay_fuentes = any(FragmentoCurricular.objects.filter(
+                documento__activo=True,
+                documento__asignatura__iexact=carga.asignatura.nombre_asignatura,
+                documento__ciclo__in=(carga.curso.ciclo, ''),
+            ).filter(Q(documento__nivel=carga.curso.nivel) | Q(documento__nivel__isnull=True)).exists()
+                for carga in cargas)
+            if not hay_fuentes:
+                self.initial['contexto_curricular'] = 'personalizado'
+                self.fields['contexto_curricular'].help_text = (
+                    'No hay fuentes indexadas para los cursos consultados. Puede generar un borrador '
+                    'con objetivo personalizado o seleccionar RAG después de indexar las fuentes. '
+                    'El modo personalizado no acredita alineación con un OA oficial.')
+
+    def clean_contexto_curricular(self):
+        # Los formularios antiguos y trabajos recuperados conservan su modo RAG.
+        return self.cleaned_data.get('contexto_curricular') or 'curricular'
 
 
 class FormularioRevision(FormularioBaseDocente):
