@@ -1408,8 +1408,11 @@ class AsistenteDocenteTests(AsistenteIATestBase):
         for i, criterio in enumerate(contenido["criterios"]):
             datos[f"c{i}_criterio"] = criterio["criterio"]
             datos[f"c{i}_puntaje"] = criterio["puntaje_maximo"]
+            for k in ('aprendizaje', 'evidencia', 'actividad'):
+                datos[f'c{i}_{k}'] = criterio[k]
             for j, descriptor in enumerate(criterio["descriptores"]):
                 datos[f"c{i}_d{j}"] = descriptor
+        datos.update({f'revision_{i}': 'on' for i in range(5)})
         datos["c0_criterio"] = "Dominio del tema"
         self.client.post(reverse("ia_instrumento", args=[instrumento.pk]), datos)
 

@@ -85,9 +85,9 @@
                 <thead>
                     <tr>
                         <th style="min-width:160px">Criterio</th>
-                        <th style="width:70px">Puntaje máx.</th>
+                        <th style="width:80px">Máximo calculado</th>
                         {% for nivel in contenido.niveles %}
-                        <th style="min-width:170px"><input type="text" name="nivel_{{ forloop.counter0 }}" value="{{ nivel }}" required></th>
+                        <th style="min-width:170px"><input type="text" name="nivel_{{ forloop.counter0 }}" value="{{ nivel }}" required><label>Puntos<input type="number" name="puntaje_{{ forloop.counter0 }}" value="{{ contenido.puntajes|index:forloop.counter0 }}" min="1" max="100" required></label></th>
                         {% endfor %}
                     </tr>
                 </thead>
@@ -97,9 +97,12 @@
                     <tr>
                         <td>
                             <textarea name="c{{ i }}_criterio" rows="3" required>{{ criterio.criterio }}</textarea>
-                            <label class="ia-eliminar"><input type="checkbox" name="c{{ i }}_eliminar"> Quitar</label>
+                            <label>Aprendizaje<textarea name="c{{ i }}_aprendizaje" rows="2" required>{{ criterio.aprendizaje }}</textarea></label>
+<label>Evidencia observable<textarea name="c{{ i }}_evidencia" rows="2" required>{{ criterio.evidencia }}</textarea></label>
+<label>Actividad evaluada<textarea name="c{{ i }}_actividad" rows="2" required>{{ criterio.actividad }}</textarea></label>
+<label class="ia-eliminar"><input type="checkbox" name="c{{ i }}_eliminar"> Quitar</label>
                         </td>
-                        <td><input type="number" name="c{{ i }}_puntaje" value="{{ criterio.puntaje_maximo }}" min="1" max="100"></td>
+                        <td>{{ criterio.puntaje_maximo }}<br>Se calcula al guardar.</td>
                         {% for descriptor in criterio.descriptores %}
                         <td><textarea name="c{{ i }}_d{{ forloop.counter0 }}" rows="4" required>{{ descriptor }}</textarea></td>
                         {% endfor %}
@@ -146,7 +149,7 @@
 {% endif %}
 <form method="post" action="{% url 'ia_exportar' instrumento.pk %}">{% csrf_token %}<input type="hidden" name="version" value="docente"><button class="ia-boton secundario" type="submit">PDF pauta docente</button></form>
 <a class="ia-boton secundario" href="{% url 'ia_imprimir' instrumento.pk 'docente' %}" target="_blank" rel="noopener">Imprimir pauta docente</a>
-<form method="post" action="{% url 'ia_copiar' instrumento.pk %}">{% csrf_token %}<button class="ia-boton secundario" type="submit">Crear copia editable</button></form>
+<form method="post" action="{% url 'ia_copiar' instrumento.pk %}">{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ idempotencia }}"><button class="ia-boton secundario" type="submit">Crear copia editable</button></form>
 </div>{% if instrumento.tipo == 'MATERIAL' and not contenido.separacion_revisada %}<p>Este material conserva su versión original. Crea una copia editable, separa el solucionario y revísala para habilitar la exportación estudiantil.</p>{% endif %}</div>
 
 <div class="ia-panel ia-lectura" id="documento">

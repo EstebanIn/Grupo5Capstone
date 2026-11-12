@@ -17,7 +17,7 @@
   <ul id="trabajo-actividad"></ul>
   <div class="ia-acciones">
     <a id="trabajo-resultado" class="ia-boton" href="{{ resultado_url }}" {% if not resultado_url %}hidden{% endif %}>Abrir resultado</a>
-    {% if reintentar %}<a class="ia-boton secundario" href="{{ reintentar }}">Recuperar campos / volver a intentar</a>{% endif %}
+    {% if reintentar %}<a id="trabajo-reintentar" class="ia-boton secundario" href="{{ reintentar }}" {% if trabajo.estado != 'error' %}hidden{% endif %}>Recuperar campos / volver a intentar</a>{% endif %}
     <a class="ia-boton secundario" href="{% url 'asistente_docente' %}">Volver al asistente</a>
   </div>
   {% if trabajo.resultado.revision %}<article class="ia-markdown">{{ trabajo.resultado.revision|markdown_seguro }}</article>{% endif %}

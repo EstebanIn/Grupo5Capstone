@@ -25,6 +25,8 @@
       enlace.hidden = !datos.resultado_url;
       if (datos.resultado_url) enlace.href = datos.resultado_url;
       terminal = ['completado', 'error'].includes(datos.etapa);
+      const reintentar = document.getElementById('trabajo-reintentar');
+      if (reintentar) reintentar.hidden = datos.etapa !== 'error';
       if (datos.etapa === 'completado' && etapaAnterior !== 'completado' && !datos.resultado_url) location.reload();
       etapaAnterior = datos.etapa;
     } catch (_) {

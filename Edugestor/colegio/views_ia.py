@@ -257,7 +257,8 @@ def _fragmentos_docentes(contexto, d):
 
 
 def _generar_rubrica_con_rag(contexto, d):
-    return asistentes.crear_rubrica(contexto, d['objetivo'], d['actividad'], d['criterios'], d['niveles'])
+    return asistentes.crear_rubrica(contexto, d['objetivo'], d['actividad'], d['criterios'], d['niveles'],
+                                  fragmentos=_fragmentos_docentes(contexto, d))
 
 
 def _generar_material_con_rag(contexto, d):
@@ -275,39 +276,22 @@ def _contenido_desde_post(tipo, post, *, validar=True):
             'correcta': int(post.get(f'p{i}_correcta', '0')) if post.get(f'p{i}_correcta', '0') in ('0','1','2','3') else None, 'explicacion': post.get(f'p{i}_explicacion', '')}
             for i in indices if not post.get(f'p{i}_eliminar')])
         return asistentes.validar_prueba(base) if validar else base
-    if tipo == InstrumentoIA.TIPO_RUBRICA:
-
-        niveles = [post[clave] for clave in sorted(
-
-            (c for c in post if c.startswith("nivel_")), key=lambda c: int(c.split("_")[1]))]
-
-        indices = sorted({int(clave[1:].split("_")[0]) for clave in post if clave.endswith("_criterio")})
-
-        criterios = [
-
-            {
-
-                "criterio": post.get(f"c{i}_criterio", ""),
-
-                "puntaje_maximo": post.get(f"c{i}_puntaje") or len(niveles),
-
-                "descriptores": [post.get(f"c{i}_d{j}", "") for j in range(len(niveles))],
-
-            }
-
-            for i in indices if not post.get(f"c{i}_eliminar")
-
-        ]
-
-        return asistentes.validar_rubrica({
-
-            "titulo": post.get("titulo", ""), "descripcion": post.get("descripcion", ""),
-
-            "niveles": niveles, "criterios": criterios,
-
-        })
-
-
+    if tipo == 'RUBRICA':
+        indices_niveles = sorted({int(m[1]) for k in post if (m := re.fullmatch(r'nivel_(\d)', k))})[:4]
+        niveles = [post.get(f'nivel_{i}', '') for i in indices_niveles]
+        puntos = [post.get(f'puntaje_{j}', str(len(niveles)-j)) for j in range(len(niveles))]
+        if validar:
+            try:
+                puntos = [int(p) for p in puntos]
+            except ValueError:
+                raise ErrorIA('Los puntajes deben ser números enteros.') from None
+        indices = sorted({int(m[1]) for k in post if (m := re.fullmatch(r'c(\d{1,2})_criterio', k))})[:12]
+        base.update(descripcion=post.get('descripcion', ''), niveles=niveles, puntajes=puntos,
+            criterios=[{'criterio': post.get(f'c{i}_criterio', ''),
+                **{k: post.get(f'c{i}_{k}', '') for k in ('aprendizaje', 'evidencia', 'actividad')},
+                'descriptores': [post.get(f'c{i}_d{j}', '') for j in range(len(niveles))]}
+                for i in indices if not post.get(f'c{i}_eliminar')])
+        return asistentes.validar_rubrica(base) if validar else base
     base.update({k: post.get(k, '') for k in ('contenido', 'ejercicios', 'solucionario', 'separacion_revisada')})
     return asistentes.validar_material(base) if validar else base
 
@@ -359,6 +343,11 @@ def ia_instrumento(request, pk):
                 if clave in instrumento.contenido_ia:
                     contenido[clave] = instrumento.contenido_ia[clave]
             if request.POST.get('accion') == 'aprobar':
+                if instrumento.tipo == 'RUBRICA' and not all(request.POST.get('revision_' + str(i)) for i in range(5)):
+                    messages.error(request, 'Confirma la revisión de los cinco aspectos antes de aprobar.')
+                    return render(request, 'colegio/ia/instrumento.html', _contexto_base(request, docente=docente,
+                        instrumento=instrumento, contenido=contenido, editable=True,
+                        revision_rubrica=revisar_rubrica(contenido, instrumento.objetivo)))
                 if instrumento.tipo == 'MATERIAL' and not contenido.get('separacion_revisada'):
                     messages.error(request, 'Revisa la separación de ejercicios y solucionario antes de aprobar.')
                     return render(request, 'colegio/ia/instrumento.html', _contexto_base(request, docente=docente,

@@ -2,6 +2,8 @@ from django.http import JsonResponse, FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
+from django.db import transaction
+import uuid
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
@@ -49,7 +51,7 @@ def estado(request, pk):
     actual = propio(request, pk)
     fin = actual.terminado or timezone.now()
     return JsonResponse({'id': str(actual.pk), 'etapa': actual.estado, 'mensaje': actual.mensaje,
-                         'duracion': max(0, int((fin-(actual.iniciado or actual.creado)).total_seconds())),
+                         'duracion': max(0, int((fin-actual.creado).total_seconds())),
                          'actividad': actual.actividad, 'resultado_url': enlace_resultado(actual)})
 
 
@@ -100,10 +102,19 @@ def imprimir(request, pk, version):
 
 @solo_rol('DOCENTE')
 @require_POST
+@transaction.atomic
 def copiar(request, pk):
     from copy import deepcopy
     from django.shortcuts import redirect
-    original = get_object_or_404(InstrumentoIA, pk=pk, docente__usuario=request.user, institucion=request.institucion)
+    original = get_object_or_404(InstrumentoIA.objects.select_for_update(), pk=pk, docente__usuario=request.user, institucion=request.institucion)
+    try:
+        token = str(uuid.UUID(request.POST.get('idempotencia', '')))
+    except ValueError:
+        token = str(uuid.uuid5(uuid.NAMESPACE_URL, str(request.session.session_key)+':copia:'+str(pk)))
+    previa = InstrumentoIA.objects.filter(docente=original.docente, institucion=request.institucion,
+        parametros__copia_de=original.pk, parametros__copia_token=token).first()
+    if previa:
+        return redirect('ia_instrumento', pk=previa.pk)
     contenido = deepcopy(original.contenido)
     if original.tipo == 'MATERIAL':
         contenido = {'titulo': original.titulo, 'contenido': contenido.get('contenido', contenido.get('texto', '')),
@@ -113,6 +124,6 @@ def copiar(request, pk):
     if original.tipo == 'RUBRICA':
         contenido.setdefault('puntajes', list(range(len(contenido['niveles']), 0, -1)))
     copia = InstrumentoIA.objects.create(docente=original.docente, carga=original.carga, tipo=original.tipo,
-        titulo=original.titulo, objetivo=original.objetivo, parametros={**original.parametros, 'copia_de': original.pk},
+        titulo=original.titulo, objetivo=original.objetivo, parametros={**original.parametros, 'copia_de': original.pk, 'copia_token': token},
         contenido_ia=deepcopy(original.contenido_ia), contenido=contenido)
     return redirect('ia_instrumento', pk=copia.pk)

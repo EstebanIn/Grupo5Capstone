@@ -138,7 +138,10 @@ Reglas:
 - Los descriptores de un criterio se diferencian en calidad, no solo en cantidad ("siempre", "a veces").
 Responde SOLO con JSON con esta forma:
 {"titulo": str, "descripcion": str, "niveles": [str, ...],
- "criterios": [{"criterio": str, "puntaje_maximo": int, "descriptores": [str, ...]}]}
+ "criterios": [{"criterio": str, "aprendizaje": str, "evidencia": str, "actividad": str, "descriptores": [str, ...]}]}
+Vincula cada criterio con el aprendizaje, una evidencia observable y la parte de la actividad que la produce.
+En Matemática concreta operación, ámbito numérico, estrategia, cálculo y explicación sin duplicarlos.
+Respeta apoyos permitidos. No uses expresiones vagas como "con seguridad" o "la mayoría".
 La lista "descriptores" de cada criterio tiene el mismo largo que "niveles".
 """
 
@@ -148,7 +151,7 @@ NIVELES_POR_DEFECTO = {
 }
 
 
-def crear_rubrica(contexto, objetivo, actividad, criterios_sugeridos, cantidad_niveles):
+def crear_rubrica(contexto, objetivo, actividad, criterios_sugeridos, cantidad_niveles, *, fragmentos=None):
     niveles = NIVELES_POR_DEFECTO[cantidad_niveles]
     solicitud = (
         f"{_encabezado(contexto, objetivo)}\n"
@@ -156,44 +159,24 @@ def crear_rubrica(contexto, objetivo, actividad, criterios_sugeridos, cantidad_n
         f"Niveles de desempeño: {', '.join(niveles)}\n"
         f"Criterios sugeridos por el docente: {criterios_sugeridos or 'propón entre 4 y 6'}"
     )
+    solicitud += contexto_fuentes(fragmentos or [])
     ejemplo = {
         "titulo": f"Rúbrica: {actividad[:80]}",
         "descripcion": "Rúbrica de ejemplo (modo simulado, sin IA real).",
         "niveles": niveles,
         "criterios": [
-            {"criterio": f"Criterio {i}", "puntaje_maximo": 4,
+            {"criterio": f"Criterio {i}", "puntaje_maximo": cantidad_niveles, "aprendizaje": objetivo or "Aprendizaje propuesto por el docente",
+             "evidencia": f"Evidencia observable del criterio {i}", "actividad": actividad,
              "descriptores": [f"Descriptor {nivel.lower()}" for nivel in niveles]}
             for i in range(1, 5)
         ],
     }
     datos = generar(SISTEMA_RUBRICA, [{"rol": "usuario", "texto": solicitud}],
                     ejemplo=ejemplo, formato_json=True, temperatura=0.5)
-    return validar_rubrica(datos)
+    if not isinstance(datos, dict) or len(datos.get('niveles', [])) != cantidad_niveles:
+        raise ErrorIA('La rúbrica no tiene la cantidad de niveles solicitada.')
+    return agregar_fuentes(validar_rubrica(datos), fragmentos or [], objetivo)
 
-
-def validar_rubrica(datos):
-    try:
-        niveles = [str(n).strip() for n in datos["niveles"]]
-        criterios = []
-        for criterio in datos["criterios"]:
-            descriptores = [str(d).strip() for d in criterio["descriptores"]]
-            if len(descriptores) != len(niveles) or not all(descriptores) or not str(criterio["criterio"]).strip():
-                raise ValueError
-            criterios.append({
-                "criterio": str(criterio["criterio"]).strip(),
-                "puntaje_maximo": int(criterio.get("puntaje_maximo") or len(niveles)),
-                "descriptores": descriptores,
-            })
-        if not niveles or not all(niveles) or not criterios:
-            raise ValueError
-        return {
-            "titulo": str(datos.get("titulo", "Rúbrica")).strip()[:200],
-            "descripcion": str(datos.get("descripcion", "")).strip(),
-            "niveles": niveles,
-            "criterios": criterios,
-        }
-    except (KeyError, TypeError, ValueError) as error:
-        raise ErrorIA("La IA entregó una rúbrica incompleta. Intenta generarla de nuevo.") from error
 
 
 # ============================================================
