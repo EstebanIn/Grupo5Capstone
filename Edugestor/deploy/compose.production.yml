@@ -1,0 +1,105 @@
+name: edugestor-demo
+x-app: &app
+  build:
+    context: ..
+  restart: unless-stopped
+  env_file: .env.production
+  environment:
+    DJANGO_SETTINGS_MODULE: config.production
+    POSTGRES_HOST: db
+    REDIS_URL: redis://redis:6379/0
+    IA_CREDENCIALES_ARCHIVO: /state/credentials/key
+    IA_ARCHIVOS_PRIVADOS: /state/private/ia
+  volumes:
+    - credenciales:/state/credentials
+    - privados:/state/private
+    - conocimiento:/app/knowledge/procesados
+    - biblioteca:/app/knowledge/biblioteca
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg17-trixie@sha256:01215e09bd4bd582d20230e025b6c971deeeffee49ceef1aae167e839cb62a7e
+    restart: unless-stopped
+    env_file: .env.production
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 192mb --maxmemory-policy noeviction
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *app
+    restart: 'no'
+    command: python manage.py migrate --noinput
+  web:
+    <<: *app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: sh -c 'python manage.py collectstatic --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 60 --max-requests 500 --max-requests-jitter 50 --error-logfile /dev/null'
+    healthcheck:
+      test: [CMD, python, -c, 'import socket; socket.create_connection(("127.0.0.1",8000),3).close()']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+  worker:
+    <<: *app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: celery -A config worker --loglevel=WARNING --concurrency=2 --max-tasks-per-child=50
+    stop_grace_period: 310s
+    healthcheck:
+      test: [CMD-SHELL, 'celery -A config inspect ping --timeout 5 | grep -q pong']
+      interval: 60s
+      timeout: 10s
+      retries: 3
+  beat:
+    <<: *app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: celery -A config beat --loglevel=WARNING --schedule=/state/private/celerybeat-schedule
+  caddy:
+    image: caddy:2-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9
+    restart: unless-stopped
+    env_file: .env.production
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificados:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+volumes:
+  postgres:
+  redis:
+  credenciales:
+  privados:
+  conocimiento:
+  biblioteca:
+  certificados:
+  caddy_config:

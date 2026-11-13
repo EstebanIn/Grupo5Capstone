@@ -25,7 +25,9 @@ def construir_prompt_tutor(pregunta, contexto_documental, contexto_escolar=None)
         texto = str(item.get("texto") or "").strip()
         if texto:
             pagina = item.get("pagina", "no indicada")
-            fragmentos.append(f"[Fuente: página {pagina}]\n{texto}")
+            titulo = item.get('titulo', 'Material de referencia')
+            url = item.get('url', '')
+            fragmentos.append(f"[Fuente: {titulo}; página PDF {pagina}; {url}]\n{texto}")
 
     evidencia = "\n\n".join(fragmentos) if fragmentos else "No se recuperaron fragmentos documentales relevantes."
     return f"""Eres el Tutor Escolar de EduGestor. Ayudas al estudiante a comprender, no a memorizar respuestas.

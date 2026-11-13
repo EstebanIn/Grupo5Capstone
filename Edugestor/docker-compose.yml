@@ -22,6 +22,8 @@
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
     depends_on:
+      redis:
+        condition: service_healthy
       db:
         condition: service_healthy
     ports:
@@ -32,5 +34,49 @@
       sh -c "python manage.py migrate &&
              exec python manage.py runserver 0.0.0.0:8000"
 
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - edugestor_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: celery -A config worker --loglevel=WARNING --concurrency=2
+
+  beat:
+    build: .
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: celery -A config beat --loglevel=WARNING --schedule=/tmp/celerybeat-schedule
+
 volumes:
   edugestor_pgdata:
+  edugestor_redis:

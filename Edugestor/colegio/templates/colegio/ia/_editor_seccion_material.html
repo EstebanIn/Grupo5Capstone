@@ -1,0 +1,6 @@
+{% load ia_extras ia_visuales %}
+<section class="ia-editor-seccion" id="panel-{{ campo }}" data-editor-seccion="{{ campo }}">
+    <div class="ia-editor-seccion-cabecera" hidden><h3 id="encabezado-{{ campo }}">{{ titulo }}</h3><p id="ayuda-{{ campo }}">{{ ayuda }}</p></div>
+    <div class="ia-editor-papel ia-markdown" id="editor-{{ campo }}" data-editor-campo="{{ campo }}" role="textbox" aria-multiline="true" aria-labelledby="encabezado-{{ campo }}" aria-describedby="ayuda-{{ campo }}" spellcheck="true" hidden>{% material_visual texto contenido.recursos_visuales campo %}</div>
+    <div class="campo" data-editor-respaldo><label for="{{ campo }}">{{ titulo }}</label><textarea id="{{ campo }}" name="{{ campo }}" rows="12" {% if campo == 'contenido' %}required{% endif %}>{{ texto|default_if_none:'' }}</textarea></div>
+</section>

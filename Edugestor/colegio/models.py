@@ -13,6 +13,7 @@ from django.db.models.signals import m2m_changed, post_save
 from pgvector.django import HnswIndex, VectorField
 from django.dispatch import receiver
 import unicodedata
+import uuid
 
 
 # Create your models here.
@@ -608,7 +609,7 @@ class InstrumentoIA(ModeloInstitucional):
 
     contenido_ia guarda el borrador tal como lo entregó el modelo y contenido
     la versión editada por el docente. Al aprobar se calcula qué porcentaje del
-    texto corrigió el docente: es la medida de calidad del asistente.
+    texto modificó el docente; no acredita calidad pedagógica.
     """
     PADRES_INSTITUCION = ("docente", "carga")
 
@@ -677,6 +678,33 @@ class CorreccionPrueba(ModeloInstitucional):
         return f"{self.instrumento} — {self.alumno or 'sin alumno'}: {self.nota}"
 
 
+class FuenteBiblioteca(models.Model):
+    """Catálogo público aprobado por el operador; nunca contiene pautas privadas."""
+    slug = models.SlugField(unique=True)
+    titulo = models.CharField(max_length=250)
+    ficha_url = models.URLField(max_length=1000)
+    descarga_url = models.URLField(max_length=1000)
+    asignatura = models.CharField(max_length=120)
+    ciclo = models.CharField(max_length=20)
+    nivel = models.PositiveSmallIntegerField()
+    licencia = models.CharField(max_length=250, blank=True)
+    version = models.CharField(max_length=80, blank=True)
+    aprobada = models.BooleanField(default=False)
+    automatica = models.BooleanField(default=False)
+    estado = models.CharField(max_length=20, default='pendiente')
+    mensaje = models.CharField(max_length=400, blank=True)
+    comprobada = models.DateTimeField(null=True, blank=True)
+    proxima_revision = models.DateTimeField(null=True, blank=True)
+    bloqueo = models.UUIDField(null=True, blank=True)
+    bloqueo_hasta = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['asignatura', 'ciclo', 'nivel', 'titulo']
+
+    def __str__(self):
+        return self.titulo
+
+
 class DocumentoCurricular(models.Model):
     """Fuente oficial pública del Mineduc que forma parte del corpus RAG."""
 
@@ -689,6 +717,8 @@ class DocumentoCurricular(models.Model):
     sha256 = models.CharField(max_length=64, unique=True)
     activo = models.BooleanField(default=True, db_index=True)
     fecha_indexacion = models.DateTimeField(auto_now_add=True)
+    fuente_biblioteca = models.ForeignKey(FuenteBiblioteca, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='documentos')
 
     class Meta:
         ordering = ["asignatura", "ciclo", "nivel", "titulo"]
@@ -706,7 +736,9 @@ class FragmentoCurricular(models.Model):
     numero = models.PositiveIntegerField()
     pagina = models.PositiveIntegerField(null=True, blank=True)
     texto = models.TextField()
-    embedding = VectorField(dimensions=768)
+    embedding = VectorField(dimensions=768, null=True, blank=True)
+    modelo_embedding_gemini = models.CharField(max_length=160, blank=True, default='')
+    huella_texto_gemini = models.CharField(max_length=64, blank=True, default='')
     embedding_qwen = VectorField(dimensions=768, null=True, blank=True)
     modelo_embedding_qwen = models.CharField(max_length=160, blank=True, default='')
     huella_texto_qwen = models.CharField(max_length=64, blank=True, default='')
@@ -734,6 +766,38 @@ class FragmentoCurricular(models.Model):
 
 
 
+class TrabajoIA(ModeloInstitucional):
+    """Operación docente persistente. Nunca almacena claves de proveedores."""
+    PADRES_INSTITUCION = ('usuario', 'instrumento')
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='trabajos_ia')
+    sesion = models.CharField(max_length=40, editable=False)
+    idempotencia = models.UUIDField()
+    huella = models.CharField(max_length=64)
+    conexion_huella = models.CharField(max_length=64)
+    operacion = models.CharField(max_length=20)
+    proveedor = models.CharField(max_length=30)
+    modelo = models.CharField(max_length=160)
+    parametros = models.JSONField(default=dict)
+    temporales = models.JSONField(default=list)
+    estado = models.CharField(max_length=20, default='pendiente', choices=[(e, e.title()) for e in
+        ('pendiente', 'preparando', 'generando', 'validando', 'completado', 'error')])
+    mensaje = models.CharField(max_length=400, default='En espera del worker.')
+    actividad = models.JSONField(default=list)
+    resultado = models.JSONField(default=dict)
+    instrumento = models.ForeignKey(InstrumentoIA, null=True, blank=True, on_delete=models.SET_NULL)
+    archivo = models.CharField(max_length=100, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    iniciado = models.DateTimeField(null=True, blank=True)
+    actualizado = models.DateTimeField(auto_now=True)
+    terminado = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-creado']
+        constraints = [models.UniqueConstraint(fields=['usuario', 'institucion', 'idempotencia'], name='trabajo_ia_idempotente')]
+        indexes = [models.Index(fields=['estado', 'creado'], name='trabajo_ia_estado_creado')]
+
+
 class RegistroIA(ModeloInstitucional):
     PADRES_INSTITUCION = ("usuario",)
     """Metadatos de operaciones. No conserva prompts, claves ni archivos."""
@@ -751,6 +815,7 @@ class RegistroIA(ModeloInstitucional):
     fuentes = models.JSONField(default=list)
     lectura = models.JSONField(default=list)
     detalle = models.CharField(max_length=400, blank=True)
+    diagnostico = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['-fecha', '-pk']

@@ -1,0 +1,27 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% load static ia_extras %}
+{% block titulo %}Progreso de la operación{% endblock %}
+{% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente docente</a>
+<header class="ia-encabezado"><h1>Estado de la operación</h1>
+<p>{{ trabajo.proveedor|title }} · {{ trabajo.modelo }}. Puedes volver a esta pantalla desde el asistente.</p></header>
+<section class="ia-panel" data-trabajo="{% url 'ia_trabajo_estado' trabajo.pk %}" data-etapa="{{ trabajo.estado }}">
+  <p id="trabajo-etapa" class="ia-estado-trabajo" role="status">{{ trabajo.get_estado_display }}</p>
+  <ol class="ia-etapas" aria-label="Etapas del trabajo">
+    <li data-etapa="pendiente">Pendiente</li><li data-etapa="preparando">Preparando</li>
+    <li data-etapa="generando">Generando</li><li data-etapa="validando">Validando</li><li data-etapa="completado">Completado</li>
+  </ol>
+  <div class="ia-espera" aria-hidden="true"></div>
+  <p id="trabajo-mensaje" role="status" aria-live="polite">{{ trabajo.mensaje }}</p>
+  <p>Tiempo transcurrido: <span id="trabajo-duracion">0</span> s</p>
+  <p id="trabajo-conexion" role="status"></p>
+  <ul id="trabajo-actividad"></ul>
+  <div class="ia-acciones">
+    <a id="trabajo-resultado" class="ia-boton" href="{{ resultado_url }}" {% if not resultado_url %}hidden{% endif %}>Abrir resultado</a>
+    {% if reintentar %}<a id="trabajo-reintentar" class="ia-boton secundario" href="{{ reintentar }}" {% if trabajo.estado != 'error' %}hidden{% endif %}>Recuperar campos / volver a intentar</a>{% endif %}
+    <a class="ia-boton secundario" href="{% url 'asistente_docente' %}">Volver al asistente</a>
+  </div>
+  {% if trabajo.resultado.revision %}<article class="ia-markdown">{{ trabajo.resultado.revision|markdown_seguro }}</article>{% endif %}
+</section>
+<script src="{% static 'js/ia_trabajos.js' %}" defer></script>
+{% endblock %}

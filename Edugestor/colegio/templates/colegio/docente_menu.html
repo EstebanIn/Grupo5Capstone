@@ -1,7 +1,16 @@
 <ul class="menu">
     <li><a href="{% url 'panel_docente' %}"> Inicio</a></li>
     <li><a href="{% url 'panel_docente_cursos' %}"> Cursos</a></li>
-    <li><a href="{% url 'asistente_docente' %}"> Asistente IA</a></li>
+    <li>
+        <details class="ia-menu-desplegable" {% if '/panel/docente/asistente/' in request.path %}open{% endif %}>
+            <summary><a href="{% url 'asistente_docente' %}">Asistente IA</a><span aria-hidden="true">⌄</span></summary>
+            <ul class="ia-submenu">
+                <li><a href="{% url 'ia_documentos' %}">Tus documentos</a></li>
+                <li><a href="{% url 'ia_operaciones' %}">Operaciones recientes</a></li>
+                <li><a href="{% url 'ia_biblioteca' %}">Biblioteca curricular</a></li>
+            </ul>
+        </details>
+    </li>
     {% if docente_tiene_jefatura %}
     <li><a href="{% url 'panel_docente_jefatura' %}"> Profesor Jefe</a></li>
     {% endif %}

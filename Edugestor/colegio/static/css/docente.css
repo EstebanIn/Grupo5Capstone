@@ -64,6 +64,20 @@ body{
     transform:translateX(4px);
 }
 
+/* Accesos del módulo de IA, visibles al desplegar su menú. */
+.ia-menu-desplegable summary { display:flex; align-items:center; border-radius:8px; cursor:pointer; list-style:none; }
+.ia-menu-desplegable summary::-webkit-details-marker { display:none; }
+.ia-menu-desplegable summary > a { flex:1; min-width:0; }
+.ia-menu-desplegable summary > span { display:flex; align-items:center; justify-content:center; width:32px; align-self:stretch; color:#dcfce7; transition:transform .15s; }
+.ia-menu-desplegable[open] summary > span { transform:rotate(180deg); }
+.ia-menu-desplegable.active summary { background:#15803d; box-shadow:inset 4px 0 0 #bbf7d0; }
+.ia-menu-desplegable.active summary > a.active { box-shadow:none; transform:none; }
+.ia-menu-desplegable summary:focus-visible { outline:2px solid #bbf7d0; outline-offset:3px; }
+.ia-submenu { list-style:none; margin:8px 0 0 16px; padding-left:12px; border-left:1px solid #78a88a; }
+.menu .ia-submenu li { margin:0 0 5px; }
+.menu .ia-submenu a { padding:10px; font-size:13px; line-height:1.4; color:#e4f2e8; }
+.menu .ia-submenu a.active { background:rgba(255,255,255,.12); color:#fff; box-shadow:none; transform:none; }
+
 /* ==================================================
    MAIN
 ================================================== */

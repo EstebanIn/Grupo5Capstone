@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 class ErrorIA(Exception):
     """Falla al obtener una respuesta útil del modelo. El mensaje se muestra al usuario."""
 
+    def __init__(self, mensaje, *, categoria='respuesta_invalida'):
+        super().__init__(mensaje)
+        self.categoria = categoria
+
 
 def proveedor_activo():
     from .ejecucion import proveedor_seleccionado
@@ -66,6 +70,8 @@ def generar(sistema, mensajes, *, ejemplo, formato_json=False, temperatura=0.7):
         anotar(estado='OK', caracteres_salida=len(texto), lectura=lectura)
         return resultado
     except ErrorIA as error:
+        from .ejecucion import anotar_error
+        anotar_error(error)
         anotar(estado='ERROR',detalle=str(error))
         raise
     except Exception:
@@ -106,7 +112,7 @@ def _generar_gemini(sistema, mensajes, formato_json, temperatura):
         temperature=temperatura,
         response_mime_type="application/json" if formato_json else "text/plain",
     )
-    modelos = [valor('gemini', 'model'), *valor('gemini', 'modelos_respaldo')]
+    modelos = [valor('gemini', 'model')]
     for indice, modelo in enumerate(modelos):
         try:
             respuesta = cliente.models.generate_content(model=modelo, contents=contenidos, config=configuracion)

@@ -13,6 +13,7 @@ Cada función arma el prompt con los datos de la interfaz de dominio
 import difflib
 
 from .proveedor import ErrorIA, generar
+from .pedagogia import validar_rubrica, validar_material, agregar_fuentes, contexto_fuentes
 
 CONTEXTO_COMUN = (
     "Trabajas para EduGestor, una plataforma de gestión escolar para establecimientos "
@@ -87,9 +88,13 @@ def crear_prueba(contexto, objetivo, tema, cantidad, dificultad, *, fragmentos=N
     datos = generar(SISTEMA_PRUEBA, [{"rol": "usuario", "texto": solicitud}],
                     ejemplo=ejemplo, formato_json=True, temperatura=0.6)
     resultado = validar_prueba(datos)
+    if len(resultado['preguntas']) != cantidad:
+        raise ErrorIA('La prueba no tiene la cantidad de preguntas solicitada.')
     fuentes = []
     for fragmento in fragmentos:
         fuente = {"titulo": fragmento["titulo"], "url": fragmento["url"], "pagina": fragmento["pagina"]}
+        if fragmento.get('metodo_recuperacion'):
+            fuente['metodo'] = fragmento['metodo_recuperacion']
         if fuente not in fuentes:
             fuentes.append(fuente)
     resultado["fuentes"] = fuentes
@@ -101,7 +106,7 @@ def validar_prueba(datos):
     try:
         preguntas = []
         for pregunta in datos["preguntas"]:
-            alternativas = [str(a).strip() for a in pregunta["alternativas"]][:4]
+            alternativas = [str(a).strip() for a in pregunta["alternativas"]]
             if len(alternativas) != 4 or not all(alternativas) or not str(pregunta["enunciado"]).strip():
                 raise ValueError
             correcta = int(pregunta["correcta"])
@@ -135,7 +140,10 @@ Reglas:
 - Los descriptores de un criterio se diferencian en calidad, no solo en cantidad ("siempre", "a veces").
 Responde SOLO con JSON con esta forma:
 {"titulo": str, "descripcion": str, "niveles": [str, ...],
- "criterios": [{"criterio": str, "puntaje_maximo": int, "descriptores": [str, ...]}]}
+ "criterios": [{"criterio": str, "aprendizaje": str, "evidencia": str, "actividad": str, "descriptores": [str, ...]}]}
+Vincula cada criterio con el aprendizaje, una evidencia observable y la parte de la actividad que la produce.
+En Matemática concreta operación, ámbito numérico, estrategia, cálculo y explicación sin duplicarlos.
+Respeta apoyos permitidos. No uses expresiones vagas como "con seguridad" o "la mayoría".
 La lista "descriptores" de cada criterio tiene el mismo largo que "niveles".
 """
 
@@ -145,7 +153,7 @@ NIVELES_POR_DEFECTO = {
 }
 
 
-def crear_rubrica(contexto, objetivo, actividad, criterios_sugeridos, cantidad_niveles):
+def crear_rubrica(contexto, objetivo, actividad, criterios_sugeridos, cantidad_niveles, *, fragmentos=None):
     niveles = NIVELES_POR_DEFECTO[cantidad_niveles]
     solicitud = (
         f"{_encabezado(contexto, objetivo)}\n"
@@ -153,44 +161,24 @@ def crear_rubrica(contexto, objetivo, actividad, criterios_sugeridos, cantidad_n
         f"Niveles de desempeño: {', '.join(niveles)}\n"
         f"Criterios sugeridos por el docente: {criterios_sugeridos or 'propón entre 4 y 6'}"
     )
+    solicitud += contexto_fuentes(fragmentos or [])
     ejemplo = {
         "titulo": f"Rúbrica: {actividad[:80]}",
         "descripcion": "Rúbrica de ejemplo (modo simulado, sin IA real).",
         "niveles": niveles,
         "criterios": [
-            {"criterio": f"Criterio {i}", "puntaje_maximo": 4,
+            {"criterio": f"Criterio {i}", "puntaje_maximo": cantidad_niveles, "aprendizaje": objetivo or "Aprendizaje propuesto por el docente",
+             "evidencia": f"Evidencia observable del criterio {i}", "actividad": actividad,
              "descriptores": [f"Descriptor {nivel.lower()}" for nivel in niveles]}
             for i in range(1, 5)
         ],
     }
     datos = generar(SISTEMA_RUBRICA, [{"rol": "usuario", "texto": solicitud}],
                     ejemplo=ejemplo, formato_json=True, temperatura=0.5)
-    return validar_rubrica(datos)
+    if not isinstance(datos, dict) or len(datos.get('niveles', [])) != cantidad_niveles:
+        raise ErrorIA('La rúbrica no tiene la cantidad de niveles solicitada.')
+    return agregar_fuentes(validar_rubrica(datos), fragmentos or [], objetivo)
 
-
-def validar_rubrica(datos):
-    try:
-        niveles = [str(n).strip() for n in datos["niveles"]]
-        criterios = []
-        for criterio in datos["criterios"]:
-            descriptores = [str(d).strip() for d in criterio["descriptores"]]
-            if len(descriptores) != len(niveles) or not all(descriptores) or not str(criterio["criterio"]).strip():
-                raise ValueError
-            criterios.append({
-                "criterio": str(criterio["criterio"]).strip(),
-                "puntaje_maximo": int(criterio.get("puntaje_maximo") or len(niveles)),
-                "descriptores": descriptores,
-            })
-        if not niveles or not all(niveles) or not criterios:
-            raise ValueError
-        return {
-            "titulo": str(datos.get("titulo", "Rúbrica")).strip()[:200],
-            "descripcion": str(datos.get("descripcion", "")).strip(),
-            "niveles": niveles,
-            "criterios": criterios,
-        }
-    except (KeyError, TypeError, ValueError) as error:
-        raise ErrorIA("La IA entregó una rúbrica incompleta. Intenta generarla de nuevo.") from error
 
 
 # ============================================================
@@ -210,23 +198,34 @@ TIPOS_MATERIAL = {
 }
 
 
-def crear_material(contexto, objetivo, tema, tipo):
-    solicitud = (
-        f"{_encabezado(contexto, objetivo)}\n"
-        f"Tema: {tema}\n"
-        f"Tipo de material: {TIPOS_MATERIAL[tipo]}"
-    )
-    ejemplo = (
-        f"# {TIPOS_MATERIAL[tipo].split(' con')[0]}: {tema}\n\n"
-        f"**{contexto['asignatura']} · {contexto['curso']}**\n\n"
-        "Este es un material de ejemplo generado en modo simulado (sin IA real).\n\n"
-        "## Conceptos clave\n\n- Concepto 1\n- Concepto 2\n\n"
-        "## Ejercicios\n\n1. Ejercicio de ejemplo.\n"
-    )
-    texto = generar(SISTEMA_MATERIAL, [{"rol": "usuario", "texto": solicitud}],
-                    ejemplo=ejemplo, temperatura=0.7)
-    titulo = next((linea.lstrip("# ").strip() for linea in texto.splitlines() if linea.startswith("#")), tema)
-    return {"titulo": titulo[:200], "texto": texto}
+def crear_material(contexto, objetivo, tema, tipo, *, fragmentos=None):
+    solicitud = (f"{_encabezado(contexto, objetivo)}\nTema: {tema}\nTipo: {TIPOS_MATERIAL[tipo]}"
+                 + contexto_fuentes(fragmentos or []))
+    ejemplo = {'titulo': f'Material: {tema}',
+               'contenido': '## Conceptos clave\n\nMaterial simulado. Ejemplo resuelto: 12 × 3 = 36.',
+               'ejercicios': '1. Calcula 24 × 3 y explica tu estrategia.',
+               'solucionario': '1. 72; por ejemplo, (20 × 3) + (4 × 3).'}
+    datos = generar(SISTEMA_MATERIAL + \
+        '\nDevuelve SOLO JSON: {"titulo": str, "contenido": str, "ejercicios": str, "solucionario": str}. '
+        'Contenido conserva explicaciones y ejemplos resueltos. Los ejercicios propuestos no incluyen respuestas. '
+        'Sus respuestas van exclusivamente en solucionario. No mezcles estas secciones. '
+        'Para Matemática incluye de 1 a 3 recursos_visuales ligados a los números de los ejemplos, cuando aporten a la comprensión. '
+        'recursos_visuales es una lista de objetos {id: entero 1..6, tipo: ajuste|posicional|recta|grupos|reparto|fraccion, '
+        'a: entero, b: entero, operacion: +|-|×, ubicacion: contenido|ejercicios|solucionario, titulo: texto breve}. '
+        'Inserta [[visual:1]] (con su id) como párrafo en la sección correspondiente. '
+        'ajuste: redondear una suma/resta; posicional: descomponer una suma/resta o multiplicación de hasta tres dígitos por un dígito; '
+        'recta: suma a+b alcanzando la siguiente decena con b entre 1 y 30, o resta a-b por complemento desde b hasta a con diferencia hasta 100; '
+        'grupos: a filas 1..6 y b puntos 1..10; reparto: a elementos hasta 60 divididos en b grupos 1..6 sin resto y hasta 10 por grupo; '
+        'fraccion: a partes coloreadas de b partes iguales, 2..12. '
+        'No incluyas HTML, SVG ni enlaces de imágenes. El servidor dibuja y calcula los gráficos. '
+        'Los visuales de ejercicios dejan el resultado en blanco. No introduzcas respuestas en su título.',
+        [{'rol': 'usuario', 'texto': solicitud}], ejemplo=ejemplo, formato_json=True, temperatura=0.7)
+    if isinstance(datos, dict):
+        datos['separacion_revisada'] = False
+        if contexto.get('asignatura', '').lower().startswith('matem') and not datos.get('recursos_visuales'):
+            from .visuales import proponer_visuales
+            datos = proponer_visuales(datos)
+    return agregar_fuentes(validar_material(datos), fragmentos or [], objetivo)
 
 
 # ============================================================
@@ -314,7 +313,7 @@ def textos_de(tipo, contenido):
         for criterio in contenido.get("criterios", []):
             textos += [criterio["criterio"], str(criterio.get("puntaje_maximo", "")), *criterio["descriptores"]]
         return textos
-    return [contenido.get("titulo", ""), contenido.get("texto", "")]
+    return [contenido.get(k, "") for k in ("titulo", "texto", "contenido", "ejercicios", "solucionario")]
 
 
 def porcentaje_corregido(tipo, original, editado):

@@ -1,0 +1,2 @@
+{% load ia_extras %}{% for b in bloques %}{% if b.figura %}{% include 'colegio/ia/_figura_material.html' with f=b.figura %}{% else %}{{ b.texto|markdown_seguro }}{% endif %}{% endfor %}
+{% if error_visual %}<p>Hay un apoyo visual que necesita revisión antes de imprimir.</p>{% endif %}
