@@ -3,7 +3,7 @@
 {% block title %}Carga Masiva de Cursos | EduGestor{% endblock %}
 
 {% block content %}
-<div class="content-header" style="margin-bottom: 20px;">
+<div class="content-header form-campo">
     <h2>Carga Masiva de Cursos</h2>
     <a href="{% url 'panel_admin_cursos' %}" class="btn-secondary" style="background: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">⬅️ Volver al Panel</a>
 </div>
@@ -11,7 +11,7 @@
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'error' %}
-            <div class="alert alert-danger" style="padding: 12px; margin-bottom: 20px; border-radius: 6px; color: #842029; background-color: #f8d7da; border: 1px solid #f5c2c7;">
+            <div class="alert alert-danger alerta-error">
                 {{ message }}
             </div>
         {% endif %}
@@ -30,7 +30,7 @@
         </ul>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+    <form class="form-grid-campos" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         
         <div>

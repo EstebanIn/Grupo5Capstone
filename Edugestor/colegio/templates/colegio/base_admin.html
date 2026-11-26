@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Panel Admin | EduGestor{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 
@@ -58,6 +59,12 @@
             <li>
                 <a href="{% url 'registrar_alumno' %}">
                     Registrar Alumno
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'panel_admin_biblioteca' %}">
+                    Biblioteca curricular
                 </a>
             </li>
 

@@ -59,7 +59,7 @@
     <h2>2. Confirma las respuestas</h2>
     {% if leida_con_ia %}
         {% if por_revisar %}
-        <div class="ia-aviso"><strong>{{ por_revisar }} pregunta{{ por_revisar|pluralize }} para revisar</strong> (en blanco, con doble marca, ilegible o no encontrada). Están destacadas abajo: compáralas con la hoja.</div>
+        <div class="ia-aviso"><strong>{{ por_revisar }} pregunta{{ por_revisar|pluralize }} para revisar</strong> (en blanco, con doble marca, ilegible, incompleta, no encontrada o con una advertencia en el desarrollo). Están destacadas abajo: compáralas con la hoja.</div>
         {% else %}
         <p class="ayuda" style="margin-bottom:12px">La IA leyó todas las preguntas. Compara las selecciones con la hoja antes de calcular: puede pasar por alto una marca, incluso un resaltado digital.</p>
         {% endif %}
@@ -72,12 +72,61 @@
 <input type="hidden" name="idempotencia" value="{{ idempotencia }}">
 <input type="hidden" name="proveedor" value="{{ ia_proveedor }}">
         <input type="hidden" name="alumno" value="{{ alumno_id }}">
+        {% if trabajo_id %}<input type="hidden" name="trabajo" value="{{ trabajo_id }}">{% endif %}
         <input type="hidden" name="leida_con_ia" value="{% if leida_con_ia %}1{% else %}0{% endif %}">
 
         <table class="ia-tabla ia-confirmar">
             <thead><tr><th>#</th><th>Pregunta</th><th>Respuesta del alumno</th><th>Lectura de la IA</th></tr></thead>
             <tbody>
                 {% for pregunta, lectura in filas %}
+                {% if pregunta.tipo == 'desarrollo' %}
+                <tr class="ia-fila-desarrollo{% if leida_con_ia and lectura.estado != 'respondida' or leida_con_ia and lectura.coherencia|lower|slice:':7' == 'revisar' %} revisar{% endif %}">
+                    <td><strong>{{ lectura.pregunta }}</strong></td>
+                    <td style="max-width:380px">
+                        {{ pregunta.enunciado|truncatechars:160 }}
+                        <details class="ia-pauta-corta"><summary>Ver pauta ({{ pregunta.puntaje }} pts)</summary>
+                            {% if pregunta.formula %}<p><strong>Fórmula:</strong> {{ pregunta.formula }}</p>{% endif %}
+                            {% if pregunta.desarrollo_esperado %}<p><strong>Desarrollo:</strong> {{ pregunta.desarrollo_esperado|linebreaksbr }}</p>{% endif %}
+                            {% if pregunta.resultado %}<p><strong>Resultado:</strong> {{ pregunta.resultado }}</p>{% endif %}
+                            <ul>{% for c in pregunta.criterios %}<li><strong>{{ c.nombre }}</strong> ({{ c.puntaje_maximo }}){% if c.descriptor %}: {{ c.descriptor }}{% endif %}</li>{% endfor %}</ul>
+                        </details>
+                    </td>
+                    <td class="ia-puntajes-desarrollo">
+                        {% for c in pregunta.criterios %}
+                        {% with sugerido=lectura.sugerencia|valor:c.clave %}
+                        <label class="ia-puntaje-criterio">
+                            <span>{{ c.nombre }}</span>
+                            {% if leida_con_ia %}<input type="hidden" name="ia{{ lectura.pregunta }}_{{ c.clave }}" value="{{ sugerido }}">{% endif %}
+                            <input type="number" name="r{{ lectura.pregunta }}_{{ c.clave }}" value="{{ sugerido|stringformat:'s' }}"
+                                   min="0" max="{{ c.puntaje_maximo }}" step="0.5" inputmode="decimal" style="width:70px"> / {{ c.puntaje_maximo }}
+                        </label>
+                        {% endwith %}
+                        {% endfor %}
+                        <p class="ayuda" style="margin:4px 0 0">Deja vacío si no respondió.</p>
+                    </td>
+                    <td class="ayuda">
+                        {% if leida_con_ia %}
+                        {% if lectura.estado == 'respondida' %}Respondió los recuadros
+                        {% elif lectura.estado == 'parcial' %}<strong>Respuesta incompleta</strong>
+                        {% elif lectura.estado == 'en_blanco' %}<strong>En blanco</strong>
+                        {% elif lectura.estado == 'ilegible' %}<strong>Ilegible</strong>
+                        {% elif lectura.estado == 'no_encontrada' %}<strong>No aparece en la hoja</strong>
+                        {% else %}—{% endif %}
+                        {% with t=lectura.transcripcion %}
+                        {% if t.desarrollo or t.formula or t.resultado %}
+                        <dl class="ia-transcripcion">
+                            {% for c in pregunta.criterios %}<dt>{{ c.nombre }}</dt><dd>{{ t|valor:c.clave|default:'(vacío)'|linebreaksbr }}</dd>{% endfor %}
+                        </dl>
+                        {% endif %}
+                        {% endwith %}
+                        {% if lectura.coherencia %}<br><strong>{{ lectura.coherencia }}</strong>{% endif %}
+                        {% if lectura.comentario %}<br>{{ lectura.comentario }}{% endif %}
+                        {% if lectura.observacion %}<br>{{ lectura.observacion }}{% endif %}
+                        <br><em>El puntaje es una sugerencia: compáralo con la hoja.</em>
+                        {% else %}Revisa el desarrollo, la fórmula y el resultado en la hoja y asigna los puntos.{% endif %}
+                    </td>
+                </tr>
+                {% else %}
                 <tr class="{% if leida_con_ia and lectura.estado != 'respondida' %}revisar{% endif %}">
                     <td><strong>{{ lectura.pregunta }}</strong></td>
                     <td style="max-width:380px">{{ pregunta.enunciado|truncatechars:110 }}</td>
@@ -104,6 +153,7 @@
                         {% if lectura.observacion and leida_con_ia %}<br>{{ lectura.observacion }}{% endif %}
                     </td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>

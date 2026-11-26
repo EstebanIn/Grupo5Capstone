@@ -79,8 +79,10 @@ class VisualesTests(SimpleTestCase):
     def test_referencias_se_agrupan_sin_perder_paginas_y_sin_duplicar_encabezados(self):
         c=validar_material({'contenido':'Texto','separacion_revisada':True})
         c['fuentes']=[{'titulo':'Programa','url':'https://fuente.test/programa.pdf','pagina':n} for n in [38,7,15,7]]
-        contexto=contexto_documento(instrumento('MATERIAL',c),'estudiante')
+        contexto=contexto_documento(instrumento('MATERIAL',c),'docente')
         self.assertEqual(len(contexto['referencias']),1)
+        # Las fuentes orientan al docente: la versión del estudiante no las muestra.
+        self.assertEqual(contexto_documento(instrumento('MATERIAL',c),'estudiante')['referencias'],[])
         self.assertEqual(contexto['referencias'][0]['paginas'],[7,15,38])
         self.assertEqual(bloques('# Ejercicios Propuestos\n\nPractica.',[],'ejercicios'),[{'texto':'\nPractica.'}])
 

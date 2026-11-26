@@ -1,0 +1,64 @@
+{# Editor de la ficha visual del material. Campos de formulario normales: no depende del editor de texto. #}
+{% with ficha_editable=contenido.ficha|default:ficha_nueva %}
+<section class="ia-ficha-editor" data-ficha-editor>
+    <div class="ia-ficha-editor-cabecera">
+        <div>
+            <h2>Ficha visual</h2>
+            <p class="ayuda">Portada de una página, tipo infografía: idea central y tarjetas cortas con ícono. Va en la versión del estudiante, así que no pongas respuestas de los ejercicios.</p>
+        </div>
+        {% if contenido.ficha %}<label class="ia-eliminar"><input type="checkbox" name="ficha_quitar"> Quitar ficha visual</label>{% endif %}
+    </div>
+    {% if not contenido.ficha %}
+    <div class="ia-aviso" data-ficha-sin>
+        {% if contenido.ficha_pendiente %}La IA no entregó una ficha visual válida para este material.{% else %}Este material todavía no tiene ficha visual.{% endif %}
+        <button type="button" class="ia-boton secundario" data-ficha-crear>Crear ficha visual</button>
+    </div>
+    {% endif %}
+    <fieldset class="ia-ficha-campos" data-ficha-campos {% if not contenido.ficha %}disabled hidden{% endif %}>
+        <input type="hidden" name="ficha_presente" value="1">
+        <div class="ia-ficha-fila">
+            <label>Título<input type="text" name="ficha_titulo" value="{{ ficha_editable.titulo }}" maxlength="60" required></label>
+            <label>Subtítulo<input type="text" name="ficha_subtitulo" value="{{ ficha_editable.subtitulo }}" maxlength="60"></label>
+        </div>
+        <div class="ia-ficha-fila">
+            <label>Pregunta central<input type="text" name="ficha_pregunta" value="{{ ficha_editable.idea.pregunta }}" maxlength="60" placeholder="¿Qué es…?"></label>
+            <label>Respuesta breve<textarea name="ficha_respuesta" rows="2" maxlength="160">{{ ficha_editable.idea.respuesta }}</textarea></label>
+        </div>
+        <h3>Tarjetas <small class="ayuda">(de 4 a {{ max_tarjetas_ficha }}; una acción y una frase)</small></h3>
+        <div class="ia-ficha-tarjetas" data-ficha-tarjetas>
+            {% for tarjeta in ficha_editable.tarjetas %}
+            {% include 'colegio/ia/_editor_ficha_tarjeta.html' with i=forloop.counter0 tarjeta=tarjeta %}
+            {% endfor %}
+        </div>
+        <template data-ficha-plantilla>{% include 'colegio/ia/_editor_ficha_tarjeta.html' with i='__T__' tarjeta=None %}</template>
+        <button type="button" class="ia-boton secundario" data-ficha-agregar data-indice="{{ ficha_editable.tarjetas|length }}" data-maximo="{{ max_tarjetas_ficha }}">+ Agregar tarjeta</button>
+        <label class="ia-ficha-recuerda">Recuerda (idea final, opcional)<input type="text" name="ficha_recuerda" value="{{ ficha_editable.recuerda }}" maxlength="120"></label>
+    </fieldset>
+</section>
+{% endwith %}
+<script>
+(function () {
+    var raiz = document.querySelector('[data-ficha-editor]');
+    if (!raiz) return;
+    var campos = raiz.querySelector('[data-ficha-campos]');
+    var crear = raiz.querySelector('[data-ficha-crear]');
+    if (crear) crear.addEventListener('click', function () {
+        campos.disabled = false;
+        campos.hidden = false;
+        raiz.querySelector('[data-ficha-sin]').hidden = true;
+        campos.querySelector('input[type="text"]').focus();
+    });
+    var agregar = raiz.querySelector('[data-ficha-agregar]');
+    var lista = raiz.querySelector('[data-ficha-tarjetas]');
+    var plantilla = raiz.querySelector('[data-ficha-plantilla]');
+    var indice = parseInt(agregar.dataset.indice, 10) || 0;
+    var maximo = parseInt(agregar.dataset.maximo, 10) || 8;
+    agregar.addEventListener('click', function () {
+        if (lista.children.length >= maximo) { alert('La ficha admite hasta ' + maximo + ' tarjetas.'); return; }
+        while (raiz.querySelector('[name="ficha_t' + indice + '_titulo"]')) indice++;
+        lista.insertAdjacentHTML('beforeend', plantilla.innerHTML.split('__T__').join(String(indice)));
+        lista.lastElementChild.querySelector('input').focus();
+        indice++;
+    });
+})();
+</script>

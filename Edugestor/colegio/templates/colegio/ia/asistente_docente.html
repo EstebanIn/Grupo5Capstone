@@ -45,7 +45,7 @@
 
 <details class="ia-panel ia-cobertura">
     <summary>Cobertura curricular disponible</summary>
-    <p>Fragmentos indexados por curso y asignatura para {{ ia_proveedor|title }}. Cada borrador muestra las fuentes recuperadas.</p>
+    <p>Fragmentos indexados por curso y asignatura para {{ ia_proveedor|title }}. Cada borrador muestra las fuentes consultadas; consultarlas no garantiza que respalden cada pregunta.</p>
     <ul>{% for fila in cobertura %}<li>{{ fila.carga.curso }} · {{ fila.carga.asignatura.nombre_asignatura }}: {{ fila.disponibles }} de {{ fila.total }} fragmentos disponibles. {{ fila.metodo }}.</li>{% empty %}<li>No hay cargas académicas asignadas.</li>{% endfor %}</ul>
     <a href="{% url 'ia_biblioteca' %}">Consultar y actualizar biblioteca curricular →</a>
 </details>

@@ -206,6 +206,7 @@
         }
 
     </style>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 
@@ -295,7 +296,7 @@
                 </div>
             </div>
 
-            <div class="info-grid" style="margin-top:24px">
+            <div class="info-grid mt-seccion">
                 <div class="info-box">
                     <span>Nombre completo</span>
                     <strong>{{ apoderado.nombre_apoderado }} {{ apoderado.apellido_apoderado }}</strong>
@@ -353,7 +354,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="3" style="color:#9ca3af; font-style:italic">
+                        <td class="texto-vacio" colspan="3">
                             No tienes estudiantes asociados aún.
                         </td>
                     </tr>
@@ -364,7 +365,7 @@
 
         {% else %}
             <div class="table-container">
-                <p style="color:#9ca3af">No se encontró un perfil de apoderado asociado a tu cuenta.</p>
+                <p style="color:#6b7280">No se encontró un perfil de apoderado asociado a tu cuenta.</p>
             </div>
         {% endif %}
 

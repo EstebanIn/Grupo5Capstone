@@ -24,6 +24,32 @@ def anotar(**datos):
         actual.update(datos)
 
 
+CLAVES_PRINCIPALES = ('archivos', 'huella_entrada', 'caracteres_entrada', 'caracteres_salida', 'lectura')
+
+
+@contextmanager
+def llamada_secundaria():
+    """
+    Llamadas de apoyo dentro de una misma operación (por ejemplo, sugerir el puntaje
+    de una pregunta de desarrollo después de leer la hoja). Conservan la traza de la
+    llamada principal (archivos, huella y lectura) y suman sus caracteres.
+    """
+    actual = _operacion.get()
+    if actual is None:
+        yield
+        return
+    respaldo = {clave: actual[clave] for clave in CLAVES_PRINCIPALES if clave in actual}
+    try:
+        yield
+    finally:
+        entrada = actual.get('caracteres_entrada', 0) if actual.get('huella_entrada') != respaldo.get('huella_entrada') else 0
+        salida = actual.get('caracteres_salida', 0) if entrada else 0
+        actual.update(respaldo)
+        actual['caracteres_entrada'] = respaldo.get('caracteres_entrada', 0) + entrada
+        actual['caracteres_salida'] = respaldo.get('caracteres_salida', 0) + salida
+        actual['llamadas_secundarias'] = actual.get('llamadas_secundarias', 0) + 1
+
+
 def anotar_error(error):
     actual = _operacion.get()
     if actual is not None:
@@ -38,7 +64,10 @@ def anotar_fuentes(fragmentos):
         'pagina': f.get('pagina'),
         'fragmento': str(f.get('texto', ''))[:500],
         'metodo': f.get('metodo_recuperacion', 'vectorial'),
-    } for f in fragmentos[:5]])
+        # Identificador y puntaje permiten revisar después por qué se eligió cada fragmento.
+        'id': str(f.get('id', ''))[:80],
+        'puntaje': next((round(float(f[k]), 4) for k in ('puntaje_bm25', 'similitud') if f.get(k) is not None), None),
+    } for f in fragmentos[:6]])
 
 def anotar_entrada(sistema, mensajes):
     textos = sistema + '\n' + '\n'.join(m.get('texto', '') for m in mensajes)

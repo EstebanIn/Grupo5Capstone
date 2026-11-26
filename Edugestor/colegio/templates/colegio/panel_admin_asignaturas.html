@@ -5,8 +5,8 @@
 {% block content %}
 <div class="content-header">
     <h2>Gestión de Asignaturas</h2>
-    <div style="display: flex; gap: 10px;">
-        <a href="{% url 'carga_masiva_asignaturas' %}" class="btn-action" style="background: #10b981; color: white;">📊 Carga Masiva (Excel)</a>
+    <div class="fila-acciones">
+        <a href="{% url 'carga_masiva_asignaturas' %}" class="btn-action btn-exito">📊 Carga Masiva (Excel)</a>
         <a href="{% url 'crear_asignatura' %}" class="btn-primary">+ Nueva Asignatura</a>
     </div>
 </div>
@@ -26,13 +26,13 @@
         {% endif %}
     </form>
 
-    <div class="filter-group" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-        <span class="filter-label">Filtrar por Enseñanza:</span>
-        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}{% endif %}" class="btn-action" style="background: #6b7280; color: white; font-weight: {% if not ciclo_filtro %}bold{% else %}normal{% endif %};">Todos</a>
-        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=KINDER" class="btn-action" style="background: #fee2e2; color: #991b1b; font-weight: {% if ciclo_filtro == 'KINDER' %}bold{% else %}normal{% endif %};">Kinder</a>
-        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=BASICA" class="btn-action" style="background: #d1fae5; color: #065f46; font-weight: {% if ciclo_filtro == 'BASICA' %}bold{% else %}normal{% endif %};">Basica</a>
-        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=MEDIA" class="btn-action" style="background: #dbeafe; color: #1e40af; font-weight: {% if ciclo_filtro == 'MEDIA' %}bold{% else %}normal{% endif %};">Media</a>
-    </div>
+    <nav class="filter-group filtros" aria-label="Filtrar por enseñanza">
+        <span class="filter-label filtros-etiqueta">Filtrar por enseñanza:</span>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}{% endif %}" class="chip chip-gris"{% if not ciclo_filtro %} aria-current="page"{% endif %}>Todos</a>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=KINDER" class="chip chip-rojo"{% if ciclo_filtro == 'KINDER' %} aria-current="page"{% endif %}>Kinder</a>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=BASICA" class="chip chip-verde"{% if ciclo_filtro == 'BASICA' %} aria-current="page"{% endif %}>Basica</a>
+        <a href="?{% if asignatura_filtro %}asignatura={{ asignatura_filtro|urlencode }}&{% endif %}ciclo=MEDIA" class="chip chip-azul"{% if ciclo_filtro == 'MEDIA' %} aria-current="page"{% endif %}>Media</a>
+    </nav>
 </div>
 
 <div class="card">
@@ -52,7 +52,7 @@
                 <td>
                     <strong>{{ asignatura.nombre_asignatura }}</strong>
                     <br>
-                    <small style="color: #6b7280;">Curso: {{ asignatura.curso }}</small>
+                    <small class="texto-suave">Curso: {{ asignatura.curso }}</small>
                 </td>
                 
                 <td>{{ asignatura.descripcion|default:"Sin descripción" }}</td>
@@ -63,7 +63,7 @@
                             {{ doc.nombre_docente }} {{ doc.apellido_docente }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     {% else %}
-                        <span style="color: #9ca3af; font-style: italic;">Sin docente asignado</span>
+                        <span class="texto-vacio">Sin docente asignado</span>
                     {% endif %}
                 </td>
                 
@@ -80,7 +80,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" style="text-align: center; color: #6b7280; padding: 20px;">
+                <td class="celda-vacia" colspan="5">
                     No hay asignaturas registradas en el sistema.
                 </td>
             </tr>

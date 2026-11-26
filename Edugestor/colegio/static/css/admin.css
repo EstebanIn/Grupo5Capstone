@@ -1,3 +1,6 @@
+/* Colores del rol: base.css los usa para componentes compartidos. */
+:root { --rol-acento: #5b21b6; --rol-acento-oscuro: #4c1d95; --rol-acento-suave: #ede9fe; }
+
 /* static/css/admin.css */
 
 * {
@@ -314,7 +317,7 @@ body {
 
 /* Texto de ayuda o estados vacíos secundarios */
 .text-muted-italic {
-    color: #9ca3af;
+    color: #6b7280;
     font-style: italic;
     font-size: 13px;
 }
@@ -459,7 +462,7 @@ body {
 
 /* Estilo para los textos secundarios o cuando no hay materias */
 .text-muted-italic {
-    color: #9ca3af;
+    color: #6b7280;
     font-style: italic;
     font-size: 0.9rem;
 }

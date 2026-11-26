@@ -12,13 +12,15 @@
 
 <div class="ia-metricas">
     <div class="ia-metrica"><span>Nota</span><strong style="{% if correccion.nota < 4 %}color:#b91c1c{% endif %}">{{ correccion.nota }}</strong></div>
+    {% if correccion.puntaje_maximo is not None %}<div class="ia-metrica"><span>Puntaje</span><strong>{{ correccion.puntaje_obtenido|floatformat:"-1" }}/{{ correccion.puntaje_maximo|floatformat:"-1" }}</strong></div>{% endif %}
     <div class="ia-metrica"><span>Correctas</span><strong>{{ correccion.correctas }}/{{ correccion.total }}</strong></div>
     <div class="ia-metrica"><span>Logro</span><strong>{{ porcentaje }}%</strong></div>
     <div class="ia-metrica"><span>Incorrectas</span><strong>{{ incorrectas }}</strong></div>
     <div class="ia-metrica"><span>En blanco</span><strong>{{ omitidas }}</strong></div>
+    {% if parciales %}<div class="ia-metrica"><span>Desarrollo parcial</span><strong>{{ parciales }}</strong></div>{% endif %}
 </div>
 <p class="ayuda ia-no-imprimir" style="margin:-12px 0 20px">
-    Escala 1.0 a 7.0 con 60% de exigencia (nota 4.0 con el 60% de respuestas correctas). Las preguntas en blanco cuentan como incorrectas.
+    Escala 1.0 a 7.0 con 60% de exigencia (nota 4.0 con el 60% del puntaje). Cada pregunta de selección múltiple vale 1 punto; las de desarrollo suman los puntos de su desarrollo, fórmula y resultado. Las preguntas en blanco no suman puntos.
     {% if correccion.leida_con_ia %}Respuestas leídas con IA{% if correccion.ajustes_docente %}; ajustaste {{ correccion.ajustes_docente }}{% endif %}.{% endif %}
 </p>
 
@@ -49,17 +51,42 @@
     <h2>Detalle por pregunta</h2>
     <ol class="preguntas">
         {% for item in detalle %}
+        {% if item.tipo == 'desarrollo' %}
+        <li class="resultado-{{ item.estado }}">
+            <span class="marca">{% if item.estado == 'completa' %}✔{% elif item.estado == 'parcial' %}◐{% elif item.estado == 'incorrecta' %}✘{% else %}○{% endif %}</span>
+            {{ item.pregunta.enunciado|linebreaksbr }}
+            <div class="ayuda" style="margin-top:4px">
+                <strong>Desarrollo: {{ item.obtenido }} de {{ item.maximo }} puntos</strong>{% if item.estado == 'omitida' %} (en blanco){% endif %}.
+                <table class="ia-tabla ia-detalle-desarrollo">
+                    <thead><tr><th>Criterio</th><th>Puntos</th><th>Lo que escribió</th></tr></thead>
+                    <tbody>
+                    {% for c in item.pregunta.criterios %}
+                    <tr><td>{{ c.nombre }}</td><td>{{ item.puntajes|valor:c.clave }} / {{ c.puntaje_maximo }}</td>
+                        <td>{{ item.transcripcion|valor:c.clave|default:'—'|linebreaksbr }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% if item.estado != 'completa' %}
+                {% if item.pregunta.formula %}Fórmula esperada: <strong>{{ item.pregunta.formula }}</strong>{{ item.pregunta.formula|falta_punto }}{% endif %}
+                {% if item.pregunta.resultado %} Resultado esperado: <strong>{{ item.pregunta.resultado }}</strong>{{ item.pregunta.resultado|falta_punto }}{% endif %}
+                {% if item.pregunta.desarrollo_esperado %}<br><em>{{ item.pregunta.desarrollo_esperado|linebreaksbr }}</em>{% endif %}
+                {% endif %}
+                {% if item.comentario %}<br>{{ item.comentario }}{% endif %}
+            </div>
+        </li>
+        {% else %}
         <li class="resultado-{{ item.estado }}">
             <span class="marca">{% if item.estado == 'correcta' %}✔{% elif item.estado == 'incorrecta' %}✘{% else %}○{% endif %}</span>
             {{ item.pregunta.enunciado|linebreaksbr }}
             <div class="ayuda" style="margin-top:4px">
-                {% if item.estado == 'omitida' %}<strong>En blanco.</strong>{% else %}Marcó <strong>{{ item.marcada|letra }})</strong> {{ item.pregunta.alternativas|index:item.marcada }}.{% endif %}
+                {% if item.estado == 'omitida' %}<strong>En blanco.</strong>{% else %}Marcó <strong>{{ item.marcada|letra }})</strong> {{ item.pregunta.alternativas|index:item.marcada|con_punto }}{% endif %}
                 {% if item.estado != 'correcta' %}
-                Correcta: <strong>{{ item.correcta|letra }})</strong> {{ item.pregunta.alternativas|index:item.correcta }}.
+                Correcta: <strong>{{ item.correcta|letra }})</strong> {{ item.pregunta.alternativas|index:item.correcta|con_punto }}
                 {% if item.pregunta.explicacion %}<br><em>{{ item.pregunta.explicacion }}</em>{% endif %}
                 {% endif %}
             </div>
         </li>
+        {% endif %}
         {% endfor %}
     </ol>
 </div>
@@ -75,5 +102,8 @@
     .resultado-correcta .marca { color: #15803d; }
     .resultado-incorrecta .marca { color: #b91c1c; }
     .resultado-omitida .marca { color: #9ca3af; }
+    .resultado-completa .marca { color: #15803d; }
+    .resultado-parcial .marca { color: #b45309; }
+    .ia-detalle-desarrollo { margin: 6px 0; font-size: 0.95em; }
 </style>
 {% endblock %}

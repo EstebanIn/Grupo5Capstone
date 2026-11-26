@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profesor Jefe | EduGestor</title>
     <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 <style>
@@ -313,7 +314,7 @@
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="6" style="color:#9ca3af; font-style:italic">
+                    <td class="texto-vacio" colspan="6">
                         No hay alumnos con matricula activa en este curso.
                     </td>
                 </tr>

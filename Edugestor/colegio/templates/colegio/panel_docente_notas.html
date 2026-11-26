@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ingresar Notas | EduGestor</title>
     <link rel="stylesheet" href="{% static 'css/docente.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 <style>
@@ -142,8 +143,8 @@
     {% endif %}
 
     {% if not carga_seleccionada %}
-    <div class="table-container" style="margin-bottom:20px">
-        <p style="color:#9ca3af; font-style:italic">
+    <div class="table-container form-campo">
+        <p class="texto-vacio">
             Selecciona un curso desde el panel de inicio para gestionar sus evaluaciones.
         </p>
     </div>
@@ -245,7 +246,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p style="color:#9ca3af; font-style:italic">No hay notas registradas para este curso.</p>
+            <p class="texto-vacio">No hay notas registradas para este curso.</p>
         {% endif %}
     </div>
 

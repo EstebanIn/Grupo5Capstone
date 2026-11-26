@@ -1,0 +1,44 @@
+{# Ficha visual (infografía de una página). Variable: ficha. Los íconos son SVG propios del catálogo. #}
+<style>
+.ficha { border: 2.5px solid #3b2f2a; border-radius: 6mm; padding: 6mm; margin: 0 0 6mm; background: #fffaf3; color: #2b2320; break-inside: avoid; page-break-inside: avoid; font-family: 'DejaVu Sans', sans-serif; }
+.ficha-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 4mm; margin-bottom: 5mm; }
+.ficha-cabecera h2 { margin: 0; font-size: 22pt; line-height: 1.1; color: #b3541e; border: none; padding: 0; }
+.ficha-pildora { display: inline-block; margin-top: 2.5mm; padding: 1.2mm 4mm; border: 2px solid #b3541e; border-radius: 10mm; font-weight: bold; font-size: 10.5pt; color: #3b2f2a; background: #ffffff; }
+.ficha-cabecera .ficha-icono { width: 22mm; height: 22mm; color: #b3541e; flex: none; }
+.ficha-grilla { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+.ficha-celda { position: relative; min-height: 27mm; padding: 3.5mm 21mm 3.5mm 4mm; border-radius: 3mm; border: 1px solid rgba(59, 47, 42, .25); break-inside: avoid; }
+.ficha-celda h3 { margin: 0 0 1.5mm; font-size: 12.5pt; line-height: 1.2; color: #2b2320; }
+.ficha-celda p { margin: 0; font-size: 9.5pt; line-height: 1.35; }
+.ficha-celda .ficha-icono { position: absolute; right: 3.5mm; bottom: 3mm; width: 14mm; height: 14mm; color: #3b2f2a; }
+.ficha-durazno { background: #f8cf9c; } .ficha-lila { background: #e2d3f5; }
+.ficha-idea { background: #ffffff; border: 2px solid #f0a35e; padding-right: 4mm; text-align: center; }
+.ficha-idea h3 { color: #b3541e; font-size: 14pt; }
+.ficha-recuerda { margin-top: 4mm; padding: 3mm 4mm; border-radius: 3mm; background: #3b2f2a; color: #ffffff; font-size: 10.5pt; }
+.ficha-recuerda strong { color: #f8cf9c; }
+@media screen and (max-width: 640px) { .ficha-grilla { grid-template-columns: 1fr; } .ficha-cabecera h2 { font-size: 18pt; } }
+</style>
+<section class="ficha" aria-label="Ficha visual">
+    <div class="ficha-cabecera">
+        <div>
+            <h2>{{ ficha.titulo }}</h2>
+            {% if ficha.subtitulo %}<span class="ficha-pildora">{{ ficha.subtitulo }}</span>{% endif %}
+        </div>
+        {% include 'colegio/ia/_iconos_ficha.html' with icono='libro' %}
+    </div>
+    <div class="ficha-grilla">
+        {% if ficha.idea.pregunta or ficha.idea.respuesta %}
+        <div class="ficha-celda ficha-idea">
+            {% if ficha.idea.pregunta %}<h3>{{ ficha.idea.pregunta }}</h3>{% endif %}
+            {% if ficha.idea.respuesta %}<p>{{ ficha.idea.respuesta }}</p>{% endif %}
+        </div>
+        {% endif %}
+        {% for tarjeta in ficha.tarjetas %}
+        <div class="ficha-celda {% if ficha.idea.pregunta or ficha.idea.respuesta %}{% cycle 'ficha-durazno' 'ficha-durazno' 'ficha-lila' 'ficha-lila' %}{% else %}{% cycle 'ficha-durazno' 'ficha-lila' 'ficha-lila' 'ficha-durazno' %}{% endif %}">
+            <h3>{{ tarjeta.titulo }}</h3>
+            {% if tarjeta.texto %}<p>{{ tarjeta.texto }}</p>{% endif %}
+            {% include 'colegio/ia/_iconos_ficha.html' with icono=tarjeta.icono %}
+        </div>
+        {% endfor %}
+    </div>
+    {% if ficha.recuerda %}<p class="ficha-recuerda"><strong>Recuerda:</strong> {{ ficha.recuerda }}</p>{% endif %}
+</section>

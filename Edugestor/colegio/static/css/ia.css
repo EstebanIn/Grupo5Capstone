@@ -157,3 +157,35 @@ body.ia-alumno {
     .main { margin: 0 !important; padding: 0 !important; }
     .ia-panel { border: none; padding: 0; }
 }
+
+/* ===== Preguntas de desarrollo (desarrollo · fórmula · resultado) ===== */
+.ia-pregunta-desarrollo { border-left: 4px solid #166044; }
+.ia-desarrollo-pauta { display: grid; gap: 8px; margin: 8px 0; }
+.ia-criterios-desarrollo { width: 100%; margin-top: 8px; }
+.ia-criterios-desarrollo input[type="text"], .ia-criterios-desarrollo input[type="number"],
+.ia-criterios-desarrollo textarea { width: 100%; }
+.ia-puntaje-total { margin: 4px 0 12px; }
+.ia-puntajes-desarrollo { min-width: 220px; }
+.ia-puntaje-criterio { display: flex; align-items: center; gap: 6px; margin: 3px 0; white-space: nowrap; }
+.ia-puntaje-criterio span { flex: 1; white-space: normal; font-size: .92em; }
+.ia-transcripcion { margin: 6px 0 0; font-size: .92em; }
+.ia-transcripcion dt { font-weight: 600; margin-top: 4px; }
+.ia-transcripcion dd { margin: 0 0 2px; padding: 3px 6px; background: #f6f8f7; border-radius: 4px; font-family: 'DejaVu Sans Mono', monospace; white-space: normal; }
+.ia-pauta-corta { margin-top: 6px; font-size: .9em; }
+.ia-pauta-corta summary { cursor: pointer; color: #166044; }
+.ia-pauta-desarrollo p { margin: 4px 0; }
+
+/* ===== Editor de la ficha visual del material ===== */
+.ia-ficha-editor { border: 1px solid var(--ia-borde); border-left: 4px solid #b3541e; border-radius: 10px; padding: 16px; margin: 0 0 18px; background: #fffaf3; }
+.ia-ficha-editor-cabecera { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.ia-ficha-editor h2 { margin: 0 0 4px; font-size: 1.15rem; }
+.ia-ficha-editor h3 { margin: 14px 0 6px; font-size: 1rem; }
+.ia-ficha-campos { border: 0; padding: 0; margin: 10px 0 0; min-width: 0; }
+.ia-ficha-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.ia-ficha-editor label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
+.ia-ficha-editor label.ia-eliminar { flex-direction: row; align-items: center; }
+.ia-ficha-tarjeta { display: grid; grid-template-columns: 1.1fr 2fr .9fr auto; gap: 8px; align-items: end; padding: 8px 0; border-top: 1px dashed var(--ia-borde); }
+.ia-ficha-recuerda { margin-top: 12px; }
+.ia-ficha-editor [data-ficha-agregar] { margin-top: 8px; }
+@media (max-width: 720px) { .ia-ficha-fila, .ia-ficha-tarjeta { grid-template-columns: 1fr; } }
+.ia-markdown blockquote { margin: 10px 0; padding: 8px 14px; background: #fff4e6; border-left: 3px solid #b3541e; border-radius: 0 8px 8px 0; }

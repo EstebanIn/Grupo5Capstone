@@ -7,14 +7,14 @@
     <h2>Gestión de Usuarios</h2>
 </div>
 
-<div class="card" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
-    <span>Filtrar por Rol:</span>
-    <a href="{% url 'panel_admin_usuarios' %}" class="btn-action" style="background: #6b7280; color: white; font-weight: {% if not rol_filtro %}bold{% else %}normal{% endif %};">Todos</a>
-    <a href="?rol=admin" class="btn-action" style="background: #fee2e2; color: #991b1b; font-weight: {% if rol_filtro == 'admin' %}bold{% else %}normal{% endif %};">Admin</a>
-    <a href="?rol=docente" class="btn-action" style="background: #dbeafe; color: #1e40af; font-weight: {% if rol_filtro == 'docente' %}bold{% else %}normal{% endif %};">Docentes</a>
-    <a href="?rol=alumno" class="btn-action" style="background: #d1fae5; color: #065f46; font-weight: {% if rol_filtro == 'alumno' %}bold{% else %}normal{% endif %};">Alumnos</a>
-    <a href="?rol=apoderado" class="btn-action" style="background: #fef3c7; color: #92400e; font-weight: {% if rol_filtro == 'apoderado' %}bold{% else %}normal{% endif %};">Apoderados</a>
-</div>
+<nav class="card filtros" aria-label="Filtrar por rol">
+    <span class="filtros-etiqueta">Filtrar por rol:</span>
+    <a href="{% url 'panel_admin_usuarios' %}" class="chip chip-gris"{% if not rol_filtro %} aria-current="page"{% endif %}>Todos</a>
+    <a href="?rol=admin" class="chip chip-rojo"{% if rol_filtro == 'admin' %} aria-current="page"{% endif %}>Admin</a>
+    <a href="?rol=docente" class="chip chip-azul"{% if rol_filtro == 'docente' %} aria-current="page"{% endif %}>Docentes</a>
+    <a href="?rol=alumno" class="chip chip-verde"{% if rol_filtro == 'alumno' %} aria-current="page"{% endif %}>Alumnos</a>
+    <a href="?rol=apoderado" class="chip chip-ambar"{% if rol_filtro == 'apoderado' %} aria-current="page"{% endif %}>Apoderados</a>
+</nav>
 
 <div class="card">
     <table class="table">
@@ -44,7 +44,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" style="text-align: center; color: #6b7280; padding: 20px;">
+                <td class="celda-vacia" colspan="4">
                     No se encontraron usuarios registrados con este criterio.
                 </td>
             </tr>

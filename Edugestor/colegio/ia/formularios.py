@@ -9,26 +9,74 @@ class CargaChoiceField(forms.ModelChoiceField):
         return f"{carga.curso} · {carga.asignatura.nombre_asignatura}"
 
 
+PERSONALIZADO = ""
+
+
 class FormularioBaseDocente(forms.Form):
     carga = CargaChoiceField(queryset=None, label="Curso y asignatura", empty_label="Selecciona…")
+    oa = forms.ChoiceField(
+        label="OA oficial del programa", required=False,
+        help_text="Elige el OA de tu curso: su texto e indicadores oficiales se entregan a la IA. "
+                  "Si tu curso no aparece, usa un objetivo personalizado.",
+    )
     objetivo = forms.CharField(
         label="Objetivo de Aprendizaje (OA)", required=False, max_length=600,
-        widget=forms.Textarea(attrs={"rows": 2, "placeholder": "Ej: OA 3 — Describir y aplicar estrategias de cálculo mental para multiplicaciones…"}),
-        help_text="Copia el OA de las Bases Curriculares. Mientras más preciso, mejor el resultado.",
+        widget=forms.Textarea(attrs={"rows": 2, "placeholder": "Ej: comparar fracciones con material concreto y pictórico"}),
+        help_text="Con un OA oficial, precisa aquí el foco (opcional). Sin OA oficial, describe tu objetivo: "
+                  "quedará marcado como personalizado, no como OA oficial.",
     )
 
     def __init__(self, *args, docente, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["carga"].queryset = cargas_docente(docente)
+        from .curriculo import catalogo_de_carga
+        cargas = cargas_docente(docente)
+        self.fields["carga"].queryset = cargas
+        grupos, vistos = [], set()
+        for carga in cargas:
+            datos = catalogo_de_carga(carga)
+            if not datos or id(datos) in vistos:
+                continue
+            vistos.add(id(datos))
+            grupos.append((f"{datos['asignatura']} · {datos['nivel']}° básico", [
+                (oa["codigo"], f"{oa['codigo']} · {oa['texto'][:90]}{'…' if len(oa['texto']) > 90 else ''}")
+                for oa in datos["objetivos"]]))
+        self.fields["oa"].choices = [(PERSONALIZADO, "Objetivo personalizado (lo escribo abajo)")] + grupos
+        if not grupos:
+            self.fields["oa"].widget = forms.HiddenInput()
+        # Al recuperar un trabajo, el campo de texto vuelve a mostrar solo el foco escrito.
+        if self.initial.get("oa"):
+            self.initial["objetivo"] = self.initial.get("foco", "")
+
+    def clean(self):
+        datos = super().clean()
+        codigo = datos.get("oa") or PERSONALIZADO
+        datos["oa"] = codigo
+        if codigo and datos.get("carga"):
+            from .curriculo import objetivo, texto_objetivo
+            oa = objetivo(codigo, carga=datos["carga"])
+            if oa is None:
+                self.add_error("oa", "Ese OA no corresponde al curso y asignatura elegidos.")
+                return datos
+            datos["foco"] = datos.get("objetivo", "")
+            datos["objetivo"] = texto_objetivo(oa, datos["foco"])
+        return datos
 
 
 class FormularioPrueba(FormularioBaseDocente):
     tema = forms.CharField(label="Tema o contenido", max_length=200,
                            widget=forms.TextInput(attrs={"placeholder": "Ej: fracciones equivalentes"}))
-    cantidad = forms.IntegerField(label="Cantidad de preguntas", min_value=3, max_value=20, initial=8)
+    cantidad = forms.IntegerField(label="Preguntas de selección múltiple", min_value=3, max_value=20, initial=8)
+    cantidad_desarrollo = forms.IntegerField(
+        label="Preguntas de desarrollo", min_value=0, max_value=5, initial=1, required=False,
+        help_text="El estudiante escribe su desarrollo, la fórmula o concepto usado y el resultado. "
+                  "En Matemática y Ciencias se pide el cálculo; en otras asignaturas, la justificación y la conclusión.",
+    )
     dificultad = forms.ChoiceField(label="Dificultad", initial="media", choices=[
         ("baja", "Baja"), ("media", "Media"), ("alta", "Alta"), ("mixta", "Mixta (de menor a mayor)"),
     ])
+
+    def clean_cantidad_desarrollo(self):
+        return self.cleaned_data.get("cantidad_desarrollo") or 0
 
 
 class FormularioRubrica(FormularioBaseDocente):

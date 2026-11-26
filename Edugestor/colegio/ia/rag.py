@@ -113,7 +113,9 @@ def buscar_fragmentos(*, consulta, asignatura, ciclo, nivel, limite=5):
     if proveedor_activo() == 'qwen':
         from .indice_qwen import huella
         if not base.exists():
-            raise ErrorIA('El índice Qwen está incompleto: no hay fuentes para esta asignatura y nivel.')
+            raise ErrorIA(f'No hay fuentes curriculares para {asignatura} de {nivel}° '
+                          f'{"básico" if ciclo == "BASICA" else "nivel"}. Agrégalas o actualízalas en '
+                          'Asistente IA → Biblioteca curricular antes de generar con Qwen.')
         if any(f.embedding_qwen is None or f.modelo_embedding_qwen != settings.QWEN_EMBEDDING_MODEL
                or f.huella_texto_qwen != huella(f.texto) for f in base):
             raise ErrorIA('El índice Qwen está incompleto para esta asignatura y nivel. Completa su indexación.')

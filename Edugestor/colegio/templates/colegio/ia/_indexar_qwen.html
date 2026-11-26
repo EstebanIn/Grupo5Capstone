@@ -1,0 +1,46 @@
+<section class="ia-panel" aria-label="Indexación de Qwen">
+  <h2>Completar índice de Qwen</h2>
+  <p>Prepara los fragmentos pendientes para la búsqueda con Qwen. {% if qwen_configurado %}Envía esos textos a Qwen usando la clave vigente en tu sesión, consume cuota y puede tener costo. El índice queda disponible para todos los usuarios y los vectores de Gemini se conservan. Mantén esta página abierta; si se interrumpe, puedes continuar después.{% else %}Primero conecta tu clave de Qwen en «Conexiones de IA».{% endif %}</p>
+  <form id="indexar-qwen" method="post" action="{% url 'indexar_qwen_ia' %}">{% csrf_token %}
+    <button type="submit" class="ia-boton" {% if not qwen_configurado %}disabled{% endif %}>Completar índice Qwen</button>
+  </form>
+  <progress id="indexar-qwen-avance" max="1" value="0" hidden></progress>
+  <p id="indexar-qwen-estado" role="status"></p>
+</section>
+<script>
+(function() {
+  const form = document.getElementById('indexar-qwen');
+  const boton = form.querySelector('button');
+  const barra = document.getElementById('indexar-qwen-avance');
+  const mensaje = document.getElementById('indexar-qwen-estado');
+  form.addEventListener('submit', async function(evento) {
+    evento.preventDefault();
+    if (!window.confirm('Se enviarán los fragmentos pendientes a Qwen. Esto consume cuota y puede tener costo. ¿Continuar?')) return;
+    boton.disabled = true;
+    barra.hidden = false;
+    mensaje.textContent = 'Indexando… no cierres esta página.';
+    let anteriores = -1;
+    try {
+      while (true) {
+        const respuesta = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: {'Accept': 'application/json'}});
+        const datos = await respuesta.json();
+        if (!respuesta.ok) throw new Error(datos.error || 'No se pudo completar la indexación.');
+        const listos = datos.curricular_completos + datos.tutor_completos;
+        const total = datos.curricular_total + datos.tutor_total;
+        document.getElementById('indice-curricular').textContent = datos.curricular_completos;
+        document.getElementById('indice-tutor').textContent = datos.tutor_completos;
+        barra.max = total || 1;
+        barra.value = listos;
+        if (datos.completo) { window.location.reload(); return; }
+        // Sin avance no se repite: evita gastar cuota en un ciclo sin fin.
+        if (listos <= anteriores || total === 0) throw new Error('La indexación dejó de avanzar. Revisa el corpus con el administrador.');
+        anteriores = listos;
+        mensaje.textContent = 'Indexando… ' + listos + ' de ' + total + ' fragmentos listos. No cierres esta página.';
+      }
+    } catch (error) {
+      mensaje.textContent = (error instanceof SyntaxError || error instanceof TypeError ? 'Se perdió la conexión o la sesión.' : error.message) + ' Lo guardado se conserva; pulsa de nuevo para continuar.';
+      boton.disabled = false;
+    }
+  });
+})();
+</script>

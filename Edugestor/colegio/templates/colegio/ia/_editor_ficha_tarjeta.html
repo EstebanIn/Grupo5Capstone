@@ -1,0 +1,6 @@
+<div class="ia-ficha-tarjeta">
+    <label>Título<input type="text" name="ficha_t{{ i }}_titulo" value="{{ tarjeta.titulo }}" maxlength="40" placeholder="Ej: Crea tus resúmenes"></label>
+    <label>Frase<input type="text" name="ficha_t{{ i }}_texto" value="{{ tarjeta.texto }}" maxlength="110"></label>
+    <label>Ícono<select name="ficha_t{{ i }}_icono">{% for clave, nombre in iconos_ficha.items %}<option value="{{ clave }}" {% if tarjeta.icono == clave %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="ia-eliminar"><input type="checkbox" name="ficha_t{{ i }}_eliminar"> Quitar</label>
+</div>

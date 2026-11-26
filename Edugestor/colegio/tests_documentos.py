@@ -50,6 +50,19 @@ class DocumentosTests(SimpleTestCase):
         for url in ('https://example.com/a.png','file:///etc/passwd','data:image/png;base64,a'):
             with self.subTest(url=url), self.assertRaises(ValueError):recurso_local(url)
 
+    def test_markdown_conserva_espacios_para_completar(self):
+        # Caso real: "___" a ambos lados se leía como negrita y borraba los espacios.
+        html=str(markdown_seguro('**2.** Completa: 1/3 = ___/6 y 3/4 = 6/___.'))
+        self.assertIn('1/3 = ___/6 y 3/4 = 6/___.',html)
+        self.assertNotIn('<em>',html)
+        self.assertIn('<strong>2.</strong>',html)
+        self.assertIn('Nombre: __________ Curso: ____',str(markdown_seguro('Nombre: __________ Curso: ____')))
+        # El editor (Turndown) guarda cada guion bajo escapado; debe verse igual.
+        self.assertIn('1/3 = ___/6',str(markdown_seguro(r'1/3 = \_\_\_/6 y 3/4 = 6/\_\_\_.')))
+        # Una línea de guiones bajos sola sigue siendo un separador, y el énfasis simple se mantiene.
+        self.assertIn('<hr',str(markdown_seguro('Antes\n\n___\n\nDespués')))
+        self.assertIn('<em>clave</em>',str(markdown_seguro('una _clave_ breve')))
+
     def test_pdf_a4_y_no_incluye_respuestas(self):
         i=instrumento('PRUEBA',{'preguntas':[{'enunciado':'Calcula 124 × 3','alternativas':['100','200','372','400'],
                                           'correcta':2,'explicacion':'SECRETO_PAUTA'}]})
@@ -81,3 +94,22 @@ class DocumentosTests(SimpleTestCase):
         for criterio in c['criterios']:criterio['descriptores']=criterio['descriptores'][:3]
         c=validar_rubrica(c)
         self.assertEqual(c['puntajes'],[3,2,1]);self.assertEqual(c['puntaje_total'],12)
+
+    def test_rubrica_separa_registro_docente_de_la_version_estudiante(self):
+        from .ia.documentos import contexto_documento
+        c=validar_rubrica(deepcopy(RUBRICA_MA04));c['descripcion']='TEXTO PARA EL DOCENTE'
+        html={v:render_to_string('colegio/ia/documento.html',contexto_documento(instrumento('RUBRICA',c),v))
+              for v in ('estudiante','docente')}
+        self.assertIn('1 punto<',html['docente']);self.assertNotIn('1 puntos',html['docente'])
+        self.assertNotIn('Lee con atención y desarrolla las actividades',html['estudiante'])
+        for texto in ('TEXTO PARA EL DOCENTE','Puntaje obtenido','Qué observar en cada criterio',
+                      c['criterios'][0]['evidencia']):
+            self.assertIn(texto,html['docente'])
+            self.assertNotIn(texto,html['estudiante'])
+
+    def test_con_punto_no_duplica_el_punto_final(self):
+        from .templatetags.ia_extras import con_punto
+        self.assertEqual(con_punto('La cantidad de partes.'),'La cantidad de partes.')
+        self.assertEqual(con_punto('3/8'),'3/8.')
+        self.assertEqual(con_punto('¿Cuál?'),'¿Cuál?')
+        self.assertEqual(con_punto(''),'')

@@ -6,33 +6,157 @@
 .biblioteca-resultados article {margin-top:20px;padding-top:16px;border-top:1px solid #dbe3ee}
 .biblioteca-resultados h3 {font-size:17px;line-height:1.4}
 .biblioteca-resultados summary {cursor:pointer;color:#166534;font-weight:600}
-.biblioteca-consulta {display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-.biblioteca-consulta select,.biblioteca-consulta input {width:100%;max-width:700px}
+/* Búsqueda en una sola fila: curso | tema | botón. */
+.biblioteca-consulta {display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
+.biblioteca-campo {display:flex;flex-direction:column;gap:6px;flex:0 1 280px;min-width:0}
+.biblioteca-campo-tema {flex:1 1 280px}
+.biblioteca-consulta select,.biblioteca-consulta input {width:100%}
+.biblioteca-consulta .ia-boton {min-height:42px}
+.biblioteca-metodo {margin:18px 0 0;color:#6b7280;font-size:13px}
+.biblioteca-resultados article:first-of-type {margin-top:10px}
+.biblioteca-acciones {display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px 24px}
+.biblioteca-acciones details {flex:1 1 auto}
+.biblioteca-acciones details[open] {flex-basis:100%}
+.biblioteca-acciones > a {order:-1}
+/* Fuente aprobada: fila plana con datos en grilla (sin tarjeta anidada). */
+.biblioteca-fuente {padding:18px 0;border-top:1px solid #dbe3ee}
+.biblioteca-fuente:last-child {padding-bottom:0}
+.biblioteca-fuente-cabecera {display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px;margin-bottom:12px}
+.biblioteca-fuente-cabecera h3 {font-size:17px;line-height:1.4}
+.biblioteca-datos {display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 24px;margin:0 0 14px}
+.biblioteca-datos dt {font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px}
+.biblioteca-datos dd {margin:2px 0 0;overflow-wrap:anywhere}
+.biblioteca-licencia {grid-column:1/-1}
+.biblioteca-huella code {font-size:12px}
+.biblioteca-copiar {margin-left:6px;padding:2px 8px;border:1px solid #cfe3d6;border-radius:6px;background:#fff;color:#166534;font-size:12px;cursor:pointer}
+.biblioteca-nota {font-size:13px;color:#6b7280}
+.biblioteca-indice {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.biblioteca-indice a {padding:6px 12px;border:1px solid #cfe3d6;border-radius:999px;background:#fff;color:#166534;font-size:14px;text-decoration:none}
+.cobertura-estado {display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+.cobertura-lista {background:#dcfce7;color:#166534} .cobertura-sin_fuente,.cobertura-error {background:#fee2e2;color:#991b1b}
+.cobertura-propuesta,.cobertura-aprobada {background:#ede9fe;color:#4c1d95} .cobertura-indexando {background:#fef3c7;color:#92400e}
+.cobertura-tabla td {vertical-align:middle} .cobertura-tabla form {margin:0}
+.cobertura-tabla small {color:#5b6b63}
+.biblioteca-form {display:grid;gap:10px;max-width:760px}
+.biblioteca-form label {display:flex;flex-direction:column;gap:4px;font-weight:600}
+.biblioteca-form small {font-weight:normal;color:#5b6b63}
+.biblioteca-pasos {margin:8px 0 14px 20px} .biblioteca-pasos li {margin:4px 0}
+.biblioteca-avanzado summary {cursor:pointer;font-weight:700;color:#166534;font-size:18px}
+.vectores-fila {display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.vectores-barra {flex:1;min-width:180px;height:10px;border-radius:999px;background:#e5ece8;overflow:hidden}
+.vectores-barra span {display:block;height:100%;background:#166534}
 </style>{% endblock %}
+{% block extra_js %}<script>document.addEventListener("click",e=>{const b=e.target.closest("[data-copiar]");if(!b||!navigator.clipboard)return;navigator.clipboard.writeText(b.dataset.copiar).then(()=>{b.textContent="Copiado";setTimeout(()=>b.textContent="Copiar",1500);});});</script>{% endblock %}
+{% block aviso_simulado %}{% endblock %}
 {% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
 <div class="ia-encabezado"><h1>Biblioteca curricular</h1>
 <p>Fuentes públicas que comparten pruebas, rúbricas, materiales y tutor. Cada resultado conserva su referencia y página del PDF.</p></div>
-<div class="ia-panel biblioteca-panel"><h2>Fuentes aprobadas</h2>
+<nav class="biblioteca-indice" aria-label="Secciones de la biblioteca">
+<a href="#cobertura">Cobertura de mis cursos</a><a href="#proponer">Proponer fuente</a><a href="#fuentes">Fuentes aprobadas</a><a href="#consultar">Consultar contenido</a><a href="#avanzado">Vectores (avanzado)</a>
+</nav>
+
+{# ======================= COBERTURA ======================= #}
+<div class="ia-panel biblioteca-panel" id="cobertura"><h2>Cobertura de mis cursos</h2>
+<p>Para generar con Qwen o con fuentes curriculares, cada asignatura y nivel necesita al menos una fuente indexada. Revisa aquí cuáles están listas antes de crear una prueba o un material.</p>
+{% if cobertura %}
+<div class="registro-scroll"><table class="ia-tabla cobertura-tabla">
+<thead><tr><th>Asignatura y nivel</th><th>Estado</th><th>Acción</th></tr></thead>
+<tbody>{% for fila in cobertura %}
+<tr>
+<td><strong>{{ fila.asignatura }}</strong> · {{ fila.nivel_nombre }}<br><small>{{ fila.cursos|join:', ' }}</small></td>
+<td>
+{% if fila.estado == 'lista' %}<span class="cobertura-estado cobertura-lista">Lista</span><br><small>{{ fila.buscables }} fragmentos {% if fila.origen == 'anterior' %}del corpus anterior{% else %}de la biblioteca{% endif %}{% if not fila.qwen %} · faltan vectores Qwen{% endif %}</small>
+{% elif fila.estado == 'indexando' %}<span class="cobertura-estado cobertura-indexando">Indexando…</span><br><small>{{ fila.fuente.titulo }}</small>
+{% elif fila.estado == 'aprobada' %}<span class="cobertura-estado cobertura-aprobada">Aprobada, sin indexar</span><br><small>{{ fila.fuente.titulo }}</small>
+{% elif fila.estado == 'error' %}<span class="cobertura-estado cobertura-error">Error al indexar</span><br><small>{{ fila.fuente.mensaje }}</small>
+{% elif fila.estado == 'propuesta' %}<span class="cobertura-estado cobertura-propuesta">En revisión</span><br><small>Propuesta pendiente de aprobación del administrador.</small>
+{% else %}<span class="cobertura-estado cobertura-sin_fuente">Sin fuente</span><br><small>Con Qwen no se puede generar para este curso.</small>{% endif %}
+</td>
+<td>
+{% if fila.estado == 'lista' %}<a class="ia-boton secundario" href="?carga={{ fila.carga.pk }}#consultar">Consultar</a>
+{% elif fila.estado == 'aprobada' or fila.estado == 'error' %}<form method="post" action="{% url 'ia_biblioteca_actualizar' fila.fuente.pk %}" data-generando="Indexando fuente">{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ fila.token }}"><button type="submit" class="ia-boton">{% if fila.estado == 'error' %}Reintentar{% else %}Indexar ahora{% endif %}</button></form>
+{% elif fila.estado == 'sin_fuente' %}<a class="ia-boton" href="?proponer={{ fila.carga.pk }}#proponer">Proponer fuente</a>
+{% else %}—{% endif %}
+</td>
+</tr>{% endfor %}</tbody></table></div>
+{% else %}<p>No tienes cursos asignados.</p>{% endif %}
+</div>
+
+{# ======================= PROPONER ======================= #}
+<div class="ia-panel biblioteca-panel" id="proponer"><h2>Proponer una fuente</h2>
+<p>Agrega un programa o documento oficial del Ministerio de Educación para uno de tus cursos. Un administrador revisa la propuesta; al aprobarla, el sistema descarga el PDF y lo indexa automáticamente, sin consumir cuota de IA.</p>
+<ol class="biblioteca-pasos">
+<li>Busca el documento en <a href="https://www.curriculumnacional.cl/" target="_blank" rel="noopener">curriculumnacional.cl ↗</a> (por ejemplo, «Programa de Estudio Historia 4° básico»).</li>
+<li>Copia la dirección de la ficha del recurso (empieza con https://www.curriculumnacional.cl/recursos/…).</li>
+<li>Si conoces el enlace directo al PDF, agrégalo; si no, se buscará en la ficha.</li>
+</ol>
+<form method="post" action="{% url 'ia_biblioteca_proponer' %}" class="ia-form biblioteca-form">
+{% csrf_token %}
+<label>Curso y asignatura<select name="carga" required>{% for c in cargas %}<option value="{{ c.pk }}" {% if carga_propuesta.pk == c.pk %}selected{% endif %}>{{ c.curso }} · {{ c.asignatura.nombre_asignatura }}</option>{% endfor %}</select><small>La fuente se usará para esa asignatura y nivel en todos los cursos.</small></label>
+<label>Ficha del recurso en curriculumnacional.cl<input type="url" name="ficha_url" required maxlength="1000" placeholder="https://www.curriculumnacional.cl/recursos/programa-estudio-…"></label>
+<label>Enlace al PDF <small>(opcional)</small><input type="url" name="descarga_url" maxlength="1000" placeholder="https://www.curriculumnacional.cl/…/articles-…_programa.pdf"></label>
+<label>Título <small>(opcional)</small><input type="text" name="titulo" maxlength="250" placeholder="Programa de Estudio Historia · 4° básico"></label>
+<div><button type="submit" class="ia-boton">Enviar propuesta</button></div>
+</form>
+{% if mis_propuestas %}
+<h3 id="mis-propuestas" style="margin-top:22px">Mis propuestas</h3>
+<div class="registro-scroll"><table class="ia-tabla cobertura-tabla"><thead><tr><th>Fuente</th><th>Curso</th><th>Estado</th></tr></thead><tbody>
+{% for f in mis_propuestas %}<tr><td><a href="{{ f.ficha_url }}" target="_blank" rel="noopener">{{ f.titulo }}</a></td><td>{{ f.asignatura }} · {{ f.nivel_nombre }}</td>
+<td>{% if f.estado == 'rechazada' %}<span class="cobertura-estado cobertura-error">Rechazada</span><br><small>{{ f.motivo_rechazo }}</small>{% elif not f.aprobada %}<span class="cobertura-estado cobertura-propuesta">En revisión</span>{% elif f.estado == 'disponible' %}<span class="cobertura-estado cobertura-lista">Aprobada e indexada</span>{% elif f.estado == 'error' %}<span class="cobertura-estado cobertura-error">Error al indexar</span><br><small>{{ f.mensaje }}</small>{% else %}<span class="cobertura-estado cobertura-indexando">Aprobada · {{ f.estado }}</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+</div>
+
+{# ======================= FUENTES APROBADAS ======================= #}
+<div class="ia-panel biblioteca-panel" id="fuentes"><h2>Fuentes aprobadas</h2>
 <p>Método configurado: {% if metodo == 'textual' %}<strong>búsqueda textual local, sin consumo de embeddings</strong>{% else %}<strong>búsqueda vectorial del proveedor seleccionado</strong>{% endif %}.
 {% if automatica %}Se comprueban cambios cada siete días mientras el servidor y el planificador estén activos.{% else %}Actualización automática desactivada por el administrador.{% endif %}</p>
 {% for fila in fuentes %}{% with fuente=fila.fuente %}
-<article class="ia-panel"><h3>{{ fuente.titulo }}</h3>
-<p>{{ fuente.asignatura }} · {{ fuente.nivel }}° {{ fuente.ciclo|title }} · {{ fila.fragmentos }} fragmentos indexados · {{ fila.buscables }} habilitados para recuperar.</p>
-{% if fila.buscables < fila.fragmentos %}<p>Las tablas que mezclan otros niveles se conservan en el original y se excluyen de la recuperación para este curso.</p>{% endif %}
-<p><a href="{{ fuente.ficha_url }}" target="_blank" rel="noopener">Ficha oficial del Ministerio de Educación ↗</a></p>
-<p>{{ fuente.licencia }}</p>
-<p><strong>{{ fuente.estado|capfirst }}</strong> · {{ fuente.mensaje|default:'Pendiente de la primera descarga.' }}{% if fuente.comprobada %}<br>Última comprobación: {{ fuente.comprobada|date:'d/m/Y H:i' }}{% endif %}</p>
-{% for documento in fila.documentos %}<p>Versión: {{ documento.version }}<br><small style="overflow-wrap:anywhere">SHA-256: {{ documento.sha256 }}</small></p>{% endfor %}
+<article class="biblioteca-fuente"><div class="biblioteca-fuente-cabecera"><h3>{{ fuente.titulo }}</h3><a href="{{ fuente.ficha_url }}" target="_blank" rel="noopener">Ficha oficial del Ministerio de Educación ↗</a></div>
+<dl class="biblioteca-datos">
+<div><dt>Curso</dt><dd>{{ fuente.asignatura }} · {{ fuente.nivel_nombre }}</dd></div>
+<div><dt>Fragmentos</dt><dd>{{ fila.fragmentos }} indexados · {{ fila.buscables }} habilitados para recuperar</dd></div>
+<div><dt>Estado</dt><dd><strong>{{ fuente.estado|capfirst }}</strong> · {{ fuente.mensaje|default:'Pendiente de la primera descarga.' }}</dd></div>
+{% if fuente.comprobada %}<div><dt>Última comprobación</dt><dd>{{ fuente.comprobada|date:'d/m/Y H:i' }}</dd></div>{% endif %}
+{% for documento in fila.documentos %}<div><dt>Versión</dt><dd>{{ documento.version }}</dd></div>
+<div class="biblioteca-huella"><dt>SHA-256</dt><dd><code title="{{ documento.sha256 }}">{{ documento.sha256|truncatechars:20 }}</code> <button type="button" class="biblioteca-copiar" data-copiar="{{ documento.sha256 }}">Copiar</button></dd></div>{% endfor %}
+<div class="biblioteca-licencia"><dt>Licencia</dt><dd>{{ fuente.licencia }}</dd></div>
+</dl>
+{% if fila.buscables < fila.fragmentos %}<p class="biblioteca-nota">Las tablas que mezclan otros niveles se conservan en el original y se excluyen de la recuperación para este curso.</p>{% endif %}
 {% if fuente.estado != 'actualizando' %}<form method="post" action="{% url 'ia_biblioteca_actualizar' fuente.pk %}" data-generando="Actualizando biblioteca">
 {% csrf_token %}<input type="hidden" name="idempotencia" value="{{ fila.token }}">
 <button type="submit" class="ia-boton">Comprobar e indexar fuente</button></form>{% else %}<p>Actualización en curso. Puedes volver a esta pantalla cuando termine.</p>{% endif %}
-</article>{% endwith %}{% empty %}<p>No hay fuentes aprobadas. Solicita al administrador revisar el catálogo.</p>{% endfor %}
+</article>{% endwith %}{% empty %}<p>No hay fuentes aprobadas. Propón una fuente para tus cursos.</p>{% endfor %}
 </div>
-<div class="ia-panel biblioteca-panel biblioteca-resultados"><h2>Consultar contenido</h2>
-<form method="get" class="ia-form biblioteca-consulta"><label for="carga">Curso y asignatura</label><select name="carga" id="carga">{% for c in cargas %}<option value="{{ c.pk }}" {% if carga.pk == c.pk %}selected{% endif %}>{{ c.curso }} · {{ c.asignatura.nombre_asignatura }}</option>{% endfor %}</select>
-<label for="consulta">Tema o pregunta</label><input id="consulta" name="q" maxlength="500" value="{{ consulta }}" placeholder="Por ejemplo, multiplicación y división"><button class="ia-boton" type="submit">Buscar en el texto</button></form>
-{% for f in resultados %}<article><h3>{{ f.titulo }} · página PDF {{ f.pagina }}</h3><p>{{ f.texto|truncatechars:350 }}</p><details><summary>Leer fragmento completo</summary><p>{{ f.texto }}</p></details><p><a href="{{ f.url }}#page={{ f.pagina }}" target="_blank" rel="noopener">Ver fuente original ↗</a> · Búsqueda textual local</p></article>{% empty %}{% if consulta %}<p>No se encontraron coincidencias para este curso. Comprueba las fuentes y usa términos del contenido.</p>{% endif %}{% endfor %}
+
+{# ======================= CONSULTAR ======================= #}
+<div class="ia-panel biblioteca-panel biblioteca-resultados" id="consultar"><h2>Consultar contenido</h2>
+<form method="get" action="#consultar" class="ia-form biblioteca-consulta"><div class="biblioteca-campo"><label for="carga">Curso y asignatura</label><select name="carga" id="carga">{% for c in cargas %}<option value="{{ c.pk }}" {% if carga.pk == c.pk %}selected{% endif %}>{{ c.curso }} · {{ c.asignatura.nombre_asignatura }}</option>{% endfor %}</select></div>
+<div class="biblioteca-campo biblioteca-campo-tema"><label for="consulta">Tema o pregunta</label><input id="consulta" name="q" maxlength="500" value="{{ consulta }}" placeholder="Por ejemplo, multiplicación y división"></div><button class="ia-boton" type="submit">Buscar en el texto</button></form>
+{% if resultados %}<p class="biblioteca-metodo">{{ resultados|length }} resultado{{ resultados|length|pluralize }} · Búsqueda textual local</p>{% endif %}
+{% for f in resultados %}<article><h3>{{ f.titulo }} · página PDF {{ f.pagina }}</h3><p>{{ f.texto|truncatechars:350 }}</p><div class="biblioteca-acciones"><details><summary>Leer fragmento completo</summary><p>{{ f.texto }}</p></details><a href="{{ f.url }}#page={{ f.pagina }}" target="_blank" rel="noopener">Ver fuente original ↗</a></div></article>{% empty %}{% if consulta %}<p>No se encontraron coincidencias para este curso. Comprueba las fuentes y usa términos del contenido.</p>{% endif %}{% endfor %}
 </div>
+
+{# ======================= VECTORES (AVANZADO) ======================= #}
+<div class="ia-panel biblioteca-panel" id="avanzado">
+<details class="biblioteca-avanzado"><summary>Vectores (avanzado)</summary>
+<p>Los vectores (embeddings) solo se necesitan si el administrador configura la búsqueda vectorial. Con la búsqueda textual actual no hacen falta. Cada lote <strong>consume cuota de embeddings</strong> del proveedor seleccionado y avanza donde quedó el anterior.</p>
+{% for v in vectores %}
+<div class="vectores-fila"><strong style="min-width:70px">{{ v.nombre }}</strong>
+<div class="vectores-barra" role="img" aria-label="{{ v.listos }} de {{ v.total }} fragmentos"><span style="width:{% if v.total %}{% widthratio v.listos v.total 100 %}{% else %}0{% endif %}%"></span></div>
+<span>{{ v.listos }} de {{ v.total }} fragmentos{% if v.modelo %} · {{ v.modelo }}{% else %} · sin modelo configurado{% endif %}</span></div>
+{% endfor %}
+{% if ia_proveedor == 'qwen' or ia_proveedor == 'gemini' %}
+<form method="post" action="{% url 'ia_biblioteca_vectores' %}" class="ia-form vectores-fila" data-generando="Creando vectores">{% csrf_token %}
+<input type="hidden" name="idempotencia" value="{{ token_vectores }}">
+<label>Fragmentos por lote <select name="maximo">{% for n in opciones_vectores %}<option value="{{ n }}">{{ n }}</option>{% endfor %}</select></label>
+<button type="submit" class="ia-boton secundario">Crear vectores con {{ ia_proveedor|title }}</button></form>
+<p><small>Se usa el proveedor elegido en «Proveedor de IA». Repite hasta que no queden pendientes.</small></p>
+{% else %}<p>Selecciona Qwen o Gemini en «Proveedor de IA» para crear vectores.</p>{% endif %}
+</details>
+</div>
+
 <div class="ia-panel biblioteca-panel"><h2>Usar la biblioteca en otro equipo</h2><p>Descarga un paquete versionado con los originales públicos y sus índices compatibles. El administrador podrá importarlo en otra instalación de EduGestor. No incluye API keys, cuentas, sesiones, pautas ni documentos del docente.</p>
 {% if exportable %}<form method="post" action="{% url 'ia_biblioteca_exportar' %}" data-generando="Preparando paquete">{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ idempotencia }}"><button class="ia-boton" type="submit">Preparar descarga de la biblioteca</button></form>{% else %}<p>Primero comprueba e indexa una fuente aprobada.</p>{% endif %}</div>
 {% endblock %}

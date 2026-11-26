@@ -19,7 +19,8 @@
       document.getElementById('trabajo-mensaje').textContent = datos.mensaje;
       document.getElementById('trabajo-duracion').textContent = datos.duracion;
       document.getElementById('trabajo-conexion').textContent = '';
-      panel.querySelectorAll('[data-etapa]').forEach(li => li.setAttribute('aria-current', String(li.dataset.etapa === datos.etapa)));
+      const pasos = [...panel.querySelectorAll('li[data-etapa]')], actual = pasos.findIndex(li => li.dataset.etapa === datos.etapa);
+      pasos.forEach((li, i) => { li.setAttribute('aria-current', String(i === actual)); li.classList.toggle('hecha', actual >= 0 && (i < actual || datos.etapa === 'completado')); });
       const lista = document.getElementById('trabajo-actividad');
       lista.replaceChildren(...datos.actividad.slice(-5).map(item => {
         const li = document.createElement('li'); li.textContent = item.mensaje; return li;
@@ -30,6 +31,8 @@
       terminal = ['completado', 'error'].includes(datos.etapa);
       const reintentar = document.getElementById('trabajo-reintentar');
       if (reintentar) reintentar.hidden = datos.etapa !== 'error';
+      const biblioteca = document.getElementById('trabajo-biblioteca');
+      if (biblioteca) biblioteca.hidden = !(datos.etapa === 'error' && (datos.mensaje || '').includes('Biblioteca curricular'));
       if (datos.etapa === 'completado' && etapaAnterior !== 'completado' && !datos.resultado_url) location.reload();
       etapaAnterior = datos.etapa;
     } catch (_) {
