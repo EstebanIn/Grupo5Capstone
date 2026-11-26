@@ -2,12 +2,11 @@
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block titulo %}Asistente docente{% endblock %} | EduGestor</title>
 <link rel="stylesheet" href="{% static 'css/docente.css' %}"><link rel="stylesheet" href="{% static 'css/ia.css' %}">
-<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}?v=panel-docente-4">{% include 'colegio/ia/_visuales_css.html' %}{% block extra_css %}{% endblock %}</head><body class="ia-docente">
+<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}?v=panel-docente-5">{% include 'colegio/ia/_visuales_css.html' %}{% block extra_css %}{% endblock %}<link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3"></head><body class="ia-docente">
 <aside class="sidebar"><div class="logo">EduGestor</div>{% include 'colegio/docente_menu.html' %}</aside>
-<main class="main">{% block cabecera %}<header class="ia-marca"><div><span class="ia-eyebrow">ESPACIO DOCENTE</span><strong>{{ request.institucion.nombre }}</strong></div><a href="{% url 'registro_ia' %}" class="ia-proveedor">{{ ia_proveedor|title }}{% if ia_modelo and ia_modelo != ia_proveedor %} · {{ ia_modelo }}{% endif %}</a></header>{% endblock %}
-<div class="ia-orientacion ia-no-imprimir">
-<nav class="ia-pasos" aria-label="Flujo de trabajo"><span><b>1</b> Configurar</span><span><b>2</b> Revisar borrador</span><span><b>3</b> Aprobar y exportar</span></nav>
-{% if modo_simulado %}<p class="ia-aviso"><strong>Modo simulado</strong> · Ejemplos de desarrollo, sin llamada a un proveedor real.</p>{% endif %}
+<main class="main">{% block cabecera %}<header class="ia-marca ia-no-imprimir"><div><span class="ia-eyebrow">Asistente IA</span><strong>{{ request.institucion.nombre }}</strong></div><a href="{% url 'registro_ia' %}" class="ia-proveedor">{{ ia_proveedor|title }}{% if ia_modelo and ia_modelo != ia_proveedor %} · {{ ia_modelo }}{% endif %}</a></header>{% endblock %}
+<div class="ia-orientacion ia-no-imprimir">{% block pasos %}{% endblock %}
+{% block aviso_simulado %}{% if modo_simulado %}<p class="ia-aviso"><strong>Modo simulado</strong> · Ejemplos de desarrollo, sin llamada a un proveedor real.</p>{% endif %}{% endblock %}
 </div>
 {% if messages %}<ul class="ia-mensajes" role="status">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>{% endif %}
 {% block contenido %}{% endblock %}</main>{% include 'colegio/sidebar_active_script.html' %}

@@ -250,7 +250,7 @@
 
 <div class="content-header">
     <h2>Gestión de Cursos</h2>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         <a href="{% url 'carga_masiva_cursos' %}" class="btn-action" style="background: #10b981; color: white;">📊 Carga Masiva (Excel)</a>
         <a href="{% url 'crear_curso' %}" class="btn-primary">+ Nuevo Curso</a>
     </div>
@@ -291,7 +291,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align: center; color: #6b7280; padding: 20px;">
+                <td class="celda-vacia" colspan="6">
                     No hay cursos registrados en el sistema.
                 </td>
             </tr>
@@ -301,8 +301,8 @@
 </div>
 
 {% if curso_seleccionado %}
-<div class="card" style="margin-top: 20px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
+<div class="card mt-seccion">
+    <div style="display:flex; flex-wrap: wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
         <h3>Alumnos de {{ curso_seleccionado }}</h3>
         <a href="{% url 'panel_admin_cursos' %}" class="btn-action" style="background:#6b7280; color:white;">Cerrar</a>
     </div>
@@ -334,7 +334,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" style="text-align:center; color:#6b7280; padding:20px;">
+                <td class="celda-vacia" colspan="4">
                     No hay alumnos matriculados en este curso.
                 </td>
             </tr>

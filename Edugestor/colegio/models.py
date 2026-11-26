@@ -653,7 +653,9 @@ class CorreccionPrueba(ModeloInstitucional):
     Corrección de una prueba de IA respondida por un alumno.
 
     respuestas guarda, por pregunta, la alternativa marcada (0-3 o null), lo que
-    leyó la IA y si el docente la ajustó. Las imágenes de la hoja no se guardan.
+    leyó la IA y si el docente la ajustó. En las preguntas de desarrollo guarda el
+    puntaje confirmado por criterio (desarrollo, fórmula, resultado) y la
+    transcripción. Las imágenes de la hoja no se guardan.
     """
     PADRES_INSTITUCION = ("instrumento", "alumno")
 
@@ -667,6 +669,10 @@ class CorreccionPrueba(ModeloInstitucional):
     leida_con_ia = models.BooleanField(default=False)
     ajustes_docente = models.PositiveSmallIntegerField(
         default=0, help_text="Respuestas que el docente cambió respecto de la lectura de la IA.")
+    puntaje_obtenido = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
+    puntaje_maximo = models.DecimalField(
+        max_digits=6, decimal_places=1, null=True, blank=True,
+        help_text="Suma de puntajes: 1 por selección múltiple más los criterios de desarrollo.")
     nota_registrada = models.ForeignKey(Nota, on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name="+")
     fecha = models.DateTimeField(auto_now_add=True)
@@ -679,11 +685,21 @@ class CorreccionPrueba(ModeloInstitucional):
 
 
 class FuenteBiblioteca(models.Model):
-    """Catálogo público aprobado por el operador; nunca contiene pautas privadas."""
+    """
+    Catálogo público aprobado por el operador; nunca contiene pautas privadas.
+
+    Un docente puede proponer una fuente oficial (estado "propuesta"); solo un
+    administrador la aprueba o la rechaza. Las aprobadas se comparten con toda
+    la instalación.
+    """
+    ESTADO_PROPUESTA = 'propuesta'
+    ESTADO_RECHAZADA = 'rechazada'
+
     slug = models.SlugField(unique=True)
     titulo = models.CharField(max_length=250)
     ficha_url = models.URLField(max_length=1000)
-    descarga_url = models.URLField(max_length=1000)
+    descarga_url = models.URLField(max_length=1000, blank=True,
+        help_text='PDF oficial. Si se deja vacío, se busca en la ficha al indexar.')
     asignatura = models.CharField(max_length=120)
     ciclo = models.CharField(max_length=20)
     nivel = models.PositiveSmallIntegerField()
@@ -697,12 +713,22 @@ class FuenteBiblioteca(models.Model):
     proxima_revision = models.DateTimeField(null=True, blank=True)
     bloqueo = models.UUIDField(null=True, blank=True)
     bloqueo_hasta = models.DateTimeField(null=True, blank=True)
+    propuesta_por = models.ForeignKey(Usuario, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    propuesta_fecha = models.DateTimeField(null=True, blank=True)
+    revisada_por = models.ForeignKey(Usuario, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    revisada_fecha = models.DateTimeField(null=True, blank=True)
+    motivo_rechazo = models.CharField(max_length=300, blank=True)
 
     class Meta:
         ordering = ['asignatura', 'ciclo', 'nivel', 'titulo']
 
     def __str__(self):
         return self.titulo
+
+    @property
+    def nivel_nombre(self):
+        from colegio.ia.biblioteca_gestion import nombre_nivel
+        return nombre_nivel(self.ciclo, self.nivel)
 
 
 class DocumentoCurricular(models.Model):

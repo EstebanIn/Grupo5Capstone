@@ -9,7 +9,7 @@
     </a>
 </div>
 
-<div class="card" style="max-width:600px">
+<div class="card form-card">
     <form method="POST" id="matricula-form">
         {% csrf_token %}
         {% if alumno_id %}
@@ -31,11 +31,12 @@
                 Nivel {{ postulacion_referencia.nivel_postulacion }}
             </div>
         {% endif %}
+        <div class="form-grid-campos">
         {% for field in form %}
             {% if field.name == 'apoderados' %}
                 {# Campo especial para apoderados con búsqueda visual #}
-                <div style="margin-bottom:20px">
-                    <label style="display:block; font-weight:bold; margin-bottom:8px; color:#1f2937; font-size:15px">
+                <div class="form-campo">
+                    <label class="form-label">
                         Apoderados
                     </label>
                     
@@ -91,13 +92,13 @@
                     
                     {% if field.errors %}
                         {% for error in field.errors %}
-                            <p style="color:#dc2626; font-size:13px; margin-top:6px">{{ error }}</p>
+                            <p class="form-error">{{ error }}</p>
                         {% endfor %}
                     {% endif %}
                 </div>
             {% elif field.name != 'apoderados' %}
-                <div style="margin-bottom:20px">
-                    <label style="display:block; font-weight:bold; margin-bottom:8px; color:#1f2937; font-size:15px">
+                <div class="form-campo">
+                    <label class="form-label">
                         {{ field.label }}
                     </label>
                     {% if field.field.widget.input_type == 'select' %}
@@ -107,12 +108,13 @@
                     {% endif %}
                     {% if field.errors %}
                         {% for error in field.errors %}
-                            <p style="color:#dc2626; font-size:13px; margin-top:6px">{{ error }}</p>
+                            <p class="form-error">{{ error }}</p>
                         {% endfor %}
                     {% endif %}
                 </div>
             {% endif %}
         {% endfor %}
+        </div>
 
         {% if form.non_field_errors %}
             {% for error in form.non_field_errors %}
@@ -120,7 +122,7 @@
             {% endfor %}
         {% endif %}
 
-        <button type="submit" class="btn-primary" style="margin-top:16px">
+        <button type="submit" class="btn-primary form-enviar">
             {{ accion }}
         </button>
     </form>
@@ -242,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chipsDiv.innerHTML = '';
         
         if (selectedApoderados.size === 0) {
-            chipsDiv.innerHTML = '<span style="color: #9ca3af; font-size: 14px;">Ningún apoderado seleccionado</span>';
+            chipsDiv.innerHTML = '<span style="color: #6b7280; font-size: 14px;">Ningún apoderado seleccionado</span>';
             return;
         }
         

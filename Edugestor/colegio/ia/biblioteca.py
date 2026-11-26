@@ -80,18 +80,30 @@ class _Enlaces(HTMLParser):
 
 
 def localizar_pdf(fuente):
-    """Descubre la descarga en la ficha aprobada; conserva el ID documental."""
-    url_autorizada(fuente.descarga_url)
+    """
+    Descubre la descarga en la ficha aprobada; conserva el ID documental.
+    Si la fuente no indica PDF (propuesta de un docente), usa el primer PDF
+    oficial enlazado en la ficha.
+    """
+    if fuente.descarga_url:
+        url_autorizada(fuente.descarga_url)
     try:
         html, ficha = descargar(fuente.ficha_url, maximo=2*1024*1024, plazo=time.monotonic()+18)
         parser = _Enlaces(); parser.feed(html.decode('utf-8', errors='replace'))
-        identificador = re.search(r'articles-(\d+)', fuente.descarga_url)
+        identificador = re.search(r'articles-(\d+)', fuente.descarga_url or '')
         for enlace in parser.urls:
             url = urljoin(ficha, enlace)
             if identificador and re.search(r'articles-' + identificador[1] + r'[^/]*\.pdf(?:\?|$)', url):
                 return url_autorizada(url)
+            if not fuente.descarga_url and re.search(r'\.pdf(?:\?|$)', url, re.I):
+                try:
+                    return url_autorizada(url)
+                except ErrorIA:
+                    continue
     except ErrorIA:
         pass
+    if not fuente.descarga_url:
+        raise ErrorIA('No se encontró un PDF oficial en la ficha. El administrador puede indicar el enlace PDF.')
     return fuente.descarga_url
 
 
@@ -229,6 +241,19 @@ def _tokens(texto):
     return [cambios.get(x, x) for x in tokens if len(x)>1 and x not in VACIAS]
 
 
+GENERALES = [re.compile(p, re.I) for p in (
+    # Aviso de lenguaje inclusivo: coincidía con consultas como "equivalentes".
+    r'se utilizan de manera inclusiva t[eé]rminos',
+    r'registro de propiedad intelectual|\bISBN\b',
+    r'^\s*[ÍI]ndice\b',
+)]
+
+
+def es_general(texto):
+    """Páginas administrativas del documento, que no aportan contenido curricular."""
+    return any(p.search(texto) for p in GENERALES)
+
+
 def filas_buscables(base):
     """Las tablas de progresión mezclan columnas de cursos al extraer PDF.
 
@@ -243,7 +268,7 @@ def filas_buscables(base):
         clave = (f.documento_id, f.pagina)
         niveles.setdefault(clave,set()).update(re.findall(
             r'NIVEL\s+([1-8])\D{0,8}?(B[ÁA]SICO|MEDIO)', f.texto.upper()))
-    return [f for f in filas if len(niveles[(f.documento_id, f.pagina)])<2 and
+    return [f for f in filas if not es_general(f.texto) and len(niveles[(f.documento_id, f.pagina)])<2 and
         all(int(grado)==f.documento.nivel and (ciclo.startswith('B') == (f.documento.ciclo=='BASICA'))
             for grado,ciclo in niveles[(f.documento_id,f.pagina)])]
 

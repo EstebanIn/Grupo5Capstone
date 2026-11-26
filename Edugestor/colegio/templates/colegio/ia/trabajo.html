@@ -1,9 +1,11 @@
 {% extends 'colegio/ia/base_docente.html' %}
 {% load static ia_extras %}
 {% block titulo %}Progreso de la operación{% endblock %}
+{# Los pasos del flujo solo aplican a operaciones que generan un borrador. #}
+{% block pasos %}{% if trabajo.operacion == 'prueba' or trabajo.operacion == 'rubrica' or trabajo.operacion == 'material' or trabajo.operacion == 'mejora' %}{% if trabajo.estado == 'completado' %}{% include 'colegio/ia/_pasos.html' with paso=2 %}{% else %}{% include 'colegio/ia/_pasos.html' with paso=1 %}{% endif %}{% endif %}{% endblock %}
 {% block contenido %}
-<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente docente</a>
-<header class="ia-encabezado"><h1>Estado de la operación</h1>
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+<header class="ia-encabezado"><h1>{% if trabajo.operacion == 'revision' %}Revisión de calidad{% elif trabajo.operacion == 'mejora' %}Versión mejorada de la prueba{% else %}Estado de la operación{% endif %}</h1>
 <p>{{ trabajo.proveedor|title }} · {{ trabajo.modelo }}. Puedes volver a esta pantalla desde el asistente.</p></header>
 <section class="ia-panel" data-trabajo="{% url 'ia_trabajo_estado' trabajo.pk %}" data-etapa="{{ trabajo.estado }}">
   <p id="trabajo-etapa" class="ia-estado-trabajo" role="status">{{ trabajo.get_estado_display }}</p>
@@ -13,15 +15,48 @@
   </ol>
   <div class="ia-espera" aria-hidden="true"></div>
   <p id="trabajo-mensaje" role="status" aria-live="polite">{{ trabajo.mensaje }}</p>
-  <p>Tiempo transcurrido: <span id="trabajo-duracion">0</span> s</p>
   <p id="trabajo-conexion" role="status"></p>
-  <ul id="trabajo-actividad"></ul>
+  <details class="ia-trabajo-detalle"><summary>Detalle técnico · <span id="trabajo-duracion">0</span> s</summary>
+  <ul id="trabajo-actividad"></ul></details>
   <div class="ia-acciones">
-    <a id="trabajo-resultado" class="ia-boton" href="{{ resultado_url }}" {% if not resultado_url %}hidden{% endif %}>Abrir resultado</a>
+    <a id="trabajo-resultado" class="ia-boton" href="{{ resultado_url }}" {% if not resultado_url %}hidden{% endif %}>{% if trabajo.operacion == 'mejora' %}Comparar y elegir cambios{% else %}Abrir resultado{% endif %}</a>
+    {% if secciones_mejora %}<a class="ia-boton" href="#aplicar-mejoras">Aplicar mejoras a la prueba ↓</a>{% endif %}
     {% if reintentar %}<a id="trabajo-reintentar" class="ia-boton secundario" href="{{ reintentar }}" {% if trabajo.estado != 'error' %}hidden{% endif %}>Recuperar campos / volver a intentar</a>{% endif %}
+    <a id="trabajo-biblioteca" class="ia-boton" href="{% url 'ia_biblioteca' %}#cobertura" {% if trabajo.estado != 'error' or 'Biblioteca curricular' not in trabajo.mensaje %}hidden{% endif %}>Ir a Biblioteca curricular</a>
     <a class="ia-boton secundario" href="{% url 'asistente_docente' %}">Volver al asistente</a>
   </div>
   {% if trabajo.resultado.revision %}<article class="ia-markdown">{{ trabajo.resultado.revision|markdown_seguro }}</article>{% endif %}
 </section>
-<script src="{% static 'js/ia_trabajos.js' %}" defer></script>
+
+{% if mostrar_mejoras %}
+<section class="ia-panel ia-no-imprimir ia-mejoras" id="aplicar-mejoras" aria-labelledby="mejoras-titulo">
+  <h2 id="mejoras-titulo">Aplicar mejoras a la prueba</h2>
+  {% if prueba_revisada and secciones_mejora %}
+  <p class="ia-mejoras-intro">Marca las observaciones que quieres aplicar. La IA creará una <strong>copia en borrador</strong> de «{{ prueba_revisada.titulo }}» con esos cambios; <strong>la prueba original no se modifica</strong>. Después verás cada cambio junto al original para aceptarlo o rechazarlo.</p>
+  <form method="post" action="{% url 'ia_aplicar_mejoras' trabajo.pk %}" data-generando="Aplicando mejoras… (se mostrará el progreso)">
+    {% csrf_token %}
+    <div class="ia-mejoras-marcar"><button type="button" class="ia-enlace-boton" data-marcar="1">Marcar todas</button><button type="button" class="ia-enlace-boton" data-marcar="0">Desmarcar todas</button></div>
+    <ul class="ia-mejoras-lista">
+    {% for s in secciones_mejora %}
+      <li><label class="ia-mejora-opcion"><input type="checkbox" name="secciones" value="{{ s.clave }}" checked>
+        <span><strong>{{ s.titulo }}</strong>{% if not s.pregunta %} <em class="ia-mejora-general">general</em>{% endif %}</span></label>
+        <details><summary>Ver propuesta</summary><div class="ia-markdown">{{ s.texto|markdown_seguro }}</div></details></li>
+    {% endfor %}
+    </ul>
+    <p class="ayuda">Las observaciones generales (instrucciones, balance de habilidades) pueden cambiar varias preguntas. No se insertan imágenes: si se pide una figura, quedará descrita entre corchetes para que la agregues.</p>
+    <button class="ia-boton" type="submit">Crear versión mejorada</button>
+  </form>
+  {% elif prueba_revisada %}
+  <p>No encontramos observaciones con propuestas de cambio en esta revisión. Puedes editar la prueba directamente.</p>
+  <a class="ia-boton secundario" href="{% url 'ia_instrumento' prueba_revisada.pk %}">Abrir la prueba</a>
+  {% else %}
+  <p>Esta revisión se hizo con un texto pegado, así que no está vinculada a una prueba guardada. Para aplicar las mejoras automáticamente, abre la prueba en <a href="{% url 'ia_documentos' %}">Tus documentos</a> y usa «Revisar calidad con IA».</p>
+  {% endif %}
+</section>
+<script>
+document.querySelectorAll('[data-marcar]').forEach(b => b.addEventListener('click', () =>
+  b.closest('form').querySelectorAll('input[name=secciones]').forEach(c => { c.checked = b.dataset.marcar === '1'; })));
+</script>
+{% endif %}
+<script src="{% static 'js/ia_trabajos.js' %}?v=etapas-2" defer></script>
 {% endblock %}

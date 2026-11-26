@@ -4,8 +4,9 @@
 <title>Registro de IA | EduGestor</title>
 {% if user.tipo_usuario == 'ALUMNO' %}<link rel="stylesheet" href="{% static 'css/alumno.css' %}">{% else %}<link rel="stylesheet" href="{% static 'css/docente.css' %}">{% endif %}
 <link rel="stylesheet" href="{% static 'css/ia.css' %}?v=modelos-1">
-{% if user.tipo_usuario == 'DOCENTE' %}<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}?v=panel-docente-4">{% endif %}
+{% if user.tipo_usuario == 'DOCENTE' %}<link rel="stylesheet" href="{% static 'css/ia_institucional.css' %}?v=panel-docente-5">{% endif %}
 <style>.registro-cabecera{max-width:980px;margin-bottom:28px;}.registro-cabecera p{margin-top:9px;color:#5c6875;line-height:1.6;}.registro-resumen{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:24px;}.registro-resumen h2{font-size:17px;margin-bottom:8px;}.registro-resumen p{font-size:14px;line-height:1.7;}.registro-scroll{overflow-x:auto;}.registro-detalle dt{font-size:13px;color:#596779;margin-top:14px;}.registro-detalle dd{margin:5px 0;overflow-wrap:anywhere;}.registro-fuente{padding:15px 0;border-bottom:1px solid #e5e7eb;line-height:1.6;}.registro-fuente p{margin-top:7px;color:#4b5563;}.registro-estado{font-weight:700;}.registro-error{color:#a32525;}.registro-vacio{padding:35px 0;line-height:1.8;color:#52606f;}.registro-huella{font-family:monospace;font-size:12px;}</style>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head><body {% if user.tipo_usuario == 'ALUMNO' %}class="ia-alumno"{% else %}class="ia-docente"{% endif %}>
 <aside class="sidebar"><div class="logo">EduGestor</div>
 {% if user.tipo_usuario == 'ALUMNO' %}{% include 'colegio/alumno_menu.html' %}{% else %}{% include 'colegio/docente_menu.html' %}{% endif %}
@@ -15,8 +16,9 @@
 <section class="ia-panel registro-resumen" aria-label="Estado de los proveedores">
 <div><h2>Gemini</h2><p>{% if gemini_configurado %}Clave configurada{% else %}Sin clave configurada{% endif %}<br>Proveedor predeterminado</p></div>
 <div><h2>Qwen</h2><p>{% if qwen_configurado %}Clave configurada{% else %}Sin clave configurada{% endif %}<br>{% if indices.completo %}RAG disponible{% else %}RAG pendiente de indexación{% endif %}</p></div>
-<div><h2>Cobertura del índice Qwen</h2><p>Curricular: {{ indices.curricular_completos }} de {{ indices.curricular_total }} fragmentos<br>Tutor: {{ indices.tutor_completos }} de {{ indices.tutor_total }} fragmentos</p></div>
+<div><h2>Cobertura del índice Qwen</h2><p>Curricular: <span id="indice-curricular">{{ indices.curricular_completos }}</span> de {{ indices.curricular_total }} fragmentos<br>Tutor: <span id="indice-tutor">{{ indices.tutor_completos }}</span> de {{ indices.tutor_total }} fragmentos</p></div>
 </section>
+{% if user.tipo_usuario == 'DOCENTE' and not indices.completo %}{% include 'colegio/ia/_indexar_qwen.html' %}{% endif %}
 {% if registro %}
 <section class="ia-panel"><a class="ia-volver" href="{% url 'registro_ia' %}">← Todas mis operaciones</a><h2>Operación #{{ registro.pk }}</h2>
 <dl class="registro-detalle"><dt>Proveedor y modelo</dt><dd>{{ registro.proveedor|title }} · {{ registro.modelo|default:'Sin llamada al modelo' }}</dd>
@@ -25,8 +27,8 @@
 <dt>Entrada preparada para el proveedor</dt><dd>{{ registro.caracteres_entrada }} caracteres de contexto y mensajes. Respuesta: {{ registro.caracteres_salida }} caracteres.</dd>
 <dt>Huella de la entrada</dt><dd class="registro-huella">{{ registro.huella_entrada|default:'La solicitud no llegó al proveedor' }}</dd></dl>
 <h2 style="margin-top:28px">Archivos procesados</h2>{% for archivo in registro.archivos %}<p>{{ archivo.tipo }} · {{ archivo.bytes }} bytes</p><p class="registro-huella">SHA-256: {{ archivo.sha256 }}</p>{% empty %}<p>Sin imágenes ni PDF adjuntos.</p>{% endfor %}
-<h2 style="margin-top:28px">Lectura de respuestas</h2>{% if registro.lectura %}<div class="registro-scroll"><table class="ia-tabla"><thead><tr><th>Pregunta</th><th>Marca leída</th><th>Estado de lectura</th></tr></thead><tbody>{% for item in registro.lectura %}<tr><td>{{ item.pregunta }}</td><td>{{ item.marcada|default_if_none:'Sin marca' }}</td><td>{{ item.estado }}</td></tr>{% endfor %}</tbody></table></div><p style="margin-top:12px">Esta es la lectura inicial de la IA. La confirmación del docente y la nota definitiva se revisan en la corrección de la prueba.</p>{% else %}<p>Esta operación no produjo una lectura estructurada de alternativas.</p>{% endif %}
-<h2 style="margin-top:28px">Fuentes recuperadas por RAG</h2>{% for fuente in registro.fuentes %}<article class="registro-fuente"><strong>{{ fuente.titulo }} · pág. {{ fuente.pagina|default_if_none:'sin indicar' }}</strong><p>{{ fuente.fragmento }}</p><small>Método: {{ fuente.metodo }}</small></article>{% empty %}<p>No se recuperaron fuentes documentales para esta operación.</p>{% endfor %}
+<h2 style="margin-top:28px">Lectura de respuestas</h2>{% if registro.lectura %}<div class="registro-scroll"><table class="ia-tabla"><thead><tr><th>Pregunta</th><th>Marca leída</th><th>Estado de lectura</th></tr></thead><tbody>{% for item in registro.lectura %}<tr><td>{{ item.pregunta }}</td><td>{% if item.tipo == 'desarrollo' %}Desarrollo: {% if item.con_desarrollo %}procedimiento{% else %}sin procedimiento{% endif %} · {% if item.con_formula %}fórmula{% else %}sin fórmula{% endif %} · {% if item.con_resultado %}resultado{% else %}sin resultado{% endif %}{% else %}{{ item.marcada|default_if_none:'Sin marca' }}{% endif %}</td><td>{{ item.estado }}</td></tr>{% endfor %}</tbody></table></div><p style="margin-top:12px">Esta es la lectura inicial de la IA. La confirmación del docente y la nota definitiva se revisan en la corrección de la prueba.</p>{% else %}<p>Esta operación no produjo una lectura estructurada de alternativas.</p>{% endif %}
+<h2 style="margin-top:28px">Fuentes consultadas por la IA</h2>{% for fuente in registro.fuentes %}<article class="registro-fuente"><strong>{{ fuente.titulo }} · pág. {{ fuente.pagina|default_if_none:'sin indicar' }}</strong><p>{{ fuente.fragmento }}</p><small>Método: {% if fuente.metodo == 'catalogo_oa' %}OA oficial elegido por el docente{% else %}{{ fuente.metodo }}{% endif %}{% if fuente.puntaje is not None %} · puntaje {{ fuente.puntaje }}{% endif %}</small></article>{% empty %}<p>No se recuperaron fuentes documentales para esta operación.</p>{% endfor %}
 </section>
 {% else %}
 {% include 'colegio/ia/_conexiones.html' %}

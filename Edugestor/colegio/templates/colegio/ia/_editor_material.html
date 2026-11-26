@@ -26,6 +26,7 @@
     <div class="ia-editor-pie" hidden><span>Puedes escribir y dar formato directamente en la hoja.</span><span data-editor-palabras></span></div>
     <dialog class="ia-editor-preview" aria-labelledby="preview-titulo">
         <div class="ia-editor-preview-cabecera"><div><h2 id="preview-titulo">Vista del estudiante</h2><p>Incluye explicación y ejercicios. El solucionario queda reservado para ti.</p></div><button type="button" class="ia-boton secundario" data-editor-cerrar-preview>Cerrar vista previa</button></div>
+        {% if contenido.ficha %}<div class="ia-editor-papel">{% include 'colegio/ia/_ficha_visual.html' with ficha=contenido.ficha %}<p class="ayuda">Ficha visual guardada. Guarda los cambios para ver aquí la versión actualizada.</p></div>{% endif %}
         <article class="ia-editor-papel ia-markdown" data-editor-preview-documento></article>
     </dialog>
 </div>

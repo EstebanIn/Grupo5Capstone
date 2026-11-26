@@ -16,6 +16,20 @@ th, td { border: 1px solid #81988b; padding: 2.5mm; vertical-align: top; overflo
 th { background: #e4f0e8; } tr { break-inside: avoid; } .rubrica { font-size: 10pt; line-height: 1.35; }
 .pregunta { break-inside: avoid; margin: 0 0 5mm; } .alternativas { list-style-type: upper-alpha; }
 .pauta { border-left: 3px solid #166044; padding-left: 3mm; margin-top: 2mm; }
+.puntos { color: #475569; font-size: 9.5pt; white-space: nowrap; } .puntaje-total { font-size: 10pt; margin: 0 0 4mm; }
+.recuadros { border: 0.8px solid #a3b1a8; margin-top: 2.5mm; }
+.recuadro { position: relative; border-top: 0.6px solid #c9d3cd; padding: 1.5mm 2.5mm; }
+.recuadro:first-child { border-top: none; }
+/* Rótulo discreto; la cuadrícula o las líneas empiezan debajo de él, sin cortarse. */
+.recuadro .rotulo { font-size: 7.5pt; color: #7b8794; }
+.recuadro .codigo { letter-spacing: .4pt; color: #5b6b62; }
+.recuadro .rotulo .puntos { font-size: 7.5pt; color: #94a3b8; }
+.recuadro-desarrollo { height: 72mm; } .recuadro-formula { height: 17mm; } .recuadro-resultado { height: 17mm; }
+.recuadro.cuadricula::after, .recuadro.lineas::after { content: ''; position: absolute; left: 0; right: 0; top: 5.5mm; bottom: 0; }
+.recuadro.cuadricula::after { background-image: linear-gradient(#e2e8e4 1px, transparent 1px), linear-gradient(90deg, #e2e8e4 1px, transparent 1px); background-size: 5mm 5mm; }
+.recuadro.lineas::after { background-image: linear-gradient(to bottom, transparent 6.6mm, #cfd8d3 6.6mm); background-size: 100% 7mm; }
+.linea-resultado { position: absolute; left: 2.5mm; right: 2.5mm; bottom: 2.5mm; border-bottom: 0.6px solid #a3b1a8; font-size: 8pt; color: #94a3b8; }
+.pauta-desarrollo p { margin: 1mm 0; } .pauta-desarrollo .criterios { font-size: 9.5pt; margin-top: 2mm; }
 p, li { orphans: 3; widows: 3; } a { color: #166044; overflow-wrap: anywhere; }
 .no-imprimir { margin-bottom: 15px; } @media print { .no-imprimir { display: none; } }
 </style>{% include 'colegio/ia/_visuales_css.html' %}<style>
@@ -25,10 +39,19 @@ article h2,.ejercicios h2,.solucionario h2 {color:#166534;border-bottom:1px soli
 .material-figura {padding:3mm;margin:4mm 0;border-radius:2mm}
 .material-figura figcaption {font-size:10.5pt;margin-bottom:2mm}
 .ejercicios {margin-top:7mm} .ejercicios ol>li {margin-bottom:6mm}
-.solucionario {break-before:page} .fuentes {font-size:8.5pt;margin-top:6mm} .fuentes li {break-inside:avoid}
+.solucionario {break-before:page} .despues-ficha {break-before:page}
+/* En papel la figura no necesita todo el ancho: a ancho completo empujaba ejercicios a otra página. */
+.material-figura svg {width:72% !important;margin:0 auto}
+/* Rúbrica más compacta para que la tabla empiece en la primera página y ocupe menos hojas. */
+.rubrica {font-size:9pt;line-height:1.3} .rubrica th,.rubrica td {padding:1.8mm}
+{% if version == 'docente' %}/* La pauta de desarrollo es larga: puede continuar en la página siguiente sin dejar una casi vacía. */
+.pregunta.desarrollo {break-inside:auto} .pauta-desarrollo p {break-inside:avoid}{% endif %}
+article blockquote,.ejercicios blockquote,.solucionario blockquote {margin:3mm 0;padding:2mm 4mm;background:#fff4e6;border-left:3px solid #b3541e;border-radius:0 2mm 2mm 0} blockquote p {margin:1mm 0} .fuentes {font-size:8.5pt;margin-top:6mm} .fuentes li {break-inside:avoid}
 </style></head><body>
 <header>{{ institucion.nombre }} · {{ instrumento.carga.curso }} · {{ instrumento.carga.asignatura.nombre_asignatura }}</header>
 {% if vista_impresion %}<nav class="no-imprimir"><button onclick="window.print()">Imprimir esta versión</button><p>Desactiva «Encabezados y pies de página» del navegador para evitar fecha y dirección web.</p></nav>{% endif %}
+{% if instrumento.tipo == 'MATERIAL' and documento.ficha %}{# Portada: la ficha visual ocupa la primera página. #}
+{% include 'colegio/ia/_ficha_visual.html' with ficha=documento.ficha %}<div class="despues-ficha"></div>{% endif %}
 <h1>{{ documento.titulo }}</h1>
 {% if instrumento.estado == 'BORRADOR' %}<p style="padding:2mm 3mm;border:1px solid #9aaa9c;font-size:9pt">Borrador para revisión docente. Aún no aprobado para entregar.</p>{% endif %}
 <div class="metadatos"><p><strong>{{ institucion.nombre }}</strong></p>
@@ -37,19 +60,40 @@ article h2,.ejercicios h2,.solucionario h2 {color:#166534;border-bottom:1px soli
 <p><strong>Instrucciones:</strong> {{ documento.instrucciones }}</p></div>
 {% if version == 'estudiante' and instrumento.tipo != 'RUBRICA' %}<div class="estudiante">Nombre: ____________________________________ Fecha: ______________</div>{% endif %}
 {% if instrumento.tipo == 'PRUEBA' %}
-<ol>{% for p in documento.preguntas %}<li class="pregunta">{{ p.enunciado|linebreaksbr }}
+{% if documento.hay_desarrollo %}<p class="puntaje-total">Puntaje total: {{ documento.puntaje_total }} puntos.</p>{% endif %}
+<ol>{% for p in documento.preguntas %}{% if p.tipo == 'desarrollo' %}<li class="pregunta desarrollo">{{ p.enunciado|linebreaksbr }} <span class="puntos">({{ p.puntaje }} punto{{ p.puntaje|pluralize }})</span>
+{% if version == 'estudiante' %}<div class="recuadros">{% for c in p.criterios %}
+<div class="recuadro recuadro-{{ c.clave }}{% if c.clave == 'desarrollo' %}{% if documento.cuadricula %} cuadricula{% else %} lineas{% endif %}{% endif %}">
+<div class="rotulo"><span class="codigo">P{{ forloop.parentloop.counter }} · {{ c.nombre|upper }}</span> <span class="puntos">({{ c.puntaje_maximo }} punto{{ c.puntaje_maximo|pluralize }})</span></div>
+{% if c.clave == 'resultado' %}<div class="linea-resultado">{{ c.nombre }}: </div>{% endif %}
+</div>{% endfor %}</div>
+{% else %}<div class="pauta pauta-desarrollo">
+{% if p.formula %}<p><strong>Fórmula o concepto:</strong> {{ p.formula }}</p>{% endif %}
+{% if p.desarrollo_esperado %}<p><strong>Desarrollo esperado:</strong><br>{{ p.desarrollo_esperado|linebreaksbr }}</p>{% endif %}
+{% if p.resultado %}<p><strong>Resultado esperado:</strong> {{ p.resultado }}</p>{% endif %}
+<table class="criterios"><thead><tr><th style="width:35%">Criterio</th><th style="width:14%">Puntos</th><th>Qué se considera logrado</th></tr></thead>
+<tbody>{% for c in p.criterios %}<tr><td>P{{ forloop.parentloop.counter }} · {{ c.nombre }}</td><td>{{ c.puntaje_maximo }}</td><td>{{ c.descriptor }}</td></tr>{% endfor %}</tbody></table>
+{% if p.explicacion %}<p>{{ p.explicacion }}</p>{% endif %}
+</div>{% endif %}
+</li>{% else %}<li class="pregunta">{{ p.enunciado|linebreaksbr }}
 <ol class="alternativas">{% for a in p.alternativas %}<li>{{ a }}</li>{% endfor %}</ol>
 {% if version == 'docente' %}<div class="pauta"><strong>Respuesta {{ p.correcta|letra }}</strong>: {{ p.explicacion }}</div>{% endif %}
-</li>{% endfor %}</ol>
+</li>{% endif %}{% endfor %}</ol>
 {% elif instrumento.tipo == 'RUBRICA' %}
-<p>{{ documento.descripcion }}</p>
-<p><strong>Total máximo: {{ documento.puntaje_total }} puntos.</strong> Sin evidencia: 0 puntos, registrado por separado.</p>
-<table class="rubrica"><thead><tr><th>Criterio y evidencia</th>{% for n in documento.niveles %}<th>{{ n }}<br>{{ documento.puntajes|index:forloop.counter0 }} puntos</th>{% endfor %}</tr></thead>
-<tbody>{% for c in documento.criterios %}<tr><td><strong>{{ c.criterio }}</strong><br>Máximo: {{ c.puntaje_maximo }}<br>{{ c.aprendizaje }}<br>{{ c.evidencia }}<br>{{ c.actividad }}</td>{% for d in c.descriptores %}<td>{{ d }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+{% if version == 'docente' %}<p>{{ documento.descripcion }}</p>
+<div class="estudiante">Estudiante(s): ____________________________________ Fecha: ______________</div>{% endif %}
+<p><strong>Total máximo: {{ documento.puntaje_total }} puntos.</strong> Sin evidencia: 0 puntos{% if version == 'docente' %}, registrado por separado{% endif %}.</p>
+<table class="rubrica"><thead><tr><th style="width:17%">Criterio</th>{% for n in documento.niveles %}{% with p=documento.puntajes|index:forloop.counter0 %}<th>{{ n }}<br>{{ p }} punto{{ p|pluralize }}</th>{% endwith %}{% endfor %}{% if version == 'docente' %}<th style="width:9%">Puntaje</th>{% endif %}</tr></thead>
+<tbody>{% for c in documento.criterios %}<tr><td><strong>{{ c.criterio }}</strong><br><span class="puntos">Máximo: {{ c.puntaje_maximo }}</span></td>{% for d in c.descriptores %}<td>{{ d }}</td>{% endfor %}{% if version == 'docente' %}<td></td>{% endif %}</tr>{% endfor %}
+{% if version == 'docente' %}<tr><td colspan="{{ documento.niveles|length|add:1 }}" style="text-align:right"><strong>Puntaje obtenido</strong></td><td>&nbsp;&nbsp;&nbsp;/ {{ documento.puntaje_total }}</td></tr>{% endif %}</tbody></table>
+{% if version == 'docente' %}<h2>Qué observar en cada criterio</h2>
+<table class="rubrica"><thead><tr><th style="width:17%">Criterio</th><th>Aprendizaje</th><th>Evidencia</th><th>Momento de la actividad</th></tr></thead>
+<tbody>{% for c in documento.criterios %}<tr><td><strong>{{ c.criterio }}</strong></td><td>{{ c.aprendizaje }}</td><td>{{ c.evidencia }}</td><td>{{ c.actividad }}</td></tr>{% endfor %}</tbody></table>
+<h2>Observaciones</h2><div style="height:30mm;border:1px solid #81988b"></div>{% endif %}
 {% else %}
 <article>{% material_visual documento.contenido documento.recursos_visuales 'contenido' %}</article>
 {% if documento.ejercicios %}<section class="ejercicios"><h2>Ejercicios propuestos</h2>{% material_visual documento.ejercicios documento.recursos_visuales 'ejercicios' %}</section>{% endif %}
 {% if version == 'docente' and documento.solucionario %}<section class="solucionario"><h2>Solucionario docente</h2>{% material_visual documento.solucionario documento.recursos_visuales 'solucionario' %}</section>{% endif %}
 {% endif %}
-{% if documento.fuentes %}<section class="fuentes"><h2>Fuentes recuperadas</h2><ul>{% for f in referencias %}<li>{{ f.titulo }}{% if f.paginas %}. Páginas {{ f.paginas|join:', ' }}{% endif %}{% if f.url %} · {{ f.url }}{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+{% if documento.fuentes %}<section class="fuentes"><h2>Fuentes consultadas</h2><ul>{% for f in referencias %}<li>{{ f.titulo }}{% if f.paginas %}. Páginas {{ f.paginas|join:', ' }}{% endif %}{% if f.url %} · {{ f.url }}{% endif %}</li>{% endfor %}</ul></section>{% endif %}
 </body></html>

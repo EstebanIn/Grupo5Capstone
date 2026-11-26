@@ -63,7 +63,7 @@ class MaterialContextoTests(AsistenteIATestBase):
         qwen.assert_not_called(); gemini.assert_not_called()
         trabajo = TrabajoIA.objects.get()
         self.assertEqual(trabajo.estado, 'error')
-        self.assertIn('no hay fuentes', trabajo.mensaje)
+        self.assertIn('no hay fuentes', trabajo.mensaje.lower())
         self.assertFalse(InstrumentoIA.objects.exists())
 
     def test_indice_qwen_parcial_sigue_bloqueado_en_modo_rag(self):

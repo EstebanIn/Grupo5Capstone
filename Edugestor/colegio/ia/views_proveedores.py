@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from colegio.models import RegistroIA
-from .indice_qwen import estado_indices
+from .indice_qwen import bloqueo_indexacion, estado_indices, reindexar_qwen
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
@@ -107,6 +107,28 @@ def configurar_conexion(request, proveedor):
             messages.success(request, proveedor.title() + ': conexión comprobada y seleccionada para tu sesión.')
             return redirect(reverse('registro_ia') + '#conexiones-ia')
     return _mostrar_registro(request, formulario_error=formulario, proveedor_error=proveedor, status=400)
+
+
+@never_cache
+@login_required
+@require_POST
+@sensitive_variables()
+def indexar_qwen(request):
+    """Procesa un lote por solicitud, con la clave Qwen vigente en esta sesión."""
+    from django.http import JsonResponse
+    # El índice es compartido y gasta cuota: los alumnos no pueden ejecutarlo.
+    if request.user.tipo_usuario != 'DOCENTE' or not _conexion_segura(request):
+        return JsonResponse({'error': 'No tienes acceso o se requiere HTTPS.'}, status=403)
+    if not valor('qwen', 'api_key'):
+        return JsonResponse({'error': 'Primero conecta tu clave de Qwen en «Conexiones de IA».'}, status=400)
+    try:
+        with bloqueo_indexacion():
+            estado = reindexar_qwen(max_lotes=1)
+    except ErrorIA as error:
+        return JsonResponse({'error': str(error)}, status=502)
+    except Exception:
+        return JsonResponse({'error': 'No se pudo completar la indexación. Lo ya guardado se conserva.'}, status=502)
+    return JsonResponse(estado)
 
 
 @never_cache

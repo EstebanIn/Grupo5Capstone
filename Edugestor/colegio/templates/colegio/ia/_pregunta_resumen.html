@@ -1,0 +1,15 @@
+{% load ia_extras %}{# Vista de solo lectura de una pregunta de prueba, para comparar versiones. #}
+<p class="ia-comparar-enunciado">{{ pregunta.enunciado|linebreaksbr }}</p>
+{% if pregunta.tipo == 'desarrollo' %}
+<dl class="ia-comparar-desarrollo">
+    {% for criterio in pregunta.criterios %}<div><dt>{{ criterio.nombre }} · {{ criterio.puntaje_maximo }} pt{{ criterio.puntaje_maximo|pluralize }}</dt><dd>{{ criterio.descriptor }}</dd></div>{% endfor %}
+    {% if pregunta.formula %}<div><dt>Operación o propiedad esperada</dt><dd>{{ pregunta.formula }}</dd></div>{% endif %}
+    {% if pregunta.desarrollo_esperado %}<div><dt>Desarrollo esperado</dt><dd>{{ pregunta.desarrollo_esperado|linebreaksbr }}</dd></div>{% endif %}
+    {% if pregunta.resultado %}<div><dt>Resultado</dt><dd>{{ pregunta.resultado }}</dd></div>{% endif %}
+</dl>
+{% else %}
+<ol class="ia-comparar-alternativas" type="A">
+    {% for alternativa in pregunta.alternativas %}<li{% if forloop.counter0 == pregunta.correcta %} class="correcta"{% endif %}>{{ alternativa }}{% if forloop.counter0 == pregunta.correcta %} <span class="ia-comparar-clave">✓ clave</span>{% endif %}</li>{% endfor %}
+</ol>
+{% endif %}
+{% if pregunta.explicacion %}<p class="ia-comparar-explicacion"><strong>Explicación:</strong> {{ pregunta.explicacion }}</p>{% endif %}

@@ -12,6 +12,17 @@ La ficha oficial permite localizar el PDF del documento aprobado. Si la ficha no
 
 Pruebas, rúbricas, materiales en modo curricular y tutor usan el mismo servicio. El tutor conserva su corpus legado cuando no hay biblioteca para su curso. El modo de material **objetivo personalizado** mantiene su elección explícita de generar sin fuentes. Los módulos de OCR y cálculo de calificaciones no necesitan consultar esta biblioteca.
 
+## Gestión desde la interfaz
+
+**Asistente IA → Biblioteca curricular** tiene, de arriba hacia abajo:
+
+- **Cobertura de mis cursos:** una fila por asignatura y nivel del docente, con estado *Lista*, *Sin fuente*, *En revisión*, *Aprobada, sin indexar*, *Indexando…* o *Error al indexar*, y su acción (consultar, proponer, indexar o reintentar). Considera la biblioteca y el corpus anterior. Cuando una generación con Qwen falla por falta de fuentes, la pantalla del trabajo ofrece el botón **Ir a Biblioteca curricular**.
+- **Proponer una fuente:** el docente elige uno de sus cursos y pega la ficha del recurso en `curriculumnacional.cl` (el enlace PDF es opcional; si falta, se busca en la ficha al indexar). Solo se aceptan HTTPS y ese dominio. Cada docente puede tener hasta cinco propuestas pendientes. *Mis propuestas* muestra su estado y el motivo si fue rechazada.
+- **Fuentes aprobadas** y **Consultar contenido**, como antes.
+- **Vectores (avanzado):** progreso de embeddings Qwen y Gemini y un botón para procesar lotes de 25, 50 o 100 fragmentos con el proveedor seleccionado. Consume cuota y solo se necesita con `BIBLIOTECA_BUSQUEDA=vectorial`.
+
+El **administrador** revisa las propuestas en **Panel de administración → Biblioteca curricular**: puede corregir el título o el enlace PDF y aprobar, o rechazar indicando un motivo que verá el docente. Al aprobar, la indexación se encola en Celery (tarea `sincronizar_fuente`); si la cola no está disponible, un docente puede pulsar **Indexar ahora**. Las fuentes aprobadas se comparten con todos los docentes y el tutor de la instalación.
+
 ## Instalación y actualización
 
 Después de actualizar el código, ejecutar desde `Edugestor/`:

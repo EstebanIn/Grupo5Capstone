@@ -50,7 +50,8 @@ def crear_trabajo(request, operacion, parametros, *, instrumento=None, archivos=
     if not request.session.session_key:
         request.session.save()
     nombre = request.ia_proveedor
-    modelo = 'Biblioteca pública · proceso local' if operacion in LOCALES else str(valor(nombre, 'model') or nombre)
+    campo_modelo = 'embedding_model' if operacion == 'biblioteca_vectores' else 'model'
+    modelo = 'Biblioteca pública · proceso local' if operacion in LOCALES else str(valor(nombre, campo_modelo) or nombre)
     manifiesto = [{'tipo': mime, 'sha256': hashlib.sha256(datos).hexdigest()} for datos, mime in archivos]
     canon = json.dumps([operacion, nombre, modelo, parametros, manifiesto, instrumento.pk if instrumento else None], sort_keys=True)
     huella = hashlib.sha256(canon.encode()).hexdigest()
@@ -160,7 +161,8 @@ def ejecutar(pk):
                         raise ErrorIA('La ejecución fue interrumpida o superó cinco minutos.')
                     if contenido is not None:
                         actual.instrumento = InstrumentoIA.objects.create(
-                            docente=usuario.docente, carga=carga, tipo=trabajo.operacion.upper(),
+                            docente=usuario.docente, carga=carga,
+                            tipo='PRUEBA' if trabajo.operacion == 'mejora' else trabajo.operacion.upper(),
                             titulo=contenido['titulo'], objetivo=trabajo.parametros.get('objetivo', ''),
                             parametros={k: v for k, v in trabajo.parametros.items() if k != 'carga'},
                             contenido=contenido, contenido_ia=contenido)
@@ -192,6 +194,14 @@ def _procesar(trabajo, usuario):
         ruta.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         ruta.write_bytes(biblioteca_paquetes.exportar())
         return {'biblioteca': True}, None, None
+    if trabajo.operacion == 'biblioteca_vectores':
+        from . import biblioteca
+        if trabajo.proveedor not in ('gemini', 'qwen'):
+            raise ErrorIA('Los vectores necesitan Qwen o Gemini como proveedor seleccionado.')
+        cambiar_etapa(trabajo, 'generando', f'Creando vectores {trabajo.proveedor} de la biblioteca.')
+        procesados = biblioteca.indexar_vectores(trabajo.proveedor, maximo=int(datos.get('maximo', 25)),
+                                                 informar=lambda m: cambiar_etapa(trabajo, 'generando', m))
+        return {'vectores': procesados, 'proveedor': trabajo.proveedor}, None, None
     if trabajo.operacion in ('exportar', 'lectura'):
         instrumento = InstrumentoIA.objects.get(pk=trabajo.instrumento_id, docente__usuario=usuario,
                                                institucion_id=trabajo.institucion_id, estado='APROBADO')
@@ -207,8 +217,26 @@ def _procesar(trabajo, usuario):
         if datos.get('alumno') and not dominio.alumnos_de_carga(instrumento.carga).filter(pk=datos['alumno']).exists():
             raise ErrorIA('El alumno ya no pertenece a esta carga.')
         archivos = [(_cifrador().decrypt(ruta_privada(a['nombre']).read_bytes()), a['tipo']) for a in trabajo.temporales]
-        lecturas = asistentes.leer_respuestas(instrumento.contenido, archivos)
+        lecturas = asistentes.leer_respuestas(instrumento.contenido, archivos,
+                                              asignatura=instrumento.carga.asignatura.nombre_asignatura)
         return {'lecturas': lecturas, 'alumno': datos.get('alumno', '')}, None, None
+    if trabajo.operacion == 'mejora':
+        # Copia mejorada: el original y la revisión deben seguir siendo del mismo docente.
+        original = InstrumentoIA.objects.select_related('carga__curso', 'carga__asignatura', 'carga__periodo').get(
+            pk=datos['mejora_de'], docente__usuario=usuario, institucion_id=trabajo.institucion_id, tipo='PRUEBA')
+        revision = TrabajoIA.objects.get(pk=datos['revision'], usuario=usuario, institucion_id=trabajo.institucion_id,
+                                         operacion='revision', estado='completado')
+        elegidas = [s for s in asistentes.secciones_revision(revision.resultado.get('revision', ''))
+                    if s['clave'] in datos.get('secciones', [])]
+        if not elegidas:
+            raise ErrorIA('No hay observaciones seleccionadas para aplicar.')
+        cambiar_etapa(trabajo, 'generando', 'Aplicando las observaciones elegidas a una copia de la prueba.')
+        contenido = asistentes.mejorar_prueba(dominio.contexto_carga(original.carga), original.objetivo,
+                                              original.contenido, elegidas)
+        cambios = asistentes.cambios_prueba(original.contenido, contenido)
+        if not cambios:
+            raise ErrorIA('La IA no propuso cambios para las observaciones elegidas. Prueba con otras o edita la prueba directamente.')
+        return {'mejora_de': original.pk, 'cambios': cambios}, contenido, original.carga
     carga = CargaAcademica.objects.select_related('curso', 'asignatura', 'periodo').get(
         pk=datos['carga'], docente__usuario=usuario, institucion_id=trabajo.institucion_id)
     datos['carga'] = carga
@@ -218,7 +246,15 @@ def _procesar(trabajo, usuario):
                else 'Recuperando fuentes y esperando la respuesta del proveedor.')
     cambiar_etapa(trabajo, 'generando', mensaje)
     if trabajo.operacion == 'revision':
-        return {'revision': asistentes.revisar_prueba(contexto, datos.get('objetivo', ''), datos['texto'])}, None, None
+        objetivo = datos.get('objetivo', '')
+        if datos.get('oa'):
+            # La revisión contrasta la prueba con el OA oficial y sus indicadores, no solo con su nombre.
+            from . import curriculo
+            oa = curriculo.objetivo(datos['oa'], carga=carga)
+            if oa:
+                foco = datos.get('foco', '')
+                objetivo = curriculo.fragmento(oa)['texto'] + (f'\nFoco del docente: {foco}' if foco else '')
+        return {'revision': asistentes.revisar_prueba(contexto, objetivo, datos['texto'])}, None, None
     generadores = {'prueba': views_ia._generar_prueba_con_rag, 'rubrica': views_ia._generar_rubrica_con_rag,
                    'material': views_ia._generar_material_con_rag}
     return {}, generadores[trabajo.operacion](contexto, datos), carga

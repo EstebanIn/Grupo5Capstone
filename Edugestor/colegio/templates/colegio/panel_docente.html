@@ -10,6 +10,7 @@
 
 
 
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 
@@ -46,51 +47,43 @@
 
         <!-- CARDS -->
         <div class="cards">
-            <div class="card" style="border-left: 4px solid #166534;">
-                <div style="font-size:28px; margin-bottom:8px"></div>
-                <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; margin-bottom:6px">Cursos Asignados</h3>
-                <p class="num" style="font-size:32px; font-weight:bold; color:#166534">{{ total_cursos }}</p>
-                <p style="font-size:12px; color:#9ca3af; margin-top:4px">asignaturas activas</p>
+            <div class="card kpi">
+                <h3 class="kpi-etiqueta">Cursos Asignados</h3>
+                <p class="num kpi-numero">{{ total_cursos }}</p>
+                <p class="kpi-nota">asignaturas activas</p>
             </div>
-            <div class="card" style="border-left: 4px solid #166534;">
-                <div style="font-size:28px; margin-bottom:8px"></div>
-                <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; margin-bottom:6px">Total Alumnos</h3>
-                <p style="font-size:32px; font-weight:bold; color:#166534">{{ total_alumnos }}</p>
-                <p style="font-size:12px; color:#9ca3af; margin-top:4px">matriculados</p>
+            <div class="card kpi">
+                <h3 class="kpi-etiqueta">Total Alumnos</h3>
+                <p class="kpi-numero">{{ total_alumnos }}</p>
+                <p class="kpi-nota">matriculados</p>
             </div>
-            <div class="card" style="border-left: 4px solid #166534;">
-                <div style="font-size:28px; margin-bottom:8px"></div>
-                <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; margin-bottom:6px">Evaluaciones</h3>
-                <p style="font-size:32px; font-weight:bold; color:#166534">{{ total_evaluaciones }}</p>
-                <p style="font-size:12px; color:#9ca3af; margin-top:4px">creadas este período</p>
+            <div class="card kpi">
+                <h3 class="kpi-etiqueta">Evaluaciones</h3>
+                <p class="kpi-numero">{{ total_evaluaciones }}</p>
+                <p class="kpi-nota">creadas este período</p>
             </div>
         </div>
 
         <!-- LISTADO DE CURSOS -->
         <div class="table-container">
-            <h2 style="display:flex; align-items:center; gap:8px">Mis Cursos</h2>
+            <h2>Mis Cursos</h2>
 
+            <ul class="lista-filas">
             {% for carga in cargas %}
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid #e5e7eb;">
-                <div>
-                    <strong style="font-size:16px">{{ carga.curso }}</strong>
-                    <p style="font-size:13px; color:#6b7280; margin-top:2px">
-                        {{ carga.asignatura.nombre_asignatura }} · {{ carga.periodo }}
-                    </p>
-                </div>
-
-                <div style="display:flex; gap:10px">
-                    <a href="{% url 'panel_docente_asistencia' %}?carga_id={{ carga.id }}" class="btn">
-                        Asistencia
-                    </a>
-                    <a href="{% url 'panel_docente_notas' %}?carga_id={{ carga.id }}" class="btn">
-                        Notas
-                    </a>
-                </div>
-            </div>
+                <li class="fila-item">
+                    <div>
+                        <strong>{{ carga.curso }}</strong>
+                        <p class="fila-meta">{{ carga.asignatura.nombre_asignatura }} · {{ carga.periodo }}</p>
+                    </div>
+                    <div class="fila-acciones">
+                        <a href="{% url 'panel_docente_asistencia' %}?carga_id={{ carga.id }}" class="btn">Asistencia</a>
+                        <a href="{% url 'panel_docente_notas' %}?carga_id={{ carga.id }}" class="btn">Notas</a>
+                    </div>
+                </li>
             {% empty %}
-            <p style="color:#9ca3af; font-style:italic; padding:16px 0">No tienes cursos asignados.</p>
+                <li class="fila-vacia">No tienes cursos asignados.</li>
             {% endfor %}
+            </ul>
 
         </div>
     </main>

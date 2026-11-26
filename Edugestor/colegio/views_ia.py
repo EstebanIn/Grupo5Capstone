@@ -173,34 +173,10 @@ def ia_crear_prueba(request):
 
 
 def _generar_prueba_con_rag(contexto, datos):
-
-    curso = datos["carga"].curso
-
-    fragmentos = []
-
-    if proveedor_activo() in ("gemini", "qwen"):
-
-        consulta = "\n".join((contexto["asignatura"], contexto["nivel"], datos["objetivo"], datos["tema"]))
-
-        fragmentos = biblioteca.recuperar(
-
-            consulta=consulta,
-
-            asignatura=contexto["asignatura"],
-
-            ciclo=curso.ciclo,
-
-            nivel=curso.nivel,
-
-        )
-
-    anotar_fuentes(fragmentos)
     return asistentes.crear_prueba(
-
         contexto, datos["objetivo"], datos["tema"], datos["cantidad"], datos["dificultad"],
-
-        fragmentos=fragmentos,
-
+        fragmentos=_fragmentos_docentes(contexto, datos),
+        cantidad_desarrollo=datos.get("cantidad_desarrollo") or 0,
     )
 
 
@@ -242,7 +218,7 @@ def ia_crear_material(request):
 
 def ia_revisar_prueba(request):
     docente = get_object_or_404(Docente, usuario=request.user)
-    inicial, extra = {}, {}
+    inicial, extra, prueba = {}, {}, None
     if request.GET.get('instrumento'):
         prueba = get_object_or_404(InstrumentoIA, pk=request.GET['instrumento'], docente=docente, tipo='PRUEBA')
         inicial = {'carga': prueba.carga, 'objetivo': prueba.objetivo,
@@ -257,7 +233,9 @@ def ia_revisar_prueba(request):
     if request.method == 'POST' and formulario.is_valid():
         datos = {k: v.pk if k == 'carga' else v for k, v in formulario.cleaned_data.items()}
         try:
-            return respuesta_trabajo(request, crear_trabajo(request, 'revision', datos))
+            # Vincular la prueba permite aplicar después las mejoras a una copia.
+            vinculada = prueba if prueba and prueba.carga_id == datos['carga'] else None
+            return respuesta_trabajo(request, crear_trabajo(request, 'revision', datos, instrumento=vinculada))
         except ErrorIA as error:
             messages.error(request, str(error))
     return render(request, 'colegio/ia/revisar_prueba.html', _contexto_base(
@@ -265,10 +243,17 @@ def ia_revisar_prueba(request):
 
 
 def _fragmentos_docentes(contexto, d):
+    """Fuentes para la IA: primero el OA oficial elegido (si hay) y luego la búsqueda en la biblioteca."""
+    from .ia import curriculo
+    oa = curriculo.objetivo(d['oa'], carga=d['carga']) if d.get('oa') else None
     fragmentos = []
     if proveedor_activo() in ('gemini', 'qwen'):
         fragmentos = biblioteca.recuperar(consulta='\n'.join((contexto['asignatura'], contexto['nivel'], d.get('objetivo', ''), d.get('actividad', d.get('tema', '')))),
             asignatura=contexto['asignatura'], ciclo=d['carga'].curso.ciclo, nivel=d['carga'].curso.nivel)
+    if oa:
+        # La lista completa de OA ya está en el catálogo y solo traería otros OA a la IA.
+        lista = curriculo.paginas_lista(d['carga'])
+        fragmentos = [curriculo.fragmento(oa)] + [f for f in fragmentos if f.get('pagina') not in lista]
     anotar_fuentes(fragmentos)
     return fragmentos
 
@@ -283,7 +268,10 @@ def _generar_material_con_rag(contexto, d):
     if modo not in ('curricular', 'personalizado'):
         raise ErrorIA('Selecciona una opción válida para las fuentes del material.')
     if modo == 'personalizado':
-        fragmentos = []
+        # Sin búsqueda en la biblioteca; si el docente eligió un OA oficial, su texto igual se entrega.
+        from .ia import curriculo
+        oa = curriculo.objetivo(d['oa'], carga=d['carga']) if d.get('oa') else None
+        fragmentos = [curriculo.fragmento(oa)] if oa else []
         anotar_fuentes(fragmentos)
     else:
         fragmentos = _fragmentos_docentes(contexto, d)
@@ -292,16 +280,39 @@ def _generar_material_con_rag(contexto, d):
     return asistentes.crear_material(contexto, d['objetivo'], d['tema'], d['tipo'], fragmentos=fragmentos)
 
 
-def _contenido_desde_post(tipo, post, *, validar=True):
+MAX_PREGUNTAS_PRUEBA = 25  # 20 de selección múltiple + 5 de desarrollo
+
+
+def _pregunta_desde_post(post, i):
+    if post.get(f'p{i}_tipo') == asistentes.TIPO_DESARROLLO:
+        criterios = []
+        for j, clave in enumerate(asistentes.CLAVES_DESARROLLO):
+            clave = post.get(f'p{i}_c{j}_clave', clave)
+            nombre = post.get(f'p{i}_c{j}_nombre', '').strip()
+            if not nombre:
+                continue  # el docente puede quitar un criterio dejando su nombre vacío
+            criterios.append({'clave': clave, 'nombre': nombre,
+                              'puntaje_maximo': post.get(f'p{i}_c{j}_puntaje', ''),
+                              'descriptor': post.get(f'p{i}_c{j}_descriptor', '')})
+        return {'tipo': asistentes.TIPO_DESARROLLO, 'enunciado': post.get(f'p{i}_enunciado', ''),
+                'formula': post.get(f'p{i}_formula', ''),
+                'desarrollo_esperado': post.get(f'p{i}_desarrollo_esperado', ''),
+                'resultado': post.get(f'p{i}_resultado', ''),
+                'explicacion': post.get(f'p{i}_explicacion', ''), 'criterios': criterios}
+    correcta = post.get(f'p{i}_correcta', '0')
+    return {'tipo': asistentes.TIPO_SELECCION, 'enunciado': post.get(f'p{i}_enunciado', ''),
+            'alternativas': [post.get(f'p{i}_alt{j}', '') for j in range(4)],
+            'correcta': int(correcta) if correcta in ('0', '1', '2', '3') else None,
+            'explicacion': post.get(f'p{i}_explicacion', '')}
+
+
+def _contenido_desde_post(tipo, post, *, validar=True, anterior=None):
     import re
     base = {'titulo': post.get('titulo', '').strip()[:200]}
     if tipo == 'PRUEBA':
-        indices = sorted({int(m[1]) for k in post if (m := re.fullmatch(r'p(\d{1,2})_enunciado', k))})[:20]
-        base.update(instrucciones=post.get('instrucciones', ''), preguntas=[{
-            'enunciado': post.get(f'p{i}_enunciado', ''),
-            'alternativas': [post.get(f'p{i}_alt{j}', '') for j in range(4)],
-            'correcta': int(post.get(f'p{i}_correcta', '0')) if post.get(f'p{i}_correcta', '0') in ('0','1','2','3') else None, 'explicacion': post.get(f'p{i}_explicacion', '')}
-            for i in indices if not post.get(f'p{i}_eliminar')])
+        indices = sorted({int(m[1]) for k in post if (m := re.fullmatch(r'p(\d{1,2})_enunciado', k))})[:MAX_PREGUNTAS_PRUEBA]
+        base.update(instrucciones=post.get('instrucciones', ''), preguntas=[
+            _pregunta_desde_post(post, i) for i in indices if not post.get(f'p{i}_eliminar')])
         return asistentes.validar_prueba(base) if validar else base
     if tipo == 'RUBRICA':
         indices_niveles = sorted({int(m[1]) for k in post if (m := re.fullmatch(r'nivel_(\d)', k))})[:4]
@@ -324,6 +335,15 @@ def _contenido_desde_post(tipo, post, *, validar=True):
     recursos = visuales_desde_post(post, validar=validar)
     if recursos or any(k.startswith('visual_') for k in post):
         base['recursos_visuales'] = recursos
+    from .ia.ficha import ficha_desde_post, validar_ficha
+    ficha, presente = ficha_desde_post(post)
+    if presente and ficha is not None:
+        if validar and validar_ficha(ficha) is None:
+            raise ErrorIA('La ficha visual necesita un título y al menos 4 tarjetas con título. '
+                          'Si no quieres usarla, marca «Quitar ficha visual».')
+        base['ficha'] = ficha
+    elif not presente and anterior and anterior.get('ficha'):
+        base['ficha'] = anterior['ficha']  # formularios sin la sección de ficha la conservan
     return asistentes.validar_material(base) if validar else base
 
 
@@ -366,7 +386,7 @@ def ia_instrumento(request, pk):
 
         try:
 
-            contenido = _contenido_desde_post(instrumento.tipo, request.POST)
+            contenido = _contenido_desde_post(instrumento.tipo, request.POST, anterior=instrumento.contenido)
             if instrumento.tipo == 'MATERIAL':
                 from .ia.visuales import proponer_visuales, validar_visuales
                 if not any(k.startswith('visual_') for k in request.POST):
@@ -395,7 +415,8 @@ def ia_instrumento(request, pk):
                     messages.info(request, 'Apoyo visual añadido. Revisa sus cantidades y ubicación antes de aprobar.')
 
         except (ErrorIA, ValueError) as error:
-            contenido_pantalla = _contenido_desde_post(instrumento.tipo, request.POST, validar=False)
+            contenido_pantalla = _contenido_desde_post(instrumento.tipo, request.POST, validar=False,
+                                                       anterior=instrumento.contenido)
 
             messages.error(request, f"No se guardó: {error} Revisa que no queden campos vacíos.")
 
@@ -452,7 +473,34 @@ def ia_instrumento(request, pk):
         request, docente=docente, instrumento=instrumento, contenido=contenido_pantalla,
 
         editable=instrumento.estado == InstrumentoIA.ESTADO_BORRADOR,
-        revision_rubrica=revisar_rubrica(contenido_pantalla, instrumento.objetivo) if instrumento.tipo == 'RUBRICA' else []))
+        revision_rubrica=revisar_rubrica(contenido_pantalla, instrumento.objetivo) if instrumento.tipo == 'RUBRICA' else [],
+        **(_contexto_prueba(instrumento, contenido_pantalla) if instrumento.tipo == 'PRUEBA' else {}),
+        **(_contexto_material(instrumento, contenido_pantalla) if instrumento.tipo == 'MATERIAL' else {})))
+
+
+def _contexto_material(instrumento, contenido):
+    """Datos del editor de la ficha visual: íconos disponibles y una ficha vacía para crearla."""
+    from .ia.ficha import ICONOS, MAX_TARJETAS, ficha_vacia
+    ficha = contenido.get('ficha')
+    tarjetas = (ficha or {}).get('tarjetas', []) if isinstance(ficha, dict) else []
+    return {'iconos_ficha': ICONOS, 'max_tarjetas_ficha': MAX_TARJETAS,
+            'ficha_nueva': ficha_vacia(contenido.get('titulo', '')),
+            'indice_tarjeta_nueva': len(tarjetas)}
+
+
+def _contexto_prueba(instrumento, contenido):
+    """Datos del editor de pruebas: puntaje total y criterios por defecto para una pregunta de desarrollo nueva."""
+    preguntas = contenido.get('preguntas', [])
+    try:
+        total = asistentes.puntaje_total_prueba(contenido)
+    except (TypeError, KeyError):
+        total = None
+    return {
+        'puntaje_total': total,
+        'criterios_nuevos': asistentes.componentes_desarrollo(instrumento.carga.asignatura.nombre_asignatura),
+        'indice_nuevo': len(preguntas),
+        'max_preguntas': MAX_PREGUNTAS_PRUEBA,
+    }
 
 
 @solo_rol("DOCENTE")
@@ -616,6 +664,26 @@ def _leer_archivos(request):
     return leidos
 
 
+def _lectura_por_revisar(lectura):
+    """La fila se destaca si la lectura es dudosa o si la IA advirtió un problema de coherencia."""
+    if lectura.get('estado') != 'respondida':
+        return True
+    return str(lectura.get('coherencia', '')).lower().startswith('revisar')
+
+
+def _lecturas_del_trabajo(request, instrumento):
+    """Lectura de la IA asociada a la corrección (para guardar la transcripción del desarrollo)."""
+    from .models import TrabajoIA
+    import uuid
+    try:
+        trabajo_id = uuid.UUID(request.POST.get('trabajo', ''))
+    except ValueError:
+        return []
+    trabajo = TrabajoIA.objects.filter(pk=trabajo_id, usuario=request.user, institucion=request.institucion,
+                                       instrumento=instrumento, operacion='lectura', estado='completado').first()
+    return (trabajo.resultado or {}).get('lecturas', []) if trabajo else []
+
+
 @solo_rol("DOCENTE")
 
 def ia_corregir_prueba(request, pk):
@@ -659,14 +727,16 @@ def ia_corregir_prueba(request, pk):
                                     operacion='lectura', estado='completado')
         lecturas = trabajo.resultado['lecturas']
         contexto.update(paso='confirmar', filas=list(zip(preguntas, lecturas)), leida_con_ia=True,
-                        alumno_id=trabajo.resultado.get('alumno', ''),
-                        por_revisar=sum(1 for l in lecturas if l['estado'] != 'respondida'))
+                        alumno_id=trabajo.resultado.get('alumno', ''), trabajo_id=trabajo.pk,
+                        por_revisar=sum(1 for l in lecturas if _lectura_por_revisar(l)))
 
     if request.method == "GET" and request.GET.get("manual"):
 
-        lecturas = [{"pregunta": n, "marcada": None, "estado": "manual", "observacion": ""}
+        lecturas = [{"pregunta": n, "marcada": None, "estado": "manual", "observacion": "",
+                     **({"tipo": asistentes.TIPO_DESARROLLO, "transcripcion": {}, "sugerencia": {}}
+                        if asistentes.es_desarrollo(p) else {})}
 
-                    for n in range(1, len(preguntas) + 1)]
+                    for n, p in enumerate(preguntas, 1)]
 
         contexto.update(paso="confirmar", filas=list(zip(preguntas, lecturas)),
 
@@ -690,7 +760,20 @@ def ia_corregir_prueba(request, pk):
 
         respuestas, ajustes = [], 0
 
-        for numero in range(1, len(preguntas) + 1):
+        for numero, pregunta in enumerate(preguntas, 1):
+
+            if asistentes.es_desarrollo(pregunta):
+                puntajes = {}
+                for criterio in pregunta.get("criterios", []):
+                    campo = f"r{numero}_{criterio['clave']}"
+                    valor = request.POST.get(campo, "").strip()
+                    puntaje = asistentes.acotar_puntaje(valor, criterio["puntaje_maximo"]) if valor else None
+                    puntajes[criterio["clave"]] = puntaje
+                    leida = request.POST.get(f"ia{numero}_{criterio['clave']}")
+                    if leida is not None and asistentes.acotar_puntaje(leida, criterio["puntaje_maximo"]) != puntaje:
+                        ajustes += 1
+                respuestas.append(puntajes)
+                continue
 
             valor = request.POST.get(f"r{numero}", "")
 
@@ -703,7 +786,8 @@ def ia_corregir_prueba(request, pk):
                 ajustes += 1
 
 
-        resultado = asistentes.corregir_respuestas(instrumento.contenido, respuestas)
+        resultado = asistentes.corregir_respuestas(instrumento.contenido, respuestas,
+                                                   _lecturas_del_trabajo(request, instrumento))
 
         alumno = alumnos.filter(pk=request.POST.get("alumno") or None).first()
 
@@ -724,6 +808,10 @@ def ia_corregir_prueba(request, pk):
             leida_con_ia=request.POST.get("leida_con_ia") == "1",
 
             ajustes_docente=ajustes,
+
+            puntaje_obtenido=resultado["puntaje_obtenido"],
+
+            puntaje_maximo=resultado["puntaje_maximo"],
 
         )
 
@@ -803,7 +891,11 @@ def ia_correccion(request, pk):
 
         incorrectas=sum(1 for item in detalle if item["estado"] == "incorrecta"),
 
-        porcentaje=round(100 * correccion.correctas / correccion.total, 1) if correccion.total else 0,
+        porcentaje=(round(100 * float(correccion.puntaje_obtenido) / float(correccion.puntaje_maximo), 1)
+                    if correccion.puntaje_maximo else
+                    round(100 * correccion.correctas / correccion.total, 1) if correccion.total else 0),
+
+        parciales=sum(1 for item in detalle if item["estado"] == "parcial"),
 
         evaluaciones=evaluaciones,
 
