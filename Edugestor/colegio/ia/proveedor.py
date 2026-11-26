@@ -62,11 +62,16 @@ def generar(sistema, mensajes, *, ejemplo, formato_json=False, temperatura=0.7):
                 if not isinstance(item, dict):
                     continue
                 numero = item.get('pregunta')
-                lectura.append({
+                registro = {
                     'pregunta': numero if isinstance(numero, int) and 0 < numero <= 100 else None,
                     'marcada': item.get('marcada') if item.get('marcada') in ('A','B','C','D',None) else None,
-                    'estado': item.get('estado') if item.get('estado') in ('respondida','en_blanco','multiple','ilegible','no_encontrada') else 'no_valido',
-                })
+                    'estado': item.get('estado') if item.get('estado') in ('respondida','en_blanco','multiple','ilegible','no_encontrada','parcial') else 'no_valido',
+                }
+                if item.get('tipo') == 'desarrollo':
+                    # Solo se registra qué recuadros tienen contenido, nunca el texto del estudiante.
+                    registro.update(tipo='desarrollo', **{f'con_{clave}': bool(str(item.get(clave) or '').strip())
+                                                         for clave in ('desarrollo', 'formula', 'resultado')})
+                lectura.append(registro)
         anotar(estado='OK', caracteres_salida=len(texto), lectura=lectura)
         return resultado
     except ErrorIA as error:

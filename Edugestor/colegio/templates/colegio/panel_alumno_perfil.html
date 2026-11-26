@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil Alumno | EduGestor</title>
     <link rel="stylesheet" href="{% static 'css/alumno.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 
@@ -71,7 +72,7 @@
                  Campos del modelo Alumno y su Usuario relacionado
             ========================== -->
 
-            <div class="info-grid" style="margin-top:24px">
+            <div class="info-grid mt-seccion">
 
                 <div class="info-box">
                     <span>Nombre completo</span>
@@ -154,7 +155,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" style="color:#9ca3af; font-style:italic">
+                        <td class="texto-vacio" colspan="4">
                             No tienes asignaturas asignadas aún.
                         </td>
                     </tr>
@@ -170,7 +171,7 @@
 
             <!-- Fallback si no se encuentra perfil de alumno asociado -->
             <div class="table-container">
-                <p style="color:#9ca3af">
+                <p style="color:#6b7280">
                     No se encontró un perfil de alumno asociado a tu cuenta.
                 </p>
             </div>

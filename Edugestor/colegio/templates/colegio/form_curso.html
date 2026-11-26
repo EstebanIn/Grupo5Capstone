@@ -5,40 +5,40 @@
 {% block content %}
 <div class="content-header">
     <h2>{{ titulo }}</h2>
-    <a href="javascript:history.back()" class="btn-secondary" style="text-decoration: none; color: #4b5563; font-weight: bold;">⬅️ Volver al listado</a>
+    <a href="javascript:history.back()" class="btn-secondary">⬅️ Volver al listado</a>
 </div>
 
-<div class="card" style="max-width: 600px; margin-top: 20px; padding: 20px;">
+<div class="card form-card">
     <form method="POST" novalidate id="asignatura-form">
         {% csrf_token %}
 
         {% if form.errors %}
-            <div class="alert alert-danger" style="color: #842029; background-color: #f8d7da; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+            <div class="alert alert-danger alerta-error">
                 <strong>Por favor, corrige los siguientes errores:</strong>
                 {{ form.errors }}
             </div>
         {% endif %}
 
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 15px;">
+        <div class="form-group form-grid-campos">
             {% for field in form %}
                 {% if field.name == 'docentes' %}
                     <!-- Campo de docentes con búsqueda y chips -->
                     <div class="field-wrapper">
-                        <label style="font-weight: bold; display: block; margin-bottom: 8px; color:#1f2937; font-size:15px">{{ field.label }}</label>
+                        <label class="form-label">{{ field.label }}</label>
                         
                         <!-- Buscador de docentes -->
-                        <input 
+                        <input class="form-input" 
                             type="text"
                             id="docente-search"
                             placeholder="Buscar docente por nombre o RUT..."
-                            style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px;"
+                           
                         >
                         
                         <!-- Resultados desplegables -->
-                        <div id="docente-results" style="display: none; position: absolute; width: 100%; max-width: 556px; background: white; border: 1px solid #d1d5db; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 10;"></div>
+                        <div class="form-resultados" id="docente-results" style="display:none"></div>
                         
                         <!-- Chips de docentes seleccionados -->
-                        <div id="docente-chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
+                        <div class="form-chips" id="docente-chips"></div>
                         
                         <!-- Checkboxes ocultos para sincronización con el formulario -->
                         <div id="docente-checkboxes" style="display: none;">
@@ -46,12 +46,12 @@
                         </div>
                         
                         {% if field.help_text %}
-                            <small style="color: #9ca3af; display: block; margin-top: 6px; font-size: 13px;">{{ field.help_text|safe }}</small>
+                            <small class="form-ayuda">{{ field.help_text|safe }}</small>
                         {% endif %}
                     </div>
                 {% elif field.name == 'profesor_jefe' %}
                     <div class="field-wrapper profesor-jefe-picker">
-                        <label style="font-weight: bold; display: block; margin-bottom: 8px; color:#1f2937; font-size:15px">{{ field.label }}</label>
+                        <label class="form-label">{{ field.label }}</label>
                         {{ field }}
 
                         <input type="hidden" id="docente-search">
@@ -59,44 +59,44 @@
                         <div id="docente-chips" style="display:none"></div>
                         <div id="docente-checkboxes" style="display:none"></div>
 
-                        <input
+                        <input class="form-input"
                             type="text"
                             id="profesor-jefe-search"
                             placeholder="Buscar profesor por nombre o RUT..."
                             autocomplete="off"
-                            style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px;"
+                           
                         >
 
-                        <div id="profesor-jefe-results" style="display:none; position:absolute; width:100%; max-width:556px; background:white; border:1px solid #d1d5db; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); max-height:200px; overflow-y:auto; z-index:10;"></div>
+                        <div class="form-resultados" id="profesor-jefe-results" style="display:none"></div>
 
-                        <div id="profesor-jefe-chip" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;"
+                        <div class="form-chips" id="profesor-jefe-chip"
                              data-current-id="{{ field.value|default:'' }}"
                              data-current-name="{% if form.instance.profesor_jefe %}{{ form.instance.profesor_jefe.nombre_docente }} {{ form.instance.profesor_jefe.apellido_docente }}{% endif %}"
                              data-current-rut="{% if form.instance.profesor_jefe %}{{ form.instance.profesor_jefe.usuario.rut }}{% endif %}">
                         </div>
 
-                        <small style="color:#6b7280; display:block; margin-top:6px; font-size:13px;">
+                        <small class="form-ayuda">
                             Asigna o desasigna el profesor jefe de este curso.
                         </small>
                     </div>
                 {% else %}
                     <!-- Campos normales -->
                     <div class="field-wrapper">
-                        <label style="font-weight: bold; display: block; margin-bottom: 8px; color:#1f2937; font-size:15px">{{ field.label }}</label>
+                        <label class="form-label">{{ field.label }}</label>
                         {{ field }}
                         {% if field.help_text %}
-                            <small style="color: #6b7280; display: block; margin-top: 6px; font-size: 13px;">{{ field.help_text|safe }}</small>
+                            <small class="form-ayuda">{{ field.help_text|safe }}</small>
                         {% endif %}
                     </div>
                 {% endif %}
             {% endfor %}
         </div>
 
-        <div style="margin-top: 25px; display: flex; gap: 10px;">
-            <button type="submit" class="btn-primary" style="background: #6d28d9; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        <div class="form-acciones">
+            <button type="submit" class="btn-primary btn-form">
                 💾 Guardar
             </button>
-            <a href="javascript:history.back()" class="btn-action" style="padding: 10px 20px; background: #e5e7eb; border-radius: 5px; text-decoration: none; color: black; font-weight: bold;">
+            <a href="javascript:history.back()" class="btn-action btn-cancelar">
                 Cancelar
             </a>
         </div>
@@ -212,7 +212,7 @@
     
     #docente-results .docente-item:not(.added)::after {
         content: "+ Agregar";
-        color: #9ca3af;
+        color: #6b7280;
         font-weight: bold;
         font-size: 12px;
     }
@@ -233,7 +233,7 @@
 
     #profesor-jefe-results .docente-item::after {
         content: "+ Asignar";
-        color: #9ca3af;
+        color: #6b7280;
         font-weight: bold;
         font-size: 12px;
     }

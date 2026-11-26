@@ -1,0 +1,437 @@
+{
+ "asignatura": "Matemática",
+ "ciclo": "BASICA",
+ "nivel": 4,
+ "version": 1,
+ "fuente": {
+  "titulo": "Programa de Estudio Matemática · 4° básico (Mineduc)",
+  "url": "https://www.curriculumnacional.cl/614/articles-18979_programa.pdf",
+  "sha256": "f3e86fd77c42c0e435e8aa1d77e96097af75256df03a84541f51e25a0c3ee232",
+  "paginas": "Páginas del PDF, no la numeración impresa."
+ },
+ "revision": "Textos de OA transcritos de la lista oficial e indicadores de las tablas de cada unidad; revisados contra el PDF el 2026-11-26.",
+ "objetivos": [
+  {
+   "codigo": "MA04 OA 01",
+   "numero": 1,
+   "eje": "Números y operaciones",
+   "texto": "Representar y describir números del 0 al 10 000: contándolos de 10 en 10, de 100 en 100, de 1 000 en 1 000; leyéndolos y escribiéndolos; representándolos en forma concreta, pictórica y simbólica; comparándolos y ordenándolos en la recta numérica o la tabla posicional; identificando el valor posicional de los dígitos hasta la decena de mil; componiendo y descomponiendo números naturales hasta 10 000 en forma aditiva, de acuerdo a su valor posicional.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 56,
+   "indicadores": [
+    "Expresan números en palabras y cifras.",
+    "Representan en números cantidades dadas en billetes o monedas.",
+    "Ordenan cantidades de dinero dado en billetes o en monedas de $10, $100, $1 000 y de $10 000.",
+    "Descomponen cantidades de dinero en valores de $1, $10, $100 y $1 000. Por ejemplo: $5 647 = $5 000 + 600 + 40 + 7",
+    "Leen y escriben números presentados en la tabla posicional.",
+    "Descomponen números hasta 10 000 y los ubican en la tabla posicional.",
+    "Ordenan y comparan números en la tabla posicional.",
+    "Marcan la posición de números en la recta numérica.",
+    "Identifican números en la recta numérica según la posición de su marca.",
+    "Identifican números vecinos de números dados en la recta numérica.",
+    "Identifican números que faltan en una secuencia numérica."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 02",
+   "numero": 2,
+   "eje": "Números y operaciones",
+   "texto": "Describir y aplicar estrategias de cálculo mental: conteo hacia delante y atrás; doblar y dividir por 2; por descomposición; usar el doble del doble para determinar las multiplicaciones hasta 10 x 10 y sus divisiones correspondientes.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 56,
+   "indicadores": [
+    "Aplican la descomposición y el conteo en el cálculo mental para multiplicar números hasta 10 por 10.",
+    "Multiplican en el cálculo por 4, doblando el primer factor, por ejemplo: 2 · (2 · 6) = 2 · 12.",
+    "Multiplican números en el cálculo mental doblando y dividiendo por 2; por ejemplo: 25 · 6 = 50 · 3."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 03",
+   "numero": 3,
+   "eje": "Números y operaciones",
+   "texto": "Demostrar que comprenden la adición y la sustracción de números hasta 1 000: usando estrategias personales para realizar estas operaciones; descomponiendo los números involucrados; estimando sumas y diferencias; resolviendo problemas rutinarios y no rutinarios que incluyan adiciones y sustracciones; aplicando los algoritmos en la adición de hasta cuatro sumandos y en la sustracción de hasta un sustraendo.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 57,
+   "indicadores": [
+    "Suman y restan números mentalmente, descomponiéndolos de acuerdo a su valor posicional. Por ejemplo: 5 400 + 3 200 = 5 000 + 3 000 + 400 + 200 = 8 600.",
+    "Usan dinero en el algoritmo de la adición y de la sustracción con y sin reserva.",
+    "Estiman sumas y restas, usando más de una estrategia.",
+    "Aplican el algoritmo de la adición y de la sustracción en la resolución de problemas rutinarios.",
+    "Aplican el algoritmo de la adición y de la sustracción en la resolución de problemas monetarios.",
+    "Resuelven problemas rutinarios y no rutinarios que involucran adiciones y sustracciones de más de dos números."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 04",
+   "numero": 4,
+   "eje": "Números y operaciones",
+   "texto": "Fundamentar y aplicar las propiedades del 0 y del 1 para la multiplicación y la propiedad del 1 para la división.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 57,
+   "indicadores": [
+    "Aplican la propiedad del 1 en la multiplicación, empleando secuencias de ecuaciones; por ejemplo: 2 · □ = 8, 2 · □ = 6, 2 · □ = 4, 2 · □ = 2.",
+    "Explican con sus propias palabras la propiedad del 1 de manera concreta, pictórica y simbólica.",
+    "Descubren la propiedad del 0 en la multiplicación, empleando secuencias de ecuaciones hasta llegar a 0; por ejemplo: 3 · □ = 9, 3 · □ = 6, 3 · □ = 3, 3 · □ = 0.",
+    "Explican con sus propias palabras la propiedad del 0 de manera concreta, pictórica y simbólica.",
+    "Muestran y explican de manera concreta, pictórica y simbólica la repartición de elementos por 1 o por sí mismo."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 05",
+   "numero": 5,
+   "eje": "Números y operaciones",
+   "texto": "Demostrar que comprenden la multiplicación de números de tres dígitos por números de un dígito: usando estrategias con o sin material concreto; utilizando las tablas de multiplicación; estimando productos; usando la propiedad distributiva de la multiplicación respecto de la suma; aplicando el algoritmo de la multiplicación; resolviendo problemas rutinarios.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 58,
+   "indicadores": [
+    "Descomponen números de tres dígitos en centenas, decenas y unidades.",
+    "Multiplican cada centena, decena y unidad por el mismo factor.",
+    "Aplican la propiedad distributiva de la multiplicación respecto de la suma.",
+    "Estiman productos, usando como estrategias el redondeo de factores.",
+    "Resuelven multiplicaciones usando el algoritmo de la multiplicación.",
+    "Resuelven problemas rutinarios de la vida diaria, aplicando el algoritmo de la multiplicación."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 06",
+   "numero": 6,
+   "eje": "Números y operaciones",
+   "texto": "Demostrar que comprenden la división con dividendos de dos dígitos y divisores de un dígito: usando estrategias para dividir, con o sin material concreto; utilizando la relación que existe entre la división y la multiplicación; estimando el cociente; aplicando la estrategia por descomposición del dividendo; aplicando el algoritmo de la división.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 58,
+   "indicadores": [
+    "Representan pictóricamente o con material concreto divisiones de dos dígitos por un dígito, descomponiendo el dividendo en sumandos.",
+    "Estiman el cociente de una división, aplicando diferentes estrategias: - redondeo del dividendo - relación entre multiplicación y división como operaciones inversas - descomposición en pasos arbitrarios",
+    "Resuelven problemas rutinarios de la vida diaria, aplicando el algoritmo de la división."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 07",
+   "numero": 7,
+   "eje": "Números y operaciones",
+   "texto": "Resolver problemas rutinarios y no rutinarios en contextos cotidianos que incluyen dinero, seleccionando y utilizando la operación apropiada.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 59,
+   "indicadores": [
+    "Seleccionan la operación y la estrategia de resolución de un problema.",
+    "Resuelven problemas que requieren sustracciones.",
+    "Resuelven problemas rutinarios y no rutinarios, que requieran adiciones, sustracciones, multiplicaciones o divisiones, usando dinero en algunos de ellos.",
+    "Resuelven problemas cuya resolución requiere una combinación de operaciones."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 08",
+   "numero": 8,
+   "eje": "Números y operaciones",
+   "texto": "Demostrar que comprende las fracciones con denominadores 100, 12, 10, 8, 6, 5, 4, 3, 2: explicando que una fracción representa la parte de un todo o de un grupo de elementos y un lugar en la recta numérica; describiendo situaciones en las cuales se puede usar fracciones; mostrando que una fracción puede tener representaciones diferentes; comparando y ordenando fracciones (por ejemplo: 1/100, 1/8, 1/5, 1/4, 1/2) con material concreto y pictórico.",
+   "pagina_lista": 44,
+   "pagina_indicadores": 102,
+   "indicadores": [
+    "Reconocen fracciones unitarias en figuras geométricas regulares.",
+    "Registran la parte que corresponde a una fracción unitaria en figuras geométricas regulares.",
+    "Resuelven pictóricamente situaciones de la vida cotidiana que involucran la repartición de un objeto en partes iguales e identifican las partes como fracciones unitarias.",
+    "Identifican fracciones unitarias en la recta numérica.",
+    "Marcan posiciones de fracciones unitarias en la recta numérica.",
+    "Reconocen que, entre dos fracciones unitarias, la fracción con el mayor denominador representa la fracción menor."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 09",
+   "numero": 9,
+   "eje": "Números y operaciones",
+   "texto": "Resolver adiciones y sustracciones de fracciones con igual denominador (denominadores 100, 12, 10, 8, 6, 5, 4, 3, 2) de manera concreta y pictórica en el contexto de la resolución de problemas.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 102,
+   "indicadores": [
+    "Descomponen pictóricamente, con material concreto y además con software educativo, fracciones propias en fracciones unitarias.",
+    "Descubren el algoritmo de la adición de fracciones unitarias.",
+    "Realizan uniones pictóricas de fracciones propias con el mismo denominador para verificar el algoritmo de la adición de fracciones.",
+    "Descomponen en partes iguales la parte de una figura que representa una fracción propia y quitan una o más de las partes.",
+    "Descubren el algoritmo de la sustracción de fracciones propias.",
+    "Resuelven problemas de la vida diaria que involucran la adición y la sustracción de fracciones propias de igual denominador."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 10",
+   "numero": 10,
+   "eje": "Números y operaciones",
+   "texto": "Identificar, escribir y representar fracciones propias y los números mixtos hasta el 5 de manera concreta, pictórica y simbólica, en el contexto de la resolución de problemas.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 103,
+   "indicadores": [
+    "Reconocen en figuras geométricas la fracción propia que es representada por una parte marcada.",
+    "Marcan en figuras geométricas la parte que corresponde a una fracción propia.",
+    "Verifican que una fracción propia puede ser representada de diferentes maneras en cuadrículas.",
+    "Identifican fracciones propias en la recta numérica.",
+    "Marcan fracciones propias en la recta numérica.",
+    "Identifican números mixtos en la recta numérica.",
+    "Marcan números mixtos en la recta numérica.",
+    "Comparan y ordenan números mixtos hasta el 5.",
+    "Usan números mixtos en contextos de la vida diaria."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 11",
+   "numero": 11,
+   "eje": "Números y operaciones",
+   "texto": "Describir y representar decimales (décimos y centésimos): representándolos en forma concreta, pictórica y simbólica, de manera manual y/o con software educativo; comparándolos y ordenándolos hasta la centésima.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 130,
+   "indicadores": [
+    "Identifican números decimales en contextos de la vida diaria; por ejemplo: resultados deportivos, distancias, peso.",
+    "Subdividen concretamente un cuadrado entero en 10 filas iguales y marcan partes que corresponden a una o más décimas.",
+    "Reconocen que un número mixto puede ser representado por un número decimal; por ejemplo: 1 3/10 → 1,3",
+    "Subdividen un cuadrado entero en 100 cuadrículas y marcan partes que corresponden a décimos y centésimos.",
+    "Reconocen la igualdad entre las siguientes fracciones y sus pares decimales: 1/10 = 0,1; 3/100 = 0,01; 3/2 = 0,5; 1/5 = 0,2; 1/4 = 0,25.",
+    "Usan software educativo para reconocer y representar decimales.",
+    "Leen y expresan correctamente números decimales hasta la centésima; por ejemplo: 2,43 → “dos coma cuatro tres”.",
+    "Transforman una longitud expresada en metros y centímetros en una longitud expresada en metros con un número decimal y viceversa; por ejemplo: 4 m 83 cm → 4,83 cm; 3,26 m → 3 m 26 cm",
+    "Marcan números decimales en reglas o huinchas.",
+    "Identifican números decimales en segmentos de la recta numérica."
+   ],
+   "nota": "Así aparece en el PDF oficial: \"3/100 = 0,01\" y \"3/2 = 0,5\" parecen erratas (3/100 = 0,03 y 1/2 = 0,5), igual que \"4,83 cm\" (sería 4,83 m). No los uses como ejemplos."
+  },
+  {
+   "codigo": "MA04 OA 12",
+   "numero": 12,
+   "eje": "Números y operaciones",
+   "texto": "Resolver adiciones y sustracciones de decimales, empleando el valor posicional hasta la centésima en el contexto de la resolución de problemas.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 130,
+   "indicadores": [
+    "Modelan la adición sin y con traspaso de dos números decimales en cuadrículas.",
+    "Amplían el algoritmo de la adición hasta la centésima.",
+    "Modelan la sustracción sin y con traspaso en cuadrículas.",
+    "Amplían el algoritmo de la sustracción hasta la centésima.",
+    "Resuelven problemas que involucran adiciones y sustracciones con números de decimales."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 13",
+   "numero": 13,
+   "eje": "Patrones y álgebra",
+   "texto": "Identificar y describir patrones numéricos en tablas que involucren una operación, de manera manual y/o usando software educativo.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 82,
+   "indicadores": [
+    "Determinan elementos faltantes en listas o tablas.",
+    "Descubren un error en una secuencia o una tabla y lo corrigen.",
+    "Identifican y describen un patrón en tablas y cuadros",
+    "Realizan movidas en la tabla de 100, en forma concreta o pictórica.",
+    "Varían un patrón dado y lo representan en una tabla",
+    "Usan software educativo para generar o variar patrones numéricos."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 14",
+   "numero": 14,
+   "eje": "Patrones y álgebra",
+   "texto": "Resolver ecuaciones e inecuaciones de un paso que involucren adiciones y sustracciones, comprobando los resultados en forma pictórica y simbólica del 0 al 100 y aplicando las relaciones inversas entre la adición y la sustracción.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 103,
+   "indicadores": [
+    "Modelan ecuaciones con una balanza, real o pictóricamente; por ejemplo: x + 2 = 4.",
+    "Modelan inecuaciones con una balanza real que se encuentra en desequilibrio; por ejemplo: 2 + x < 7.",
+    "Modelan ecuaciones e inecuaciones de un paso, concreta o pictóricamente, con una balanza y además con software educativo.",
+    "Resuelven adivinanzas de números que involucran adiciones y sustracciones."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 15",
+   "numero": 15,
+   "eje": "Geometría",
+   "texto": "Describir la localización absoluta de un objeto en un mapa simple con coordenadas informales (por ejemplo: con letras y números) y la localización relativa con relación a otros objetos.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 82,
+   "indicadores": [
+    "Describen e identifican posiciones de objetos en mapas o planos reales de ciudades, del metro, etc.",
+    "Describen trayectos en desplazamientos de objetos.",
+    "Ubican objetos en planos de habitaciones o construcciones.",
+    "Confeccionan un plano de búsqueda de tesoros.",
+    "Comunican el camino recorrido para llegar al colegio, usando un mapa.",
+    "Trazan trayectos en un mapa según una instrucción.",
+    "Identifican cuadrículas en un tablero de ajedrez en forma concreta y/o pictórica."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 16",
+   "numero": 16,
+   "eje": "Geometría",
+   "texto": "Determinar las vistas de figuras 3D, desde el frente, desde el lado y desde arriba.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 82,
+   "indicadores": [
+    "Identifican vértices, aristas y caras en modelos o dibujos de figuras 3D.",
+    "Despliegan modelos de figuras 3D como cubos, paralelepípedos y prismas regulares.",
+    "Identifican las vistas en redes de figuras regulares 3D.",
+    "Dibujan las vistas de figuras 3D.",
+    "Dibujan las vistas de figuras 3D compuestas.",
+    "Confeccionan la red de una figura 3D de acuerdo a las vistas."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 17",
+   "numero": 17,
+   "eje": "Geometría",
+   "texto": "Demostrar que comprenden una línea de simetría: identificando figuras simétricas 2D; creando figuras simétricas 2D; dibujando una o más líneas de simetría en figuras 2D; usando software geométrico.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 103,
+   "indicadores": [
+    "Reconocen simetrías en la naturaleza.",
+    "Reconocer simetrías en el arte, la arquitectura, etc.",
+    "Identifican la línea de plegar con la línea de simetría.",
+    "Confeccionan figuras simétricas mediante plegados.",
+    "Dibujan figuras simétricas en una tabla de cuadrículas, aplicando un patrón.",
+    "Descubren, concretamente y/o usando software educativo, que figuras 2D regulares pueden tener más de una línea de simetría.",
+    "Dibujan figuras 2D con más de una línea de simetría."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 18",
+   "numero": 18,
+   "eje": "Geometría",
+   "texto": "Trasladar, rotar y reflejar figuras 2D.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 104,
+   "indicadores": [
+    "Reconocen la reflexión por medio de figuras 2D con una línea de simetría.",
+    "Reconocen la rotación 180º en figuras 2D con dos líneas de simetría.",
+    "Realizan traslaciones, rotaciones y reflexiones en una tabla de cuadrículas.",
+    "Usan software educativo."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 19",
+   "numero": 19,
+   "eje": "Geometría",
+   "texto": "Construir ángulos con el transportador y compararlos.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 104,
+   "indicadores": [
+    "Reconocen los ángulos de 90º y 180º en figuras del entorno.",
+    "Confeccionan con dos cintas un transportador simple para medir ángulos.",
+    "Usan un transportador simple para identificar ángulos 90º y 180º.",
+    "Miden ángulos de entre 0º y 180º con el transportador.",
+    "Construyen ángulos entre 0º y 180º con el transportador.",
+    "Miden y construyen ángulos de entre 180º a 360º.",
+    "Estiman ángulos y comprueban la estimación realizada."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 20",
+   "numero": 20,
+   "eje": "Medición",
+   "texto": "Leer y registrar diversas mediciones del tiempo en relojes análogos y digitales, usando los conceptos A.M., P.M. y 24 horas.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 83,
+   "indicadores": [
+    "Leen, comunican y registran la hora en un reloj digital.",
+    "Leen, comunican y registran la hora en relojes análogos.",
+    "Leen horarios de su entorno.",
+    "Calculan diferencias entre horas indicadas."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 21",
+   "numero": 21,
+   "eje": "Medición",
+   "texto": "Realizar conversiones entre unidades de tiempo en el contexto de la resolución de problemas: el número de segundos en un minuto, el número de minutos en una hora, el número de días en un mes y el número de meses en un año.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 83,
+   "indicadores": [
+    "Eligen la unidad adecuada para la medición del tiempo.",
+    "Calculan tiempos de recorridos, sumando los minutos entre tramos.",
+    "Calculan horas de término de un evento.",
+    "Convierten medidas de tiempo: segundos en un minuto, minutos en una hora, días en un mes y meses en un año."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 22",
+   "numero": 22,
+   "eje": "Medición",
+   "texto": "Medir longitudes con unidades estandarizadas (m, cm) y realizar transformaciones entre estas unidades (m a cm y viceversa) en el contexto de la resolución de problemas.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 83,
+   "indicadores": [
+    "Estiman longitudes de objetos de la sala de clase y comprueban la estimación con una regla o huincha.",
+    "Eligen la unidad adecuada para medir la longitud de objetos.",
+    "Convierten longitudes en unidades adecuadas (m a cm y viceversa).",
+    "Suman y restan longitudes en cm y m.",
+    "Miden el perímetro de objetos y lo expresan en cm o m."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 23",
+   "numero": 23,
+   "eje": "Medición",
+   "texto": "Demostrar que comprenden el concepto de área de un rectángulo y de un cuadrado: reconociendo que el área de una superficie se mide en unidades cuadradas; seleccionando y justificando la elección de la unidad estandarizada (cm² y m²); determinando y registrando el área en cm² y m² en contextos cercanos; construyendo diferentes rectángulos para un área dada (cm² y m²) para mostrar que distintos rectángulos pueden tener la misma área; usando software geométrico.",
+   "pagina_lista": 45,
+   "pagina_indicadores": 132,
+   "indicadores": [
+    "Reconocen que una cuadrícula es un medio para comparar áreas.",
+    "Determinan el área de rectángulos y cuadrados mediante el conteo de cuadrículas.",
+    "Confeccionan concretamente, en cuadrículas, rectángulos de diferentes formas, pero que tienen igual cantidad de cuadrados.",
+    "Usan software educativo para componer o descomponer figuras compuestas de cuadrados o rectángulos.",
+    "Calculan el área de figuras formadas por rectángulos y cuadrados.",
+    "Estiman áreas de su entorno en unidades de cm2 y m2."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 24",
+   "numero": 24,
+   "eje": "Medición",
+   "texto": "Demostrar que comprenden el concepto de volumen de un cuerpo: seleccionando una unidad no estandarizada para medir el volumen de un cuerpo; reconociendo que el volumen se mide en unidades de cubo; midiendo y registrando el volumen en unidades de cubo; usando software geométrico.",
+   "pagina_lista": 46,
+   "pagina_indicadores": 132,
+   "indicadores": [
+    "Reconocen que un cubito es una unidad apta para comparar el volumen de dos cuerpos al contar los cubitos que caben, usando software educativo.",
+    "Construyen cubos de 1 m 3 para reconocer unidad del volumen.",
+    "Estiman el volumen de objetos o de espacios de su entorno como cajas, maletas, salas de clases, piscinas, edificios, etc.",
+    "Eligen unidades para medir y expresar el volumen de figuras 3D.",
+    "Miden el volumen de figuras 3D, empleando jarros graduados.",
+    "Estiman y comprueban el volumen de objetos irregulares, sumergiéndolos en un vaso graduado."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 25",
+   "numero": 25,
+   "eje": "Datos y probabilidades",
+   "texto": "Realizar encuestas, analizar los datos y comparar con los resultados de muestras aleatorias, usando tablas y gráficos.",
+   "pagina_lista": 46,
+   "pagina_indicadores": 131,
+   "indicadores": [
+    "Realizan encuestas de su interés; por ejemplo: actividades en su tiempo libre, preferencias de tipo de música, club de fútbol, etc.",
+    "Comparan los resultados de sus encuestas con otros cursos del colegio, con resultados publicados en diarios y revistas, etc."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 26",
+   "numero": 26,
+   "eje": "Datos y probabilidades",
+   "texto": "Realizar experimentos aleatorios lúdicos y cotidianos, y tabular y representar mediante gráficos de manera manual y/o con software educativo.",
+   "pagina_lista": 46,
+   "pagina_indicadores": 131,
+   "indicadores": [
+    "Realizan experimentos con dados cúbicos u de otra forma regular como tetraedro, dodecaedro, etc.",
+    "Extraen naipes al azar, con y sin devolver.",
+    "Pesan piedritas de un saco de gravilla y determinan la frecuencia absoluta de las masas de 5 g, 10 g, etc.",
+    "Reconocen que los resultados de experimentos lúdicos no son predecibles.",
+    "Realizan repeticiones de un mismo experimento, determinan la frecuencia absoluta y la representan en gráfico.",
+    "Usan software educativo para simular experimentos aleatorios."
+   ]
+  },
+  {
+   "codigo": "MA04 OA 27",
+   "numero": 27,
+   "eje": "Datos y probabilidades",
+   "texto": "Leer e interpretar pictogramas y gráficos de barra simple con escala, y comunicar sus conclusiones.",
+   "pagina_lista": 46,
+   "pagina_indicadores": 131,
+   "indicadores": [
+    "Leen e interpretan pictogramas y gráficos de revistas y diarios.",
+    "Extraen información numérica publicada en libros, diarios y revistas, de resultados de encuestas.",
+    "Representan información en tablas y gráficos para comunicar conclusiones."
+   ]
+  }
+ ]
+}

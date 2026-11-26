@@ -73,8 +73,8 @@
 </div>
 
 {% if docente_seleccionado %}
-<div class="card" style="margin-top: 20px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
+<div class="card mt-seccion">
+    <div style="display:flex; flex-wrap: wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px;">
         <h3>Cursos asignados a {{ docente_seleccionado.nombre_docente }} {{ docente_seleccionado.apellido_docente }}</h3>
         <a href="{% url 'panel_admin_docentes' %}" class="btn-action" style="background:#6b7280; color:white;">Cerrar</a>
     </div>
@@ -112,7 +112,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align:center; color:#6b7280; padding:20px;">
+                <td class="celda-vacia" colspan="6">
                     No hay cursos asignados a este docente.
                 </td>
             </tr>

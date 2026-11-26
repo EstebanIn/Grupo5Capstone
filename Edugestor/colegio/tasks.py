@@ -14,6 +14,18 @@ def limpiar_trabajos():
 
 
 @shared_task(ignore_result=True)
+def sincronizar_fuente(pk):
+    """Indexa una fuente recién aprobada por el administrador. El resultado queda en el catálogo."""
+    from .ia.biblioteca import sincronizar, limpiar_interrumpidas
+    from .ia.proveedor import ErrorIA
+    limpiar_interrumpidas()
+    try:
+        sincronizar(pk)
+    except ErrorIA:
+        pass  # Estado, mensaje y próximo intento quedan registrados en la fuente.
+
+
+@shared_task(ignore_result=True)
 def actualizar_biblioteca():
     from django.conf import settings
     from django.db.models import Q

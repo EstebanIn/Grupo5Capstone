@@ -1,0 +1,6 @@
+{# Pasos del flujo de creación. Uso: {% include 'colegio/ia/_pasos.html' with paso=1 %} #}
+<nav class="ia-pasos" aria-label="Flujo de trabajo"><ol>
+    <li class="{% if paso == 1 %}actual{% elif paso > 1 %}hecho{% endif %}"{% if paso == 1 %} aria-current="step"{% endif %}><b>{% if paso > 1 %}✓{% else %}1{% endif %}</b> Configurar</li>
+    <li class="{% if paso == 2 %}actual{% elif paso > 2 %}hecho{% endif %}"{% if paso == 2 %} aria-current="step"{% endif %}><b>{% if paso > 2 %}✓{% else %}2{% endif %}</b> Revisar borrador</li>
+    <li class="{% if paso == 3 %}actual{% elif paso > 3 %}hecho{% endif %}"{% if paso == 3 %} aria-current="step"{% endif %}><b>{% if paso > 3 %}✓{% else %}3{% endif %}</b> Aprobar y exportar</li>
+</ol></nav>

@@ -8,19 +8,48 @@ from django.template.loader import render_to_string
 from .proveedor import ErrorIA
 
 
+INSTRUCCIONES = {
+    ('RUBRICA', 'estudiante'): 'Esta rúbrica muestra cómo se evaluará tu trabajo. Léela antes de comenzar.',
+    ('RUBRICA', 'docente'): 'Marca el nivel observado en cada criterio y anota su puntaje. Sin evidencia: 0 puntos.',
+    ('MATERIAL', 'estudiante'): 'Lee la explicación y luego resuelve los ejercicios.',
+    ('MATERIAL', 'docente'): 'Versión con solucionario para el docente.',
+}
+
+
 def contenido_version(instrumento, version):
     if version not in ('estudiante', 'docente'):
         raise ErrorIA('Versión no válida.')
     original = instrumento.contenido
-    base = {'titulo': original.get('titulo', instrumento.titulo), 'fuentes': original.get('fuentes', []),
-            'instrucciones': original.get('instrucciones', 'Lee con atención y desarrolla las actividades.')}
+    instrucciones = original.get('instrucciones') or INSTRUCCIONES.get(
+        (instrumento.tipo, version), 'Lee con atención y desarrolla las actividades.')
+    # Las fuentes recuperadas orientan al docente; no son parte de lo que lee el estudiante.
+    base = {'titulo': original.get('titulo', instrumento.titulo),
+            'fuentes': original.get('fuentes', []) if version == 'docente' else [],
+            'instrucciones': instrucciones}
     if instrumento.tipo == 'PRUEBA':
+        from .asistentes import es_asignatura_de_calculo, es_desarrollo, puntaje_pregunta, puntaje_total_prueba
         base['preguntas'] = []
         for pregunta in original['preguntas']:
-            item = {'enunciado': pregunta['enunciado'], 'alternativas': list(pregunta['alternativas'])}
+            if es_desarrollo(pregunta):
+                # El estudiante ve los recuadros con su nombre y puntaje; la pauta queda solo para el docente.
+                item = {'tipo': 'desarrollo', 'enunciado': pregunta['enunciado'],
+                        'puntaje': puntaje_pregunta(pregunta),
+                        'criterios': [{'clave': c['clave'], 'nombre': c['nombre'], 'puntaje_maximo': c['puntaje_maximo']}
+                                      for c in pregunta.get('criterios', [])]}
+                if version == 'docente':
+                    item.update(formula=pregunta.get('formula', ''), resultado=pregunta.get('resultado', ''),
+                                desarrollo_esperado=pregunta.get('desarrollo_esperado', ''),
+                                explicacion=pregunta.get('explicacion', ''),
+                                criterios=deepcopy(pregunta.get('criterios', [])))
+                base['preguntas'].append(item)
+                continue
+            item = {'tipo': 'seleccion', 'enunciado': pregunta['enunciado'], 'alternativas': list(pregunta['alternativas'])}
             if version == 'docente':
                 item.update(correcta=pregunta['correcta'], explicacion=pregunta.get('explicacion', ''))
             base['preguntas'].append(item)
+        base['puntaje_total'] = puntaje_total_prueba(original)
+        base['hay_desarrollo'] = any(es_desarrollo(p) for p in original['preguntas'])
+        base['cuadricula'] = es_asignatura_de_calculo(instrumento.carga.asignatura.nombre_asignatura)
     elif instrumento.tipo == 'RUBRICA':
         from .asistentes import validar_rubrica
         base.update(validar_rubrica(original))
@@ -37,6 +66,10 @@ def contenido_version(instrumento, version):
                 base['solucionario'] = original.get('solucionario', '')
         elif version == 'docente':
             base['contenido'] = original.get('texto', '')
+        if original.get('ficha'):
+            # La ficha no lleva respuestas: va en ambas versiones, revalidada antes de dibujarla.
+            from .ficha import validar_ficha
+            base['ficha'] = validar_ficha(original['ficha'])
     return base
 
 

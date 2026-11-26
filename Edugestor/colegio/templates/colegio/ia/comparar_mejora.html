@@ -1,0 +1,68 @@
+{% extends 'colegio/ia/base_docente.html' %}
+{% block titulo %}Comparar mejoras · {{ copia.titulo }}{% endblock %}
+{% block pasos %}{% include 'colegio/ia/_pasos.html' with paso=2 %}{% endblock %}
+{% block contenido %}
+<a class="ia-volver" href="{% url 'ia_instrumento' original.pk %}">← Prueba original</a>
+<header class="ia-encabezado">
+    <h1>Elige qué mejoras conservar</h1>
+    <p>La IA propuso {{ total_cambios }} cambio{{ total_cambios|pluralize }} en «{{ original.titulo }}». Para cada uno, quédate con la versión original o con la mejora. Se guardará en una <strong>copia en borrador</strong>; la prueba original no se modifica y podrás seguir editando antes de aprobar.</p>
+</header>
+
+<form method="post" class="ia-comparar">
+    {% csrf_token %}
+    <div class="ia-comparar-barra">
+        <span>Elegir en todas:</span>
+        <button type="button" class="ia-enlace-boton" data-elegir="mejora">Usar todas las mejoras</button>
+        <button type="button" class="ia-enlace-boton" data-elegir="original">Mantener todo el original</button>
+    </div>
+
+    {% if instrucciones %}
+    <fieldset class="ia-panel ia-comparar-item">
+        <legend>Instrucciones</legend>
+        <div class="ia-comparar-columnas">
+            <label class="ia-comparar-version"><input type="radio" name="instrucciones" value="original">
+                <span class="ia-comparar-etiqueta">Original</span><p>{{ instrucciones.original|linebreaksbr }}</p></label>
+            <label class="ia-comparar-version"><input type="radio" name="instrucciones" value="mejora" checked>
+                <span class="ia-comparar-etiqueta mejora">Mejora propuesta</span><p>{{ instrucciones.mejorada|linebreaksbr }}</p></label>
+        </div>
+    </fieldset>
+    {% endif %}
+
+    {% for cambio in preguntas %}
+    <fieldset class="ia-panel ia-comparar-item">
+        <legend>Pregunta {{ cambio.numero }}{% if cambio.puntaje_original != cambio.puntaje_mejorada %} <span class="ia-comparar-alerta">el puntaje cambia de {{ cambio.puntaje_original }} a {{ cambio.puntaje_mejorada }}</span>{% endif %}</legend>
+        <div class="ia-comparar-columnas">
+            <label class="ia-comparar-version"><input type="radio" name="{{ cambio.clave }}" value="original">
+                <span class="ia-comparar-etiqueta">Original</span>
+                {% include 'colegio/ia/_pregunta_resumen.html' with pregunta=cambio.original %}</label>
+            <label class="ia-comparar-version"><input type="radio" name="{{ cambio.clave }}" value="mejora" checked>
+                <span class="ia-comparar-etiqueta mejora">Mejora propuesta</span>
+                {% include 'colegio/ia/_pregunta_resumen.html' with pregunta=cambio.mejorada %}</label>
+        </div>
+    </fieldset>
+    {% endfor %}
+
+    <div class="ia-acciones ia-comparar-acciones">
+        <span class="ia-comparar-resumen" data-resumen></span>
+        <a class="ia-boton secundario" href="{% url 'ia_instrumento' copia.pk %}">Ver borrador sin decidir</a>
+        <button type="submit" class="ia-boton">Guardar mi elección</button>
+    </div>
+</form>
+<script>
+(() => {
+  const form = document.querySelector('.ia-comparar');
+  const resumen = form.querySelector('[data-resumen]');
+  const actualizar = () => {
+    const grupos = new Set([...form.querySelectorAll('input[type=radio]')].map(r => r.name));
+    const mejoras = form.querySelectorAll('input[type=radio][value=mejora]:checked').length;
+    resumen.textContent = `${mejoras} de ${grupos.size} mejoras elegidas`;
+  };
+  form.addEventListener('change', actualizar);
+  form.querySelectorAll('[data-elegir]').forEach(b => b.addEventListener('click', () => {
+    form.querySelectorAll(`input[type=radio][value=${b.dataset.elegir}]`).forEach(r => { r.checked = true; });
+    actualizar();
+  }));
+  actualizar();
+})();
+</script>
+{% endblock %}

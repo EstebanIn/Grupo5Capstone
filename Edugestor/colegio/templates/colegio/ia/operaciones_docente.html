@@ -1,19 +1,23 @@
 {% extends 'colegio/ia/base_docente.html' %}
 {% load tz %}
 {% block titulo %}Operaciones recientes{% endblock %}
-{% block cabecera %}
-<header class="ia-encabezado"><h1>Operaciones recientes</h1><p>Consulta el progreso y los resultados de tus solicitudes al asistente. Fechas y horas de Chile.</p></header>
-{% endblock %}
+{% block aviso_simulado %}{% endblock %}
 {% block contenido %}
+<a class="ia-volver" href="{% url 'asistente_docente' %}">← Asistente IA</a>
+<header class="ia-encabezado"><h1>Operaciones recientes</h1><p>Consulta el progreso y los resultados de tus solicitudes al asistente. Fechas y horas de Chile.</p></header>
 <section class="ia-panel">
-    <div class="ia-seccion"><h2>Actividad del asistente</h2><a href="{% url 'asistente_docente' %}">Volver al asistente →</a></div>
-    <ul class="ia-trabajos-lista">
-    {% for t in pagina %}
-        <li><a href="{% url 'ia_trabajo' t.pk %}"><strong>{{ t.operacion|title }}</strong><small>{{ t.proveedor|title }} · {{ t.creado|timezone:'America/Santiago'|date:'d/m/Y H:i' }}</small></a><span class="ia-estado {{ t.estado }}">{{ t.get_estado_display }}</span></li>
-    {% empty %}
-        <li class="ia-vacio">Aquí verás el progreso de tus próximas operaciones.</li>
-    {% endfor %}
-    </ul>
+    <div class="ia-seccion"><h2>Actividad del asistente</h2></div>
+    {% if pagina %}
+    <div class="ia-tabla-scroll" tabindex="0" role="region" aria-label="Operaciones recientes">
+        <table class="ia-tabla ia-tabla-compacta"><thead><tr><th scope="col">Operación</th><th scope="col">Proveedor</th><th scope="col">Fecha</th><th scope="col">Estado</th></tr></thead><tbody>
+        {% for t in pagina %}
+            <tr><td><a href="{% url 'ia_trabajo' t.pk %}">{{ t.operacion|title }}</a></td><td>{{ t.proveedor|title }}{% if t.modelo and t.modelo != t.proveedor %} <small>{{ t.modelo }}</small>{% endif %}</td><td>{{ t.creado|timezone:'America/Santiago'|date:'d/m/Y H:i' }}</td><td><span class="ia-estado {{ t.estado }}">{{ t.get_estado_display }}</span></td></tr>
+        {% endfor %}
+        </tbody></table>
+    </div>
+    {% else %}
+    <p class="ia-vacio">Aquí verás el progreso de tus próximas operaciones.</p>
+    {% endif %}
     {% include 'colegio/ia/_paginacion.html' %}
 </section>
 {% endblock %}

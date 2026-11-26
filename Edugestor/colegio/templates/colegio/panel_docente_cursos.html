@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/docente.css' %}">
 
     
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=fase3">
 </head>
 <body>
 
@@ -50,29 +51,29 @@
         <div class="courses">
         {% for item in cursos %}
             <div class="course-card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px">
-                    <h2 style="font-size:18px">{{ item.curso }}</h2>
+                <div class="curso-cabecera">
+                    <h2>{{ item.curso }}</h2>
                     <span class="badge activo">Activo</span>
                 </div>
-                <p style="margin-bottom:8px">
-                    <span style="font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#9ca3af">Asignatura</span><br>
+                <p class="curso-dato">
+                    <span class="curso-etiqueta">Asignatura</span>
                     <strong>{{ item.asignatura.nombre_asignatura }}</strong>
                 </p>
-                <p style="margin-bottom:8px">
-                    <span style="font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#9ca3af">Período</span><br>
+                <p class="curso-dato">
+                    <span class="curso-etiqueta">Período</span>
                     {{ item.periodo }}
                 </p>
-                <p style="margin-bottom:16px">
-                    <span style="font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#9ca3af">Alumnos matriculados</span><br>
-                    <strong style="font-size:22px; color:#166534">{{ item.total_alumnos }}</strong>
+                <p class="curso-dato curso-dato-final">
+                    <span class="curso-etiqueta">Alumnos matriculados</span>
+                    <strong class="curso-numero">{{ item.total_alumnos }}</strong>
                 </p>
-                <a href="{% url 'panel_docente_notas' %}?carga_id={{ item.carga.id }}" class="btn" style="width:100%; text-align:center; display:block">
+                <a href="{% url 'panel_docente_notas' %}?carga_id={{ item.carga.id }}" class="btn btn-bloque">
                      Ingresar notas
                 </a>
             </div>
         {% empty %}
             <div class="course-card">
-                <h2 style="color:#9ca3af">No tienes cursos asignados</h2>
+                <h2 class="texto-vacio">No tienes cursos asignados</h2>
             </div>
         {% endfor %}
         </div>

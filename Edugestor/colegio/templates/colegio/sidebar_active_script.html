@@ -1,4 +1,41 @@
 <script>
+    /* Menú móvil y tablas desplazables: se ejecuta al final del body, antes del primer pintado. */
+    (function () {
+        var sidebar = document.querySelector(".sidebar");
+        var logo = sidebar && sidebar.querySelector(".logo");
+        if (logo) {
+            document.documentElement.classList.add("js-nav");
+            sidebar.id = sidebar.id || "menu-lateral";
+            var boton = document.createElement("button");
+            boton.type = "button";
+            boton.className = "nav-toggle";
+            boton.setAttribute("aria-controls", sidebar.id);
+            boton.setAttribute("aria-expanded", "false");
+            boton.innerHTML = '<span aria-hidden="true">&#9776;</span> Menú';
+            boton.addEventListener("click", function () {
+                var abierto = sidebar.classList.toggle("nav-abierta");
+                boton.setAttribute("aria-expanded", abierto ? "true" : "false");
+            });
+            logo.insertAdjacentElement("afterend", boton);
+        }
+
+        document.querySelectorAll(".main table, .main-content table").forEach(function (tabla) {
+            if (tabla.closest("[contenteditable], .tabla-scroll")) {
+                return;
+            }
+            for (var nodo = tabla.parentElement; nodo && nodo !== document.body; nodo = nodo.parentElement) {
+                var overflow = getComputedStyle(nodo).overflowX;
+                if (overflow === "auto" || overflow === "scroll") {
+                    return;
+                }
+            }
+            var envoltorio = document.createElement("div");
+            envoltorio.className = "tabla-scroll";
+            tabla.parentNode.insertBefore(envoltorio, tabla);
+            envoltorio.appendChild(tabla);
+        });
+    })();
+
     document.addEventListener("DOMContentLoaded", function () {
         var currentPath = window.location.pathname.replace(/\/$/, "");
         var bestMatch = null;

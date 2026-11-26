@@ -1,0 +1,47 @@
+{# Pregunta de desarrollo en el editor. Variables: i (índice del campo), numero, pregunta, criterios (lista). #}
+<div class="ia-pregunta ia-panel ia-pregunta-desarrollo">
+    <input type="hidden" name="p{{ i }}_tipo" value="desarrollo">
+    <div class="cabecera">
+        <strong>Pregunta {{ numero }} · Desarrollo</strong>
+        <label class="ia-eliminar"><input type="checkbox" name="p{{ i }}_eliminar"> Quitar pregunta</label>
+    </div>
+    <div class="campo">
+        <label for="p{{ i }}_enunciado" style="font-weight:normal">Enunciado o problema</label>
+        <textarea id="p{{ i }}_enunciado" name="p{{ i }}_enunciado" rows="3" required>{{ pregunta.enunciado }}</textarea>
+    </div>
+    <p class="ayuda">El estudiante responde en tres recuadros: desarrollo, fórmula o concepto, y resultado. Lo siguiente es la pauta; no aparece en la versión del estudiante.</p>
+    <div class="ia-desarrollo-pauta">
+        <div class="campo">
+            <label for="p{{ i }}_formula" style="font-weight:normal">Fórmula o concepto clave esperado</label>
+            <input type="text" id="p{{ i }}_formula" name="p{{ i }}_formula" value="{{ pregunta.formula }}" maxlength="400">
+        </div>
+        <div class="campo">
+            <label for="p{{ i }}_desarrollo_esperado" style="font-weight:normal">Desarrollo esperado (pasos o argumentos)</label>
+            <textarea id="p{{ i }}_desarrollo_esperado" name="p{{ i }}_desarrollo_esperado" rows="3">{{ pregunta.desarrollo_esperado }}</textarea>
+        </div>
+        <div class="campo">
+            <label for="p{{ i }}_resultado" style="font-weight:normal">Resultado o conclusión esperada</label>
+            <input type="text" id="p{{ i }}_resultado" name="p{{ i }}_resultado" value="{{ pregunta.resultado }}" maxlength="400">
+        </div>
+    </div>
+    <table class="ia-tabla ia-criterios-desarrollo">
+        <thead><tr><th>Recuadro</th><th>Nombre visible</th><th style="width:90px">Puntaje</th><th>Qué se considera logrado</th></tr></thead>
+        <tbody>
+        {% for criterio in criterios %}
+        <tr>
+            <td>{% if criterio.clave == 'desarrollo' %}Desarrollo{% elif criterio.clave == 'formula' %}Fórmula{% else %}Resultado{% endif %}</td>
+            <td><input type="hidden" name="p{{ i }}_c{{ forloop.counter0 }}_clave" value="{{ criterio.clave }}">
+                <input type="text" name="p{{ i }}_c{{ forloop.counter0 }}_nombre" value="{{ criterio.nombre }}" maxlength="80"
+                       title="Déjalo vacío para quitar este recuadro"></td>
+            <td><input type="number" name="p{{ i }}_c{{ forloop.counter0 }}_puntaje" value="{{ criterio.puntaje_maximo }}" min="1" max="10"></td>
+            <td><textarea name="p{{ i }}_c{{ forloop.counter0 }}_descriptor" rows="2">{{ criterio.descriptor }}</textarea></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p class="ayuda">Deja vacío el nombre de un recuadro para quitarlo. El puntaje de la pregunta es la suma de los recuadros.</p>
+    <div class="campo" style="margin-top:10px">
+        <label for="p{{ i }}_explicacion" style="font-weight:normal">Comentario para la pauta (opcional)</label>
+        <textarea id="p{{ i }}_explicacion" name="p{{ i }}_explicacion" rows="2">{{ pregunta.explicacion }}</textarea>
+    </div>
+</div>

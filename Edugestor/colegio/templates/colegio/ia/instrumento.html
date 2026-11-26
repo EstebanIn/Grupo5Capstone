@@ -9,6 +9,7 @@
 <script src="{% static 'js/ia_editor_material.js' %}?v=visuales-2" defer></script>
 {% endif %}{% endblock %}
 
+{% block pasos %}{% if instrumento.estado == 'APROBADO' %}{% include 'colegio/ia/_pasos.html' with paso=3 %}{% else %}{% include 'colegio/ia/_pasos.html' with paso=2 %}{% endif %}{% endblock %}
 {% block contenido %}
 {# Select the source without pre-escaping it; each output escapes or sanitizes it. #}
 {% autoescape off %}{% firstof contenido.contenido contenido.texto as texto_material %}{% endautoescape %}
@@ -25,6 +26,14 @@
     </p>
     {% if instrumento.objetivo %}<p><strong>OA:</strong> {{ instrumento.objetivo }}</p>{% endif %}
 </div>
+{% if instrumento.parametros.mejora_de %}
+<div class="ia-aviso-mejora ia-no-imprimir" role="note">
+    <strong>Versión mejorada con IA.</strong>
+    {% if instrumento.estado == 'BORRADOR' %}Se creó a partir de una revisión de calidad; la prueba original no cambió.
+    <a href="{% url 'ia_comparar_mejora' instrumento.pk %}">{% if instrumento.parametros.mejora_revisada %}Volver a comparar cambios{% else %}Comparar y elegir cambios{% endif %} →</a>
+    {% else %}Se creó a partir de una revisión de calidad.{% endif %}
+</div>
+{% endif %}
 
 <div class="ia-panel ia-no-imprimir">
     <p><strong>Objetivo personalizado:</strong> contrástalo con el OA y la actividad antes de aprobar.</p>
@@ -56,9 +65,15 @@
         </div>
     </div>
 
+    {% if puntaje_total is not None %}<p class="ayuda ia-puntaje-total">Puntaje total de la prueba: <strong>{{ puntaje_total }} puntos</strong> (selección múltiple: 1 punto cada una). Se recalcula al guardar.</p>{% endif %}
+    <div data-preguntas>
     {% for pregunta in contenido.preguntas %}
     {% with i=forloop.counter0 %}
+    {% if pregunta.tipo == 'desarrollo' %}
+    {% include 'colegio/ia/_editor_pregunta_desarrollo.html' with i=i numero=forloop.counter pregunta=pregunta criterios=pregunta.criterios %}
+    {% else %}
     <div class="ia-pregunta ia-panel">
+        <input type="hidden" name="p{{ i }}_tipo" value="seleccion">
         <div class="cabecera">
             <strong>Pregunta {{ forloop.counter }}</strong>
             <label class="ia-eliminar"><input type="checkbox" name="p{{ i }}_eliminar"> Quitar pregunta</label>
@@ -79,8 +94,40 @@
             <textarea id="p{{ i }}_explicacion" name="p{{ i }}_explicacion" rows="2">{{ pregunta.explicacion }}</textarea>
         </div>
     </div>
+    {% endif %}
     {% endwith %}
     {% endfor %}
+    </div>
+    <template id="plantilla-desarrollo">
+    {% include 'colegio/ia/_editor_pregunta_desarrollo.html' with i='__I__' numero='nueva' pregunta=None criterios=criterios_nuevos %}
+    </template>
+    <div class="ia-acciones" style="margin-bottom:16px">
+        <button type="button" class="ia-boton secundario" data-agregar-desarrollo data-indice="{{ indice_nuevo }}" data-maximo="{{ max_preguntas }}">+ Agregar pregunta de desarrollo</button>
+    </div>
+    <script>
+    (function () {
+        var boton = document.querySelector('[data-agregar-desarrollo]');
+        var plantilla = document.getElementById('plantilla-desarrollo');
+        var lista = document.querySelector('[data-preguntas]');
+        if (!boton || !plantilla || !lista) return;
+        var indice = parseInt(boton.dataset.indice, 10) || 0;
+        var maximo = parseInt(boton.dataset.maximo, 10) || 25;
+        boton.addEventListener('click', function () {
+            if (lista.querySelectorAll('.ia-pregunta').length >= maximo) {
+                alert('La prueba admite hasta ' + maximo + ' preguntas.');
+                return;
+            }
+            // Índices de campo de hasta dos dígitos: se busca el primero libre.
+            while (document.querySelector('[name="p' + indice + '_enunciado"]')) indice++;
+            if (indice > 99) return;
+            var html = plantilla.innerHTML.split('__I__').join(String(indice));
+            lista.insertAdjacentHTML('beforeend', html);
+            var nueva = lista.lastElementChild;
+            if (nueva) nueva.querySelector('textarea').focus();
+            indice++;
+        });
+    })();
+    </script>
     <div class="ia-panel">
 
         {% elif instrumento.tipo == 'RUBRICA' %}
@@ -122,6 +169,7 @@
         </div>
 
         {% else %}
+        {% include 'colegio/ia/_editor_ficha.html' %}
         {% include 'colegio/ia/_editor_material.html' %}
         <label class="ia-revision ia-material-revision"><input type="checkbox" name="separacion_revisada" {% if contenido.separacion_revisada %}checked{% endif %}><span><strong>Revisé los ejercicios y sus respuestas.</strong><small>Las respuestas de los ejercicios están en el solucionario docente. Los ejemplos resueltos de la explicación se mantienen para los estudiantes.</small></span></label>
         {% endif %}
@@ -148,7 +196,8 @@
 {# ======================= DOCUMENTO APROBADO ======================= #}
 <div class="ia-panel ia-no-imprimir"><h2>Documento aprobado · Exportar</h2>
 <div class="ia-acciones">
-{% if instrumento.tipo == 'PRUEBA' %}<a class="ia-boton" href="{% url 'ia_corregir_prueba' instrumento.pk %}">Corregir respuestas</a>{% endif %}
+{% if instrumento.tipo == 'PRUEBA' %}<a class="ia-boton" href="{% url 'ia_corregir_prueba' instrumento.pk %}">Corregir respuestas</a>
+<a class="ia-boton secundario" href="{% url 'ia_revisar_prueba' %}?instrumento={{ instrumento.pk }}" title="La IA propone mejoras; podrás aplicarlas a una copia sin tocar esta prueba">🔍 Revisar calidad con IA</a>{% endif %}
 {% if instrumento.tipo != 'MATERIAL' or contenido.separacion_revisada %}
 <form method="post" action="{% url 'ia_exportar' instrumento.pk %}">{% csrf_token %}<input type="hidden" name="idempotencia" value="{{ idempotencia }}"><input type="hidden" name="version" value="estudiante"><button class="ia-boton" type="submit">Descargar PDF estudiante</button></form>
 <a class="ia-boton secundario" href="{% url 'ia_imprimir' instrumento.pk 'estudiante' %}" target="_blank" rel="noopener">Imprimir estudiante</a>
@@ -165,12 +214,23 @@
         {% for pregunta in contenido.preguntas %}
         <li>
             {{ pregunta.enunciado|linebreaksbr }}
+            {% if pregunta.tipo == 'desarrollo' %}
+            <div class="explicacion pauta ia-pauta-desarrollo">
+                <strong>Desarrollo · {{ pregunta.puntaje }} puntos</strong>
+                {% if pregunta.formula %}<p><strong>Fórmula o concepto:</strong> {{ pregunta.formula }}</p>{% endif %}
+                {% if pregunta.desarrollo_esperado %}<p><strong>Desarrollo esperado:</strong><br>{{ pregunta.desarrollo_esperado|linebreaksbr }}</p>{% endif %}
+                {% if pregunta.resultado %}<p><strong>Resultado esperado:</strong> {{ pregunta.resultado }}</p>{% endif %}
+                <ul>{% for c in pregunta.criterios %}<li><strong>{{ c.nombre }}</strong> ({{ c.puntaje_maximo }} pts){% if c.descriptor %}: {{ c.descriptor }}{% endif %}</li>{% endfor %}</ul>
+                {% if pregunta.explicacion %}<p>{{ pregunta.explicacion }}</p>{% endif %}
+            </div>
+            {% else %}
             <ol class="alternativas">
                 {% for alternativa in pregunta.alternativas %}
                 <li class="{% if forloop.counter0 == pregunta.correcta %}pauta-correcta{% endif %}">{{ alternativa }}</li>
                 {% endfor %}
             </ol>
             {% if pregunta.explicacion %}<div class="explicacion pauta">Respuesta {{ pregunta.correcta|letra }}: {{ pregunta.explicacion }}</div>{% endif %}
+            {% endif %}
         </li>
         {% endfor %}
     </ol>
@@ -195,6 +255,7 @@
     </div>
 
     {% else %}
+    {% if contenido.ficha %}{% include 'colegio/ia/_ficha_visual.html' with ficha=contenido.ficha %}{% endif %}
     <div class="ia-markdown">{% material_visual texto_material contenido.recursos_visuales 'contenido' %}{% if contenido.ejercicios %}<h2>Ejercicios propuestos</h2>{% material_visual contenido.ejercicios contenido.recursos_visuales 'ejercicios' %}{% endif %}{% if contenido.solucionario %}<h2>Solucionario docente</h2>{% material_visual contenido.solucionario contenido.recursos_visuales 'solucionario' %}{% endif %}</div>
     {% endif %}
 </div>

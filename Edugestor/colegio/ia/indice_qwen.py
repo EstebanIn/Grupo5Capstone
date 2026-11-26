@@ -2,9 +2,10 @@
 import hashlib
 import json
 import os
+from contextlib import contextmanager
 from pathlib import Path
 from django.conf import settings
-from django.db import transaction
+from django.db import connection, transaction
 from .proveedor import ErrorIA
 
 def huella(texto):
@@ -71,14 +72,35 @@ def documentos_tutor_qwen():
         raise ErrorIA('El índice RAG de Qwen del tutor está incompleto. Completa su indexación.')
     return [{**d, 'embedding': vectores[huella(d['texto'])]} for d in documentos]
 
-def reindexar_qwen(informar=lambda texto: None):
+@contextmanager
+def bloqueo_indexacion():
+    """Evita que dos reindexaciones (web o consola) gasten cuota o se pisen."""
+    if connection.vendor != 'postgresql':
+        yield
+        return
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT pg_try_advisory_lock(78331357)')
+        if not cursor.fetchone()[0]:
+            raise ErrorIA('Ya hay una reindexación Qwen en ejecución.')
+    try:
+        yield
+    finally:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT pg_advisory_unlock(78331357)')
+
+def reindexar_qwen(informar=lambda texto: None, *, max_lotes=None):
+    """Completa lo pendiente; con max_lotes se detiene tras esa cantidad de lotes de 10."""
     from colegio.models import FragmentoCurricular
     from .qwen import embeddings
     pendientes = []
     for f in FragmentoCurricular.objects.filter(documento__activo=True).iterator(chunk_size=100):
         if f.embedding_qwen is None or f.modelo_embedding_qwen != settings.QWEN_EMBEDDING_MODEL or f.huella_texto_qwen != huella(f.texto):
             pendientes.append(f)
+    lotes = 0
     for inicio in range(0, len(pendientes), 10):
+        if lotes == max_lotes:
+            return estado_indices()
+        lotes += 1
         lote = pendientes[inicio:inicio+10]
         vectores = embeddings([f.texto for f in lote], tipo='RETRIEVAL_DOCUMENT')
         with transaction.atomic():
@@ -96,6 +118,9 @@ def reindexar_qwen(informar=lambda texto: None):
         temporal.write_text(json.dumps({'proveedor':'qwen','modelo':settings.QWEN_EMBEDDING_MODEL,'dimensiones':768,'base_sha256':sha,'vectores':vectores}), encoding='utf-8')
         os.replace(temporal,ruta)
     for inicio in range(0,len(textos),10):
+        if lotes == max_lotes:
+            break
+        lotes += 1
         lote=textos[inicio:inicio+10]
         nuevos=embeddings(lote,tipo='RETRIEVAL_DOCUMENT')
         vectores.update((huella(t),v) for t,v in zip(lote,nuevos))

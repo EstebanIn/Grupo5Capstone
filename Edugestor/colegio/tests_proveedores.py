@@ -89,7 +89,8 @@ class ProveedoresVistaTests(AsistenteIATestBase):
         self.client.post(reverse('ia_crear_prueba'),{'proveedor':'qwen','carga':self.carga.pk,'tema':'Sumas','cantidad':3,'dificultad':'media'})
         registro=RegistroIA.objects.get(usuario=self.usuario_docente)
         self.assertEqual(registro.estado,'ERROR')
-        self.assertIn('incompleto',registro.detalle)
+        self.assertIn('No hay fuentes curriculares',registro.detalle)
+        self.assertIn('Biblioteca curricular',registro.detalle)
 
     def test_registro_solo_del_usuario(self):
         registro=RegistroIA.objects.create(usuario=self.usuario_otro_docente,proveedor='qwen',operacion='Privada',estado='OK')
@@ -128,6 +129,18 @@ class IndicesSeparadosTests(TestCase):
             self.assertTrue(reindexar_qwen()['completo'])
         api.assert_not_called()
 
+    def test_max_lotes_avanza_por_partes_hasta_completar(self):
+        d=self.a.documento
+        for numero in range(3,14):
+            FragmentoCurricular.objects.create(documento=d,numero=numero,pagina=numero,texto='Texto %s'%numero,embedding=VECTOR)
+        with mock.patch('colegio.ia.qwen.embeddings',side_effect=lambda textos,**kw:[OTRO for _ in textos]) as api:
+            primero=reindexar_qwen(max_lotes=1)
+            self.assertEqual((primero['curricular_completos'],primero['tutor_completos'],api.call_count),(10,0,1))
+            segundo=reindexar_qwen(max_lotes=1)
+            self.assertEqual((segundo['curricular_completos'],segundo['tutor_completos'],api.call_count),(13,0,2))
+            self.assertTrue(reindexar_qwen(max_lotes=1)['completo'])
+        self.assertEqual(api.call_count,3)
+
     def test_consultas_usan_indices_independientes(self):
         self.completar()
         self.b.embedding_qwen=VECTOR;self.b.save(update_fields=['embedding_qwen'])
@@ -152,3 +165,35 @@ class IndicesSeparadosTests(TestCase):
         self.a.refresh_from_db();self.assertEqual(list(self.a.embedding),VECTOR)
         self.assertFalse(estado_indices()['completo'])
         self.assertTrue(self.completar()['completo'])
+
+
+@override_settings(QWEN_API_KEY='clave-prueba-no-real')
+class BotonIndexarQwenTests(AsistenteIATestBase):
+    estado = {'curricular_total': 1, 'curricular_completos': 1, 'tutor_total': 1, 'tutor_completos': 0, 'completo': False}
+
+    def enviar(self, usuario):
+        self.client.force_login(usuario)
+        with mock.patch('colegio.ia.views_proveedores.reindexar_qwen', return_value=self.estado) as indexar:
+            return self.client.post(reverse('indexar_qwen_ia'), HTTP_HOST='localhost'), indexar
+
+    def test_docente_procesa_un_lote(self):
+        respuesta, indexar = self.enviar(self.usuario_docente)
+        self.assertEqual(respuesta.json(), self.estado)
+        indexar.assert_called_once_with(max_lotes=1)
+
+    def test_alumno_no_puede_indexar(self):
+        respuesta, indexar = self.enviar(self.usuario_alumno)
+        self.assertEqual(respuesta.status_code, 403)
+        indexar.assert_not_called()
+
+    @override_settings(QWEN_API_KEY='')
+    def test_sin_clave_no_indexa(self):
+        respuesta, indexar = self.enviar(self.usuario_docente)
+        self.assertEqual(respuesta.status_code, 400)
+        indexar.assert_not_called()
+
+    def test_boton_solo_visible_para_docente(self):
+        for usuario, visible in ((self.usuario_docente, True), (self.usuario_alumno, False)):
+            self.client.force_login(usuario)
+            respuesta = self.client.get(reverse('registro_ia'))
+            self.assertEqual('id="indexar-qwen"' in respuesta.content.decode(), visible)

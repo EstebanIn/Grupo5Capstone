@@ -1,3 +1,6 @@
+/* Colores del rol: base.css los usa para componentes compartidos. */
+:root { --rol-acento: #166534; --rol-acento-oscuro: #15803d; --rol-acento-suave: #dcfce7; }
+
 /* ==================================================
    RESET
 ================================================== */
